@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block title %}Uploader un document — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <h1 class="page-title"><i class="bi bi-cloud-upload"></i> Uploader un Document</h1>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header"><i class="bi bi-file-earmark-plus"></i> Nouveau document</div>
+        <div class="card-body p-4">
+
+          {% if form.errors %}
+          <div class="alert alert-danger">
+            {% for field, errors in form.errors.items %}
+              {% for error in errors %}<p class="mb-0"><i class="bi bi-exclamation-circle"></i> {{ error }}</p>{% endfor %}
+            {% endfor %}
+          </div>
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Zone drag & drop -->
+            <div class="mb-4 p-4 text-center rounded"
+                 style="border: 2px dashed var(--bleu-secondaire); background: var(--bleu-clair); cursor:pointer;"
+                 onclick="document.getElementById('id_fichier').click()">
+              <i class="bi bi-cloud-upload" style="font-size:3rem; color:var(--bleu-secondaire);"></i>
+              <p class="mt-2 mb-1 fw-bold" style="color:var(--bleu-principal);">Cliquez pour sélectionner un fichier</p>
+              <p class="text-muted small mb-0">PDF, Word, Excel, Image — Max 10 Mo</p>
+              <div id="filename-display" class="mt-2 text-success fw-bold" style="display:none;"></div>
+            </div>
+            <div class="mb-3" style="display:none;">{{ form.fichier }}</div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">{{ form.titre.label }}</label>
+              {{ form.titre }}
+            </div>
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">{{ form.categorie.label }}</label>
+                {{ form.categorie }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">{{ form.statut.label }}</label>
+                {{ form.statut }}
+              </div>
+            </div>
+            <div class="mb-4">
+              <label class="form-label">{{ form.description.label }}</label>
+              {{ form.description }}
+            </div>
+
+            <div class="d-flex gap-2">
+              <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+              </a>
+              <button type="submit" class="btn btn-lc-primary flex-grow-1">
+                <i class="bi bi-cloud-upload"></i> Uploader le document
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Aide -->
+      <div class="card mt-3">
+        <div class="card-body">
+          <h6 class="fw-bold" style="color:var(--bleu-principal);"><i class="bi bi-info-circle"></i> Formats acceptés</h6>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            <span class="badge bg-danger px-3 py-2"><i class="bi bi-file-pdf"></i> PDF</span>
+            <span class="badge bg-primary px-3 py-2"><i class="bi bi-file-word"></i> Word (.doc, .docx)</span>
+            <span class="badge bg-success px-3 py-2"><i class="bi bi-file-excel"></i> Excel (.xls, .xlsx)</span>
+            <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-file-image"></i> Images (.jpg, .png)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('id_fichier').addEventListener('change', function() {
+  const name = this.files[0]?.name;
+  if (name) {
+    const display = document.getElementById('filename-display');
+    display.textContent = '✓ ' + name;
+    display.style.display = 'block';
+  }
+});
+</script>
+{% endblock %}

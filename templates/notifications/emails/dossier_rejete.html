@@ -1,0 +1,17 @@
+{% extends 'notifications/emails/base.html' %}
+{% block body %}
+<h2 style="color:#C0392B;">❌ Dossier rejeté</h2>
+<p>Bonjour <strong>{{ client.first_name }} {{ client.last_name }}</strong>,</p>
+<p>Votre dossier a malheureusement été <strong style="color:#C0392B;">rejeté</strong> par l'expert.</p>
+<div class="info-box" style="background:#FDEDEC; border-color:#C0392B;">
+  <p><strong>Dossier :</strong> {{ dossier.titre }}</p>
+  {% if expert %}<p><strong>Expert :</strong> {{ expert.first_name }} {{ expert.last_name }}</p>{% endif %}
+  {% if dossier.note_expert %}
+  <p style="margin-top:8px;"><strong>Motif :</strong><br>{{ dossier.note_expert }}</p>
+  {% endif %}
+</div>
+<p>Vous pouvez soumettre un nouveau dossier avec les informations complémentaires demandées.</p>
+<a href="http://127.0.0.1:8000/collaboration/" class="btn" style="background:#C0392B;">
+  Voir mes dossiers
+</a>
+{% endblock %}

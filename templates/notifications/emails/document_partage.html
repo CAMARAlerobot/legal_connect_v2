@@ -1,0 +1,15 @@
+{% extends 'notifications/emails/base.html' %}
+{% block body %}
+<h2>📁 Document partagé avec vous</h2>
+<p>Bonjour <strong>{{ expert.first_name }} {{ expert.last_name }}</strong>,</p>
+<p><strong>{{ client.first_name }} {{ client.last_name }}</strong> a partagé un document avec vous.</p>
+<div class="info-box">
+  <p><strong>Document :</strong> {{ document.titre }}</p>
+  <p><strong>Catégorie :</strong> {{ document.get_categorie_display }}</p>
+  <p><strong>Type :</strong> {{ document.extension|upper }}</p>
+  <p><strong>Taille :</strong> {{ document.taille_lisible }}</p>
+</div>
+<a href="http://127.0.0.1:8000/documents/{{ document.pk }}/" class="btn">
+  Voir le document
+</a>
+{% endblock %}

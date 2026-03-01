@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: 0; padding: 0; background: #f4f7fb; font-family: 'Segoe UI', Arial, sans-serif; }
+    .container { max-width: 600px; margin: 30px auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .header { background: #1B4F72; padding: 30px 40px; text-align: center; }
+    .header h1 { color: white; margin: 0; font-size: 24px; }
+    .header p { color: rgba(255,255,255,0.8); margin: 5px 0 0; font-size: 13px; }
+    .body { padding: 35px 40px; }
+    .body h2 { color: #1B4F72; margin-top: 0; }
+    .body p { color: #444; line-height: 1.7; }
+    .btn { display: inline-block; background: #1B4F72; color: white !important; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin: 15px 0; }
+    .info-box { background: #D6EAF8; border-left: 4px solid #2E86C1; padding: 15px 20px; border-radius: 6px; margin: 20px 0; }
+    .info-box p { margin: 0; color: #1B4F72; }
+    .footer { background: #f8f9fa; padding: 20px 40px; text-align: center; border-top: 1px solid #eee; }
+    .footer p { color: #999; font-size: 12px; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚖ Légal Connect</h1>
+      <p>Plateforme Numérique d'Assistance Juridique</p>
+    </div>
+    <div class="body">
+      {% block body %}{% endblock %}
+    </div>
+    <div class="footer">
+      <p>Légal Connect &mdash; Université Nangui Abrogoua &mdash; Master 1 MIAGE</p>
+      <p>Vous recevez cet email car vous êtes inscrit sur la plateforme Légal Connect.</p>
+    </div>
+  </div>
+</body>
+</html>

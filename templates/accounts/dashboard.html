@@ -1,0 +1,440 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-house"></i> Tableau de bord</h1>
+      <p class="text-muted mb-0">
+        Bonjour <strong>{{ request.user.first_name|default:request.user.username }}</strong> 👋
+        <span class="badge ms-2 px-3 py-1"
+          style="background:{% if role == 'expert' %}#1E8449{% elif role == 'admin' %}#922B21{% else %}#1B4F72{% endif %}; color:white;">
+          {{ request.user.profil.get_role_display }}
+        </span>
+      </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if echeances_urgentes > 0 %}
+      <a href="/fiscalite/calendrier/" class="btn btn-warning">
+        <i class="bi bi-exclamation-triangle"></i> {{ echeances_urgentes }} échéance(s) urgente(s)
+      </a>
+      {% endif %}
+      <a href="{% url 'contrats:choisir_modele' %}" class="btn btn-lc-primary">
+        <i class="bi bi-plus-lg"></i> Nouveau contrat
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100" style="border-left: 4px solid #1B4F72;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1">CONTRATS</div>
+            <div style="font-size:2.2rem; font-weight:800; color:#1B4F72; line-height:1;">{{ total_contrats }}</div>
+            <div class="mt-1">
+              <span class="badge bg-warning text-dark">{{ brouillons }} brouillon(s)</span>
+              <span class="badge bg-success ms-1">{{ signes }} signé(s)</span>
+            </div>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px; height:48px; background:#D6EAF8; flex-shrink:0;">
+            <i class="bi bi-file-earmark-text" style="font-size:1.4rem; color:#1B4F72;"></i>
+          </div>
+        </div>
+        <div class="mt-2">
+          <div class="progress" style="height:4px; border-radius:10px;">
+            <div class="progress-bar" style="width:{% if total_contrats > 0 %}{{ signes|floatformat:0 }}{% else %}0{% endif %}%;
+                 background:#1B4F72;"></div>
+          </div>
+          <small class="text-muted">{{ finalises }} finalisé(s)</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100" style="border-left: 4px solid #2E86C1;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1">DOCUMENTS</div>
+            <div style="font-size:2.2rem; font-weight:800; color:#2E86C1; line-height:1;">{{ total_documents }}</div>
+            <small class="text-muted">fichiers stockés</small>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px; height:48px; background:#D6EAF8; flex-shrink:0;">
+            <i class="bi bi-folder" style="font-size:1.4rem; color:#2E86C1;"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <a href="/documents/" class="btn btn-sm btn-lc-outline w-100">Gérer mes documents</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100" style="border-left: 4px solid #1E8449;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1">DOSSIERS</div>
+            <div style="font-size:2.2rem; font-weight:800; color:#1E8449; line-height:1;">{{ total_dossiers }}</div>
+            <small class="text-muted">{{ dossiers_en_attente }} en attente</small>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px; height:48px; background:#EAFAF1; flex-shrink:0;">
+            <i class="bi bi-people" style="font-size:1.4rem; color:#1E8449;"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <a href="/collaboration/" class="btn btn-sm btn-lc-outline w-100">Voir mes dossiers</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100" style="border-left: 4px solid #D35400;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1">DÉCLARATIONS</div>
+            <div style="font-size:2.2rem; font-weight:800; color:#D35400; line-height:1;">{{ total_declarations }}</div>
+            <small class="text-muted">déclarations fiscales</small>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px; height:48px; background:#FEF9E7; flex-shrink:0;">
+            <i class="bi bi-calculator" style="font-size:1.4rem; color:#D35400;"></i>
+          </div>
+        </div>
+        <div class="mt-3">
+          <a href="/fiscalite/" class="btn btn-sm btn-lc-outline w-100">Espace fiscal</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Graphiques -->
+  <div class="row g-3 mb-4">
+
+    <!-- Graphique contrats -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-bar-chart"></i> Répartition des contrats</span>
+          <a href="{% url 'contrats:liste' %}" class="btn btn-sm btn-outline-light">Voir tout</a>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          {% if total_contrats > 0 %}
+          <canvas id="contratsChart" style="max-height:220px;"></canvas>
+          {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-file-earmark-text" style="font-size:3rem; color:#ccc;"></i>
+            <p class="text-muted mt-2 mb-3">Aucun contrat pour l'instant</p>
+            <a href="{% url 'contrats:choisir_modele' %}" class="btn btn-lc-primary btn-sm">
+              <i class="bi bi-plus-lg"></i> Créer un contrat
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphique activité globale -->
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header">
+          <span><i class="bi bi-pie-chart"></i> Activité globale</span>
+        </div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          <canvas id="activiteChart" style="max-height:220px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Derniers contrats + Actions rapides -->
+  <div class="row g-3 mb-4">
+
+    <!-- Derniers contrats -->
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-clock-history"></i> Derniers contrats</span>
+          <a href="{% url 'contrats:liste' %}" class="btn btn-sm btn-outline-light">Voir tout</a>
+        </div>
+        <div class="card-body p-0">
+          {% if derniers_contrats %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead style="background:#f8f9fa;">
+                <tr>
+                  <th class="ps-3">Titre</th>
+                  <th>Type</th>
+                  <th>Client</th>
+                  <th>Statut</th>
+                  <th>Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in derniers_contrats %}
+                <tr>
+                  <td class="fw-bold ps-3">{{ c.titre|truncatechars:30 }}</td>
+                  <td><small class="text-muted">{{ c.get_type_contrat_display|truncatechars:20 }}</small></td>
+                  <td><small>{{ c.nom_client|truncatechars:20 }}</small></td>
+                  <td>
+                    <span class="badge rounded-pill
+                      {% if c.statut == 'signe' %}bg-success
+                      {% elif c.statut == 'finalise' %}bg-primary
+                      {% elif c.statut == 'archive' %}bg-secondary
+                      {% else %}bg-warning text-dark{% endif %}">
+                      {{ c.get_statut_display }}
+                    </span>
+                  </td>
+                  <td><small>{{ c.created_at|date:"d/m/Y" }}</small></td>
+                  <td>
+                    <a href="{% url 'contrats:detail' c.pk %}" class="btn btn-sm btn-lc-primary">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-file-earmark-text" style="font-size:3rem; color:#ccc;"></i>
+            <p class="text-muted mt-2">Aucun contrat pour l'instant</p>
+            <a href="{% url 'contrats:choisir_modele' %}" class="btn btn-lc-primary btn-sm">
+              <i class="bi bi-plus-lg"></i> Créer mon premier contrat
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-lightning"></i> Actions rapides</div>
+        <div class="card-body p-0">
+          <a href="{% url 'contrats:choisir_modele' %}" class="d-flex align-items-center gap-3 p-3 text-decoration-none border-bottom action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:40px; height:40px; background:#D6EAF8;">
+              <i class="bi bi-file-earmark-plus" style="color:#1B4F72;"></i>
+            </div>
+            <div>
+              <div class="fw-bold small" style="color:#1B4F72;">Nouveau contrat</div>
+              <div class="text-muted" style="font-size:11px;">Générez en 5 minutes</div>
+            </div>
+            <i class="bi bi-chevron-right ms-auto text-muted"></i>
+          </a>
+          <a href="/documents/upload/" class="d-flex align-items-center gap-3 p-3 text-decoration-none border-bottom action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:40px; height:40px; background:#EAFAF1;">
+              <i class="bi bi-upload" style="color:#1E8449;"></i>
+            </div>
+            <div>
+              <div class="fw-bold small" style="color:#1B4F72;">Uploader un document</div>
+              <div class="text-muted" style="font-size:11px;">PDF, Word, Images</div>
+            </div>
+            <i class="bi bi-chevron-right ms-auto text-muted"></i>
+          </a>
+          <a href="/fiscalite/calculateur/" class="d-flex align-items-center gap-3 p-3 text-decoration-none border-bottom action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:40px; height:40px; background:#FEF9E7;">
+              <i class="bi bi-calculator" style="color:#D35400;"></i>
+            </div>
+            <div>
+              <div class="fw-bold small" style="color:#1B4F72;">Calculer mes impôts</div>
+              <div class="text-muted" style="font-size:11px;">TVA, IS, CNPS, BNC, BIC</div>
+            </div>
+            <i class="bi bi-chevron-right ms-auto text-muted"></i>
+          </a>
+          <a href="/collaboration/creer/" class="d-flex align-items-center gap-3 p-3 text-decoration-none border-bottom action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:40px; height:40px; background:#EAFAF1;">
+              <i class="bi bi-folder-plus" style="color:#1E8449;"></i>
+            </div>
+            <div>
+              <div class="fw-bold small" style="color:#1B4F72;">Soumettre un dossier</div>
+              <div class="text-muted" style="font-size:11px;">Conseil expert en 48h</div>
+            </div>
+            <i class="bi bi-chevron-right ms-auto text-muted"></i>
+          </a>
+          <a href="/annuaire/" class="d-flex align-items-center gap-3 p-3 text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:40px; height:40px; background:#D6EAF8;">
+              <i class="bi bi-person-badge" style="color:#2E86C1;"></i>
+            </div>
+            <div>
+              <div class="fw-bold small" style="color:#1B4F72;">Trouver un expert</div>
+              <div class="text-muted" style="font-size:11px;">Annuaire des spécialistes</div>
+            </div>
+            <i class="bi bi-chevron-right ms-auto text-muted"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Notifications + Échéances -->
+  <div class="row g-3">
+
+    <!-- Notifications récentes -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-bell"></i> Notifications récentes
+            {% if non_lus > 0 %}
+            <span class="badge bg-danger ms-1">{{ non_lus }}</span>
+            {% endif %}
+          </span>
+          <a href="/notifications/" class="btn btn-sm btn-outline-light">Voir tout</a>
+        </div>
+        <div class="card-body p-0">
+          {% if non_lus == 0 %}
+          <div class="text-center py-4">
+            <i class="bi bi-bell-slash" style="font-size:2.5rem; color:#ccc;"></i>
+            <p class="text-muted mt-2 mb-0 small">Aucune notification non lue</p>
+          </div>
+          {% else %}
+          <div class="p-3 text-center">
+            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2"
+                 style="width:60px; height:60px; background:#FDEDEC;">
+              <i class="bi bi-bell-fill" style="font-size:1.8rem; color:#E74C3C;"></i>
+            </div>
+            <p class="fw-bold mb-1" style="color:#E74C3C;">{{ non_lus }} notification(s) non lue(s)</p>
+            <a href="/notifications/" class="btn btn-sm btn-lc-primary">Voir les notifications</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Taux fiscal rapide -->
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-header">
+          <span><i class="bi bi-percent"></i> Taux fiscaux Côte d'Ivoire 2026</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge px-3 py-2" style="background:#1B4F72;">TVA</span>
+              <span class="text-muted small">Taxe sur la Valeur Ajoutée</span>
+            </div>
+            <span class="fw-bold" style="color:#1B4F72;">18%</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge px-3 py-2" style="background:#2E86C1;">IS</span>
+              <span class="text-muted small">Impôt sur les Sociétés</span>
+            </div>
+            <span class="fw-bold" style="color:#2E86C1;">20-30%</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge px-3 py-2 bg-warning text-dark">CNPS</span>
+              <span class="text-muted small">Prévoyance Sociale</span>
+            </div>
+            <span class="fw-bold" style="color:#D35400;">23.2%</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge px-3 py-2" style="background:#1E8449;">BNC</span>
+              <span class="text-muted small">Bénéfices Non Commerciaux</span>
+            </div>
+            <span class="fw-bold" style="color:#1E8449;">20%</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-3">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge px-3 py-2" style="background:#8E44AD;">BIC</span>
+              <span class="text-muted small">Bénéfices Industriels</span>
+            </div>
+            <span class="fw-bold" style="color:#8E44AD;">25%</span>
+          </div>
+        </div>
+        <div class="card-body border-top pt-2 pb-2">
+          <a href="/fiscalite/calculateur/" class="btn btn-lc-primary btn-sm w-100">
+            <i class="bi bi-calculator"></i> Calculer mes impôts maintenant
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+  .action-item { transition: background 0.2s; }
+  .action-item:hover { background: #f8f9fa; }
+</style>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Graphique contrats
+  {% if total_contrats > 0 %}
+  const ctx1 = document.getElementById('contratsChart').getContext('2d');
+  new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['Brouillons', 'Finalisés', 'Signés', 'Archivés'],
+      datasets: [{
+        data: [{{ brouillons }}, {{ finalises }}, {{ signes }}, {{ total_contrats }} - {{ brouillons }} - {{ finalises }} - {{ signes }}],
+        backgroundColor: ['#F39C12', '#2E86C1', '#27AE60', '#95A5A6'],
+        borderWidth: 0,
+        hoverOffset: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } },
+      },
+      cutout: '65%',
+    }
+  });
+  {% endif %}
+
+  // Graphique activité globale
+  const ctx2 = document.getElementById('activiteChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: ['Contrats', 'Documents', 'Dossiers', 'Déclarations'],
+      datasets: [{
+        label: 'Nombre',
+        data: [{{ total_contrats }}, {{ total_documents }}, {{ total_dossiers }}, {{ total_declarations }}],
+        backgroundColor: ['#1B4F72', '#2E86C1', '#1E8449', '#D35400'],
+        borderRadius: 8,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 },
+          grid: { color: 'rgba(0,0,0,0.05)' },
+        },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+</script>
+{% endblock %}
+{% endblock %}

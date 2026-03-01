@@ -1,0 +1,16 @@
+{% extends 'notifications/emails/base.html' %}
+{% block body %}
+<h2 style="color:#1E8449;">✅ Dossier validé</h2>
+<p>Bonjour <strong>{{ client.first_name }} {{ client.last_name }}</strong>,</p>
+<p>Bonne nouvelle ! Votre dossier a été <strong style="color:#1E8449;">validé</strong> par l'expert.</p>
+<div class="info-box" style="background:#EAFAF1; border-color:#27AE60;">
+  <p><strong>Dossier :</strong> {{ dossier.titre }}</p>
+  <p><strong>Expert :</strong> {{ expert.first_name }} {{ expert.last_name }}</p>
+  {% if dossier.note_expert %}
+  <p style="margin-top:8px;"><strong>Avis de l'expert :</strong><br>{{ dossier.note_expert }}</p>
+  {% endif %}
+</div>
+<a href="http://127.0.0.1:8000/collaboration/{{ dossier.pk }}/" class="btn" style="background:#1E8449;">
+  Voir le dossier
+</a>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1">
+        <i class="bi bi-bell"></i> Notifications
+      </h1>
+      <p class="text-muted mb-0">
+        {% if non_lues > 0 %}
+        <span class="badge bg-danger">{{ non_lues }} non lue(s)</span>
+        {% else %}
+        <span class="badge bg-success">Tout lu</span>
+        {% endif %}
+      </p>
+    </div>
+    {% if non_lues > 0 %}
+    <a href="?tout_lire=1" class="btn btn-lc-outline">
+      <i class="bi bi-check-all"></i> Tout marquer comme lu
+    </a>
+    {% endif %}
+  </div>
+
+  {% if notifications %}
+  <div class="card">
+    <div class="card-body p-0">
+      {% for notif in notifications %}
+      <div class="d-flex align-items-start gap-3 p-3 border-bottom
+           {% if not notif.lu %}bg-light{% endif %}">
+
+        <!-- Icône -->
+        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+             style="width:42px; height:42px; background:
+             {% if 'valide' in notif.type_notif %}#EAFAF1
+             {% elif 'rejete' in notif.type_notif %}#FDEDEC
+             {% elif 'echeance' in notif.type_notif %}#FEF9E7
+             {% else %}var(--bleu-clair){% endif %};">
+          <i class="bi
+            {% if notif.type_notif == 'contrat_genere' %}bi-file-earmark-text
+            {% elif notif.type_notif == 'nouveau_dossier' %}bi-folder-plus
+            {% elif notif.type_notif == 'dossier_valide' %}bi-check-circle
+            {% elif notif.type_notif == 'dossier_rejete' %}bi-x-circle
+            {% elif notif.type_notif == 'nouveau_message' %}bi-chat-dots
+            {% elif notif.type_notif == 'document_partage' %}bi-folder-symlink
+            {% elif 'echeance' in notif.type_notif %}bi-calendar-x
+            {% else %}bi-bell{% endif %}"
+            style="font-size:1.2rem; color:
+            {% if 'valide' in notif.type_notif %}#1E8449
+            {% elif 'rejete' in notif.type_notif %}#C0392B
+            {% elif 'echeance' in notif.type_notif %}#D35400
+            {% else %}var(--bleu-principal){% endif %};"></i>
+        </div>
+
+        <!-- Contenu -->
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between align-items-start">
+            <p class="fw-bold mb-0 {% if not notif.lu %}text-dark{% else %}text-muted{% endif %}">
+              {{ notif.titre }}
+              {% if not notif.lu %}
+              <span class="badge bg-primary ms-1" style="font-size:9px;">Nouveau</span>
+              {% endif %}
+            </p>
+            <small class="text-muted ms-3 flex-shrink-0">
+              {{ notif.created_at|date:"d/m/Y H:i" }}
+            </small>
+          </div>
+          <p class="text-muted small mb-1">{{ notif.message|truncatechars:120 }}</p>
+          <div class="d-flex gap-2 mt-1">
+            {% if notif.lien %}
+            <a href="{% url 'notifications:lire' notif.pk %}" class="btn btn-sm btn-lc-primary">
+              <i class="bi bi-arrow-right"></i> Voir
+            </a>
+            {% else %}
+            <a href="{% url 'notifications:lire' notif.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-check"></i> Marquer lu
+            </a>
+            {% endif %}
+            <a href="{% url 'notifications:supprimer' notif.pk %}" class="btn btn-sm btn-outline-danger"
+               onclick="return confirm('Supprimer ?')">
+              <i class="bi bi-trash"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card text-center py-5">
+    <div class="card-body">
+      <i class="bi bi-bell-slash" style="font-size:4rem; color:#ccc;"></i>
+      <h5 class="mt-3 text-muted">Aucune notification</h5>
+      <p class="text-muted">Vous serez notifié dès qu'une action vous concerne.</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

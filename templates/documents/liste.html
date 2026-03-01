@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Mes Documents — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-folder"></i> Mes Documents</h1>
+      <p class="text-muted mb-0">
+        <strong>{{ total }}</strong> document(s) — <strong>{{ total_size }}</strong> utilisés
+      </p>
+    </div>
+    <a href="{% url 'documents:upload' %}" class="btn btn-lc-primary">
+      <i class="bi bi-cloud-upload"></i> Uploader un document
+    </a>
+  </div>
+
+  <!-- Filtres -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <input type="text" name="q" class="form-control" placeholder="🔍 Rechercher..." value="{{ recherche }}">
+        </div>
+        <div class="col-md-3">
+          <select name="categorie" class="form-select">
+            <option value="">Toutes les catégories</option>
+            {% for val, label in categories %}
+            <option value="{{ val }}" {% if cat_active == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select name="statut" class="form-select">
+            <option value="">Tous les statuts</option>
+            <option value="prive"   {% if statut_actif == 'prive'   %}selected{% endif %}>Privé</option>
+            <option value="partage" {% if statut_actif == 'partage' %}selected{% endif %}>Partagé</option>
+            <option value="archive" {% if statut_actif == 'archive' %}selected{% endif %}>Archivé</option>
+          </select>
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-lc-primary flex-grow-1">Filtrer</button>
+          <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary">✕</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Liste documents -->
+  {% if documents %}
+  <div class="row g-3">
+    {% for doc in documents %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-start gap-3 mb-2">
+            <i class="bi {{ doc.icone }}" style="font-size:2.2rem;"></i>
+            <div class="flex-grow-1">
+              <h6 class="fw-bold mb-1" style="color:var(--bleu-principal);">{{ doc.titre }}</h6>
+              <span class="badge rounded-pill
+                {% if doc.statut == 'prive' %}bg-secondary
+                {% elif doc.statut == 'partage' %}bg-primary
+                {% else %}bg-warning text-dark{% endif %}">
+                {{ doc.get_statut_display }}
+              </span>
+            </div>
+          </div>
+          <p class="text-muted small mb-1">
+            <i class="bi bi-tag"></i> {{ doc.get_categorie_display }}
+          </p>
+          {% if doc.description %}
+          <p class="text-muted small mb-1">{{ doc.description|truncatechars:60 }}</p>
+          {% endif %}
+          <p class="text-muted small mb-0">
+            <i class="bi bi-hdd"></i> {{ doc.taille_lisible }} &nbsp;
+            <i class="bi bi-calendar ms-2"></i> {{ doc.created_at|date:"d/m/Y" }}
+          </p>
+        </div>
+        <div class="card-footer bg-transparent border-0 d-flex gap-2">
+          <a href="{% url 'documents:detail' doc.pk %}" class="btn btn-sm btn-lc-primary flex-grow-1">
+            <i class="bi bi-eye"></i> Voir
+          </a>
+          <a href="{% url 'documents:telecharger' doc.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-download"></i>
+          </a>
+          {% if doc.proprietaire == request.user %}
+          <a href="{% url 'documents:modifier' doc.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-pencil"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card text-center py-5">
+    <div class="card-body">
+      <i class="bi bi-folder2-open" style="font-size:4rem; color:#ccc;"></i>
+      <h5 class="mt-3 text-muted">Aucun document trouvé</h5>
+      <p class="text-muted">Uploadez vos premiers documents pour les retrouver ici</p>
+      <a href="{% url 'documents:upload' %}" class="btn btn-lc-primary mt-2">
+        <i class="bi bi-cloud-upload"></i> Uploader un document
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

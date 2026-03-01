@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Légal Connect{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root { --bleu-principal: #1B4F72; --bleu-secondaire: #2E86C1; --bleu-clair: #D6EAF8; }
+    body { background: #f4f7fb; font-family: 'Segoe UI', sans-serif; }
+    .navbar-lc { background: var(--bleu-principal); }
+    .navbar-lc .navbar-brand { color: white; font-weight: 700; font-size: 1.3rem; }
+    .navbar-lc .nav-link { color: rgba(255,255,255,0.85) !important; padding: 0.4rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
+    .navbar-lc .nav-link:hover { color: white !important; background: rgba(255,255,255,0.15); }
+    .navbar-lc .nav-link.active { color: white !important; background: rgba(255,255,255,0.2); }
+    .main-content { padding: 2rem; }
+    .page-title { color: var(--bleu-principal); font-weight: 700; border-bottom: 3px solid var(--bleu-secondaire); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    .card-header { background: var(--bleu-principal); color: white; border-radius: 12px 12px 0 0 !important; font-weight: 600; padding: 0.75rem 1rem; }
+    .btn-lc-primary { background: var(--bleu-principal); color: white; border: none; }
+    .btn-lc-primary:hover { background: var(--bleu-secondaire); color: white; }
+    .btn-lc-outline { border: 2px solid var(--bleu-principal); color: var(--bleu-principal); background: transparent; }
+    .btn-lc-outline:hover { background: var(--bleu-principal); color: white; }
+    .avatar-circle { width: 36px; height: 36px; background: var(--bleu-secondaire); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+    .footer-lc { background: var(--bleu-principal); color: rgba(255,255,255,0.7); padding: 1rem; text-align: center; font-size: 13px; margin-top: auto; }
+    .notif-badge { position: absolute; top: 2px; right: 2px; font-size: 9px; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%; padding: 0 3px; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<nav class="navbar navbar-expand-lg navbar-lc px-3" style="min-height:64px;">
+  <a class="navbar-brand" href="/dashboard/">⚖ Légal Connect</a>
+  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+    <span class="navbar-toggler-icon" style="filter:invert(1);"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navMenu">
+    <ul class="navbar-nav me-auto gap-1">
+      <li class="nav-item">
+        <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="/dashboard/">
+          <i class="bi bi-house"></i> Accueil
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if '/contrats/' in request.path %}active{% endif %}" href="/contrats/">
+          <i class="bi bi-file-earmark-text"></i> Contrats
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if '/documents/' in request.path %}active{% endif %}" href="/documents/">
+          <i class="bi bi-folder"></i> Documents
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if '/fiscalite/' in request.path %}active{% endif %}" href="/fiscalite/">
+          <i class="bi bi-calculator"></i> Fiscalité
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if '/collaboration/' in request.path %}active{% endif %}" href="/collaboration/">
+          <i class="bi bi-people"></i> Collaboration
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if '/annuaire/' in request.path %}active{% endif %}" href="/annuaire/">
+          <i class="bi bi-person-badge"></i> Experts
+        </a>
+      </li>
+    </ul>
+
+    <ul class="navbar-nav align-items-center gap-2">
+      {% if request.user.is_authenticated %}
+      <!-- Cloche notifications -->
+      <li class="nav-item position-relative">
+        <a class="nav-link p-2" href="/notifications/" title="Notifications">
+          <i class="bi bi-bell" style="font-size:1.2rem;"></i>
+          <span id="notif-badge" class="badge bg-danger notif-badge d-none">0</span>
+        </a>
+      </li>
+      <!-- Menu utilisateur -->
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
+          <div class="avatar-circle">
+            {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+          </div>
+          <span class="d-none d-lg-inline">{{ request.user.first_name|default:request.user.username }}</span>
+          <span class="badge px-2 py-1" style="font-size:10px; background:
+            {% if request.user.profil.role == 'expert' %}#1E8449
+            {% elif request.user.profil.role == 'admin' %}#922B21
+            {% else %}rgba(255,255,255,0.25){% endif %};">
+            {{ request.user.profil.get_role_display }}
+          </span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end shadow">
+          <li><span class="dropdown-item-text text-muted small">{{ request.user.email }}</span></li>
+          <li><hr class="dropdown-divider my-1"></li>
+          <li><a class="dropdown-item" href="/accounts/profil/"><i class="bi bi-person me-2"></i>Mon profil</a></li>
+          <li><a class="dropdown-item" href="/notifications/"><i class="bi bi-bell me-2"></i>Notifications</a></li>
+          <li><a class="dropdown-item" href="/annuaire/"><i class="bi bi-person-badge me-2"></i>Annuaire experts</a></li>
+          {% if request.user.profil.role == 'admin' %}
+          <li><hr class="dropdown-divider my-1"></li>
+          <li><a class="dropdown-item" href="/admin/"><i class="bi bi-gear me-2"></i>Administration</a></li>
+          <li><a class="dropdown-item" href="/accounts/admin/users/"><i class="bi bi-people me-2"></i>Utilisateurs</a></li>
+          {% endif %}
+          <li><hr class="dropdown-divider my-1"></li>
+          <li><a class="dropdown-item text-danger" href="/accounts/logout/"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
+        </ul>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="/accounts/login/"><i class="bi bi-box-arrow-in-right"></i> Connexion</a>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+</nav>
+
+{% if messages %}
+<div class="container-fluid px-4 pt-3">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-2">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="flex-grow-1">{% block content %}{% endblock %}</div>
+
+<footer class="footer-lc">
+  Légal Connect &copy; 2025-2026 &mdash; Université Nangui Abrogoua &mdash; Master 1 MIAGE &mdash; Dr. ZEZE
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+{% if request.user.is_authenticated %}
+function updateNotifBadge() {
+  fetch('/notifications/api/non-lues/')
+    .then(r => r.json())
+    .then(data => {
+      const badge = document.getElementById('notif-badge');
+      if (data.count > 0) {
+        badge.textContent = data.count;
+        badge.classList.remove('d-none');
+      } else {
+        badge.classList.add('d-none');
+      }
+    }).catch(() => {});
+}
+updateNotifBadge();
+setInterval(updateNotifBadge, 30000);
+{% endif %}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

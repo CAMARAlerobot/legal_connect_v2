@@ -1,0 +1,15 @@
+{% extends 'notifications/emails/base.html' %}
+{% block body %}
+<h2>📄 Contrat généré avec succès</h2>
+<p>Bonjour <strong>{{ user.first_name }} {{ user.last_name }}</strong>,</p>
+<p>Votre contrat a été généré avec succès sur la plateforme Légal Connect.</p>
+<div class="info-box">
+  <p><strong>Titre :</strong> {{ contrat.titre }}</p>
+  <p><strong>Type :</strong> {{ contrat.get_type_contrat_display }}</p>
+  <p><strong>Statut :</strong> {{ contrat.get_statut_display }}</p>
+</div>
+<p>Vous pouvez maintenant le consulter, le finaliser et l'exporter en PDF.</p>
+<a href="http://127.0.0.1:8000/contrats/{{ contrat.pk }}/" class="btn">
+  Voir le contrat
+</a>
+{% endblock %}

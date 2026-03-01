@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: 'Times New Roman', serif; margin: 3cm; font-size: 12pt; line-height: 1.8; color: #1a1a1a; }
+    .entete { text-align: center; border-bottom: 2px solid #1B4F72; padding-bottom: 1cm; margin-bottom: 1cm; }
+    .entete h1 { font-size: 18pt; color: #1B4F72; margin-bottom: 5px; }
+    .entete .sous-titre { font-size: 13pt; color: #2E86C1; }
+    .meta { display: flex; justify-content: space-between; margin-bottom: 1cm; font-size: 10pt; color: #555; }
+    .contenu { white-space: pre-wrap; text-align: justify; }
+    .pied-page { margin-top: 2cm; border-top: 1px solid #ccc; padding-top: 0.5cm; text-align: center; font-size: 9pt; color: #888; }
+    .signature { display: flex; justify-content: space-between; margin-top: 2cm; }
+    .signature .bloc { text-align: center; width: 45%; }
+    .signature .ligne { border-top: 1px solid #333; margin-top: 1.5cm; padding-top: 5px; }
+  </style>
+</head>
+<body>
+  <div class="entete">
+    <h1>⚖ LÉGAL CONNECT</h1>
+    <div class="sous-titre">{{ contrat.get_type_contrat_display|upper }}</div>
+  </div>
+
+  <div class="meta">
+    <span>Référence : LC-{{ contrat.pk|stringformat:"05d" }}</span>
+    <span>Date : {{ contrat.created_at|date:"d/m/Y" }}</span>
+    <span>Statut : {{ contrat.get_statut_display }}</span>
+  </div>
+
+  <div class="contenu">{{ contrat.contenu_final }}</div>
+
+  <div class="signature">
+    <div class="bloc">
+      <p><strong>LE CLIENT</strong><br>{{ contrat.nom_client }}</p>
+      <div class="ligne">Signature et cachet</div>
+    </div>
+    <div class="bloc">
+      <p><strong>LE PRESTATAIRE</strong><br>{{ contrat.nom_prestataire }}</p>
+      <div class="ligne">Signature et cachet</div>
+    </div>
+  </div>
+
+  <div class="pied-page">
+    Document généré par Légal Connect — Université Nangui Abrogoua — Master 1 MIAGE 2025-2026<br>
+    Ce document a valeur contractuelle une fois signé par les deux parties.
+  </div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Nouveau Dossier — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <h1 class="page-title"><i class="bi bi-folder-plus"></i> Nouveau Dossier</h1>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="card">
+        <div class="card-header"><i class="bi bi-pencil-square"></i> Décrire votre demande</div>
+        <div class="card-body p-4">
+
+          {% if messages %}
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+          {% endfor %}
+          {% endif %}
+
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Titre du dossier *</label>
+              <input type="text" name="titre" class="form-control"
+                     placeholder="Ex: Vérification contrat de bail commercial" required>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Type de demande *</label>
+                <select name="type_dossier" class="form-select" required>
+                  {% for val, label in types %}
+                  <option value="{{ val }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Priorité</label>
+                <select name="priorite" class="form-select">
+                  <option value="basse">Basse</option>
+                  <option value="normale" selected>Normale</option>
+                  <option value="haute">Haute</option>
+                  <option value="urgente">Urgente ⚠</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">Description détaillée *</label>
+              <textarea name="description" class="form-control" rows="5" required
+                        placeholder="Décrivez votre problème en détail : contexte, documents concernés, questions spécifiques..."></textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Assigner directement à un expert (optionnel)</label>
+              <select name="expert_id" class="form-select">
+                <option value="">Laisser l'équipe assigner un expert</option>
+                {% for expert in experts %}
+                <option value="{{ expert.id }}">
+                  {{ expert.first_name }} {{ expert.last_name }}
+                  {% if expert.profil.entreprise %} — {{ expert.profil.entreprise }}{% endif %}
+                </option>
+                {% endfor %}
+              </select>
+              <small class="text-muted">Si vous ne sélectionnez pas d'expert, un administrateur vous en assignera un.</small>
+            </div>
+
+            <div class="d-flex gap-2">
+              <a href="{% url 'collaboration:liste' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+              </a>
+              <button type="submit" class="btn btn-lc-primary flex-grow-1">
+                <i class="bi bi-send"></i> Soumettre le dossier
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Info -->
+      <div class="card mt-3">
+        <div class="card-body">
+          <h6 class="fw-bold" style="color:var(--bleu-principal);"><i class="bi bi-info-circle"></i> Comment ça marche ?</h6>
+          <ol class="mb-0 ps-3">
+            <li class="small mb-1">Vous soumettez votre dossier avec une description détaillée</li>
+            <li class="small mb-1">Un expert est assigné à votre dossier</li>
+            <li class="small mb-1">L'expert analyse et échange avec vous via la messagerie</li>
+            <li class="small mb-1">L'expert valide ou rejette le dossier avec un avis détaillé</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}Créer un contrat — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <h1 class="page-title"><i class="bi bi-file-earmark-plus"></i> Nouveau Contrat</h1>
+
+  <!-- Étapes -->
+  <div class="card mb-4">
+    <div class="card-body py-2">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <span class="badge bg-success rounded-pill px-3 py-2">✓ Étape 1 — Modèle choisi</span>
+        <i class="bi bi-arrow-right text-muted"></i>
+        <span class="badge rounded-pill px-3 py-2" style="background:var(--bleu-principal);">✎ Étape 2 — Remplir le contrat</span>
+        <i class="bi bi-arrow-right text-muted"></i>
+        <span class="badge bg-secondary rounded-pill px-3 py-2">3 — Prévisualisation</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Formulaire -->
+    <div class="col-lg-8">
+      <form method="post">
+        {% csrf_token %}
+
+        <!-- Infos générales -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-info-circle"></i> Informations générales</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label fw-bold">{{ form.titre.label }}</label>
+              {{ form.titre }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Partie 1 — Client -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-person"></i> Partie 1 — Client / Preneur</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">{{ form.nom_client.label }}</label>
+                {{ form.nom_client }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.email_client.label }}</label>
+                {{ form.email_client }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.telephone_client.label }}</label>
+                {{ form.telephone_client }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.adresse_client.label }}</label>
+                {{ form.adresse_client }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Partie 2 — Prestataire -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-building"></i> Partie 2 — Prestataire / Bailleur</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">{{ form.nom_prestataire.label }}</label>
+                {{ form.nom_prestataire }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.email_prestataire.label }}</label>
+                {{ form.email_prestataire }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.telephone_prestataire.label }}</label>
+                {{ form.telephone_prestataire }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.adresse_prestataire.label }}</label>
+                {{ form.adresse_prestataire }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Détails -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-clipboard-text"></i> Détails du contrat</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label fw-bold">{{ form.objet.label }}</label>
+              {{ form.objet }}
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">{{ form.montant.label }}</label>
+                <div class="input-group">
+                  {{ form.montant }}
+                  {{ form.devise }}
+                </div>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">{{ form.date_debut.label }}</label>
+                {{ form.date_debut }}
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">{{ form.date_fin.label }}</label>
+                {{ form.date_fin }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.lieu_signature.label }}</label>
+                {{ form.lieu_signature }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clauses -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-list-check"></i> Clauses particulières</div>
+          <div class="card-body">
+            {{ form.clauses_speciales }}
+            <small class="text-muted">Ajoutez ici toutes les conditions spécifiques à votre accord.</small>
+          </div>
+        </div>
+
+        <!-- Erreurs -->
+        {% if form.errors %}
+        <div class="alert alert-danger">
+          {% for field, errors in form.errors.items %}
+          {% for error in errors %}
+          <p class="mb-0"><i class="bi bi-exclamation-circle"></i> {{ error }}</p>
+          {% endfor %}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between">
+          <a href="{% url 'contrats:choisir_modele' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+          </a>
+          <button type="submit" class="btn btn-lc-primary px-4">
+            <i class="bi bi-check-lg"></i> Générer le contrat
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Aide latérale -->
+    <div class="col-lg-4">
+      <div class="card sticky-top" style="top:80px;">
+        <div class="card-header"><i class="bi bi-lightbulb"></i> Modèle sélectionné</div>
+        <div class="card-body">
+          <h6 class="fw-bold" style="color:var(--bleu-principal);">{{ modele.titre }}</h6>
+          <p class="text-muted small">{{ modele.description }}</p>
+          <hr>
+          <p class="small fw-bold mb-1">Variables disponibles :</p>
+          <div class="d-flex flex-wrap gap-1">
+            <code class="small bg-light px-2 py-1 rounded">nom_client</code>
+            <code class="small bg-light px-2 py-1 rounded">nom_prestataire</code>
+            <code class="small bg-light px-2 py-1 rounded">objet</code>
+            <code class="small bg-light px-2 py-1 rounded">montant</code>
+            <code class="small bg-light px-2 py-1 rounded">date_debut</code>
+            <code class="small bg-light px-2 py-1 rounded">date_fin</code>
+            <code class="small bg-light px-2 py-1 rounded">lieu_signature</code>
+            <code class="small bg-light px-2 py-1 rounded">email_client</code>
+            <code class="small bg-light px-2 py-1 rounded">email_prestataire</code>
+            <code class="small bg-light px-2 py-1 rounded">telephone_client</code>
+          </div>
+        </div>
+
+        <div class="card-body border-top">
+          <h6 class="fw-bold mb-2" style="color:var(--bleu-principal);">
+            <i class="bi bi-info-circle"></i> Comment ça marche ?
+          </h6>
+          <ol class="ps-3 mb-0">
+            <li class="small mb-1">Remplissez tous les champs du formulaire</li>
+            <li class="small mb-1">Le contrat est généré automatiquement</li>
+            <li class="small mb-1">Prévisualisez et exportez en PDF</li>
+            <li class="small">Partagez avec votre co-contractant</li>
+          </ol>
+        </div>
+
+        <div class="card-body border-top">
+          <div class="alert alert-warning py-2 mb-0 small">
+            <i class="bi bi-shield-check"></i>
+            <strong>Conseil :</strong> Faites vérifier votre contrat par un expert juridique avant signature.
+            <a href="{% url 'annuaire:liste' %}" class="alert-link">Voir l'annuaire</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

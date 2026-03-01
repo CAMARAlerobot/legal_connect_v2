@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Choisir un modèle — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <h1 class="page-title"><i class="bi bi-file-earmark-plus"></i> Nouveau Contrat</h1>
+
+  <div class="card mb-4">
+    <div class="card-header"><i class="bi bi-1-circle"></i> Étape 1 — Choisissez le type de contrat</div>
+    <div class="card-body">
+      <p class="text-muted">Sélectionnez le modèle qui correspond le mieux à votre situation. Vous pourrez personnaliser toutes les informations dans l'étape suivante.</p>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="row g-3">
+      {% for modele in modeles %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 modele-card" style="cursor:pointer; border:2px solid transparent; transition:all 0.2s;"
+             onclick="selectModele({{ modele.id }}, this)">
+          <div class="card-body text-center p-4">
+            <div class="mb-3" style="font-size:3rem;">
+              {% if modele.type_contrat == 'prestation'      %}📋
+              {% elif modele.type_contrat == 'vente'         %}🛒
+              {% elif modele.type_contrat == 'bail'          %}🏢
+              {% elif modele.type_contrat == 'travail'       %}👔
+              {% elif modele.type_contrat == 'partenariat'   %}🤝
+              {% elif modele.type_contrat == 'collaboration' %}👥
+              {% elif modele.type_contrat == 'confidentialite' %}🔒
+              {% else %}📄{% endif %}
+            </div>
+            <h6 class="fw-bold" style="color:var(--bleu-principal);">{{ modele.titre }}</h6>
+            <p class="text-muted small">{{ modele.description }}</p>
+            <span class="badge" style="background:var(--bleu-clair);color:var(--bleu-principal);">
+              {{ modele.get_type_contrat_display }}
+            </span>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle"></i>
+          Aucun modèle disponible. Demandez à l'administrateur d'en créer via l'interface admin.
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <input type="hidden" name="modele_id" id="modele_id_input">
+
+    <div class="d-flex justify-content-between mt-4">
+      <a href="{% url 'contrats:liste' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Retour
+      </a>
+      <button type="submit" class="btn btn-lc-primary" id="btn-suivant" disabled>
+        Suivant <i class="bi bi-arrow-right"></i>
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function selectModele(id, card) {
+  document.querySelectorAll('.modele-card').forEach(c => {
+    c.style.border = '2px solid transparent';
+    c.style.background = 'white';
+  });
+  card.style.border = '2px solid var(--bleu-secondaire)';
+  card.style.background = 'var(--bleu-clair)';
+  document.getElementById('modele_id_input').value = id;
+  document.getElementById('btn-suivant').disabled = false;
+}
+</script>
+{% endblock %}

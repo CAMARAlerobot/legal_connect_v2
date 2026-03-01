@@ -1,0 +1,17 @@
+{% extends 'notifications/emails/base.html' %}
+{% block body %}
+<h2>Nouveau dossier assigné</h2>
+<p>Bonjour <strong>{{ expert.first_name }} {{ expert.last_name }}</strong>,</p>
+<p>Un nouveau dossier vous a été assigné sur la plateforme Légal Connect.</p>
+<div class="info-box">
+  <p><strong>Dossier :</strong> {{ dossier.titre }}</p>
+  <p><strong>Client :</strong> {{ client.first_name }} {{ client.last_name }}</p>
+  <p><strong>Type :</strong> {{ dossier.get_type_dossier_display }}</p>
+  <p><strong>Priorité :</strong> {{ dossier.get_priorite_display }}</p>
+  <p style="margin-top:8px;"><strong>Description :</strong><br>{{ dossier.description }}</p>
+</div>
+<p>Veuillez examiner ce dossier et prendre en charge le client dans les meilleurs délais.</p>
+<a href="http://127.0.0.1:8000/collaboration/{{ dossier.pk }}/" class="btn">
+  Voir le dossier
+</a>
+{% endblock %}

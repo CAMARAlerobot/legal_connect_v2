@@ -1,0 +1,16 @@
+{% extends 'notifications/emails/base.html' %}
+{% block body %}
+<h2>📅 Rappel — Échéance dans {{ jours_restants }} jours</h2>
+<p>Bonjour <strong>{{ user.first_name }} {{ user.last_name }}</strong>,</p>
+<p>Un rappel fiscal important : vous avez une échéance dans <strong>{{ jours_restants }} jours</strong>.</p>
+<div class="info-box">
+  <p><strong>Échéance :</strong> {{ echeance.titre }}</p>
+  <p><strong>Type :</strong> {{ echeance.get_type_impot_display }}</p>
+  <p><strong>Date limite :</strong> {{ echeance.date_limite }}</p>
+  {% if echeance.montant %}<p><strong>Montant estimé :</strong> {{ echeance.montant }} FCFA</p>{% endif %}
+</div>
+<p>Pensez à préparer vos documents et à effectuer votre déclaration à temps.</p>
+<a href="http://127.0.0.1:8000/fiscalite/calendrier/" class="btn">
+  Voir le calendrier fiscal
+</a>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Modifier le contrat — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <h1 class="page-title"><i class="bi bi-pencil-square"></i> Modifier le contrat</h1>
+
+  <div class="row g-4">
+    <!-- Formulaire -->
+    <div class="col-lg-8">
+      <form method="post">
+        {% csrf_token %}
+
+        <!-- Infos générales -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-info-circle"></i> Informations générales</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label fw-bold">{{ form.titre.label }}</label>
+              {{ form.titre }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Partie 1 — Client -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-person"></i> Partie 1 — Client / Preneur</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">{{ form.nom_client.label }}</label>
+                {{ form.nom_client }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.email_client.label }}</label>
+                {{ form.email_client }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.telephone_client.label }}</label>
+                {{ form.telephone_client }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.adresse_client.label }}</label>
+                {{ form.adresse_client }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Partie 2 — Prestataire -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-building"></i> Partie 2 — Prestataire / Bailleur</div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">{{ form.nom_prestataire.label }}</label>
+                {{ form.nom_prestataire }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.email_prestataire.label }}</label>
+                {{ form.email_prestataire }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.telephone_prestataire.label }}</label>
+                {{ form.telephone_prestataire }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.adresse_prestataire.label }}</label>
+                {{ form.adresse_prestataire }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Détails -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-clipboard-text"></i> Détails du contrat</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label fw-bold">{{ form.objet.label }}</label>
+              {{ form.objet }}
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">{{ form.montant.label }}</label>
+                <div class="input-group">
+                  {{ form.montant }}
+                  {{ form.devise }}
+                </div>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">{{ form.date_debut.label }}</label>
+                {{ form.date_debut }}
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">{{ form.date_fin.label }}</label>
+                {{ form.date_fin }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.lieu_signature.label }}</label>
+                {{ form.lieu_signature }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clauses -->
+        <div class="card mb-3">
+          <div class="card-header"><i class="bi bi-list-check"></i> Clauses particulières</div>
+          <div class="card-body">
+            {{ form.clauses_speciales }}
+            <small class="text-muted">Ajoutez ici toutes les conditions spécifiques à votre accord.</small>
+          </div>
+        </div>
+
+        <!-- Erreurs -->
+        {% if form.errors %}
+        <div class="alert alert-danger">
+          {% for field, errors in form.errors.items %}
+          {% for error in errors %}
+          <p class="mb-0"><i class="bi bi-exclamation-circle"></i> {{ error }}</p>
+          {% endfor %}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="d-flex justify-content-between">
+          <a href="{% url 'contrats:detail' contrat.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Annuler
+          </a>
+          <button type="submit" class="btn btn-lc-primary px-4">
+            <i class="bi bi-check-lg"></i> Enregistrer les modifications
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Infos latérales -->
+    <div class="col-lg-4">
+      <div class="card sticky-top" style="top:80px;">
+        <div class="card-header"><i class="bi bi-info-circle"></i> Informations</div>
+        <div class="card-body">
+          <table class="table table-borderless table-sm">
+            <tr>
+              <td class="text-muted small">Référence</td>
+              <td class="small fw-bold">#{{ contrat.pk|stringformat:"04d" }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted small">Type</td>
+              <td class="small">{{ contrat.get_type_contrat_display }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted small">Statut</td>
+              <td>
+                <span class="badge
+                  {% if contrat.statut == 'signe' %}bg-success
+                  {% elif contrat.statut == 'finalise' %}bg-primary
+                  {% elif contrat.statut == 'archive' %}bg-secondary
+                  {% else %}bg-warning text-dark{% endif %}">
+                  {{ contrat.get_statut_display }}
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted small">Créé le</td>
+              <td class="small">{{ contrat.created_at|date:"d/m/Y" }}</td>
+            </tr>
+          </table>
+        </div>
+        <div class="card-body border-top">
+          <div class="alert alert-warning py-2 mb-0 small">
+            <i class="bi bi-exclamation-triangle"></i>
+            La modification régénère automatiquement le contenu du contrat.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

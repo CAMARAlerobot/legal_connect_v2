@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% block title %}{{ dossier.titre }} — Légal Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+  .msg-bubble { max-width: 75%; }
+  .msg-moi { margin-left: auto; }
+  .msg-moi .bubble { background: var(--bleu-principal); color: white; border-radius: 18px 18px 4px 18px; }
+  .msg-autre .bubble { background: #f0f2f5; color: #000; border-radius: 18px 18px 18px 4px; }
+  .bubble { padding: 0.75rem 1rem; }
+  .chat-zone { height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1">
+        <i class="bi bi-folder2"></i> {{ dossier.titre }}
+      </h1>
+      <div class="d-flex gap-2 flex-wrap">
+        <span class="badge rounded-pill px-3 py-2
+          {% if dossier.statut == 'valide' %}bg-success
+          {% elif dossier.statut == 'rejete' %}bg-danger
+          {% elif dossier.statut == 'en_cours' %}bg-primary
+          {% elif dossier.statut == 'en_attente' %}bg-warning text-dark
+          {% else %}bg-secondary{% endif %}">
+          {{ dossier.get_statut_display }}
+        </span>
+        <span class="badge rounded-pill px-3 py-2
+          {% if dossier.priorite == 'urgente' %}bg-danger
+          {% elif dossier.priorite == 'haute' %}bg-warning text-dark
+          {% else %}bg-secondary{% endif %}">
+          Priorité : {{ dossier.get_priorite_display }}
+        </span>
+      </div>
+    </div>
+    <a href="{% url 'collaboration:liste' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Retour
+    </a>
+  </div>
+
+  <div class="row g-3">
+    <!-- Colonne principale -->
+    <div class="col-lg-8">
+
+      <!-- Messagerie -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-chat-dots"></i> Messagerie</div>
+        <div class="chat-zone" id="chat-zone">
+          {% if msgs %}
+            {% for msg in msgs %}
+            <div class="msg-bubble {% if msg.auteur == request.user %}msg-moi{% else %}msg-autre{% endif %}">
+              <div class="bubble">
+                <p class="mb-1">{{ msg.contenu }}</p>
+                <small class="opacity-75">
+                  {{ msg.auteur.first_name|default:msg.auteur.username }}
+                  — {{ msg.created_at|date:"d/m/Y H:i" }}
+                  {% if msg.auteur != request.user and not msg.lu %}
+                  <span class="badge bg-warning text-dark ms-1">Nouveau</span>
+                  {% endif %}
+                </small>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+          <div class="text-center text-muted py-4 my-auto">
+            <i class="bi bi-chat" style="font-size:2rem;"></i>
+            <p class="mt-2">Aucun message. Commencez la discussion !</p>
+          </div>
+          {% endif %}
+        </div>
+        {% if dossier.statut != 'archive' %}
+        <div class="card-footer">
+          <form method="post" action="{% url 'collaboration:message' dossier.pk %}" class="d-flex gap-2">
+            {% csrf_token %}
+            <input type="text" name="contenu" class="form-control"
+                   placeholder="Tapez votre message..." required autocomplete="off">
+            <button type="submit" class="btn btn-lc-primary px-4">
+              <i class="bi bi-send"></i>
+            </button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Commentaires -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-chat-left-text"></i> Commentaires & Notes</div>
+        <div class="card-body">
+          {% for com in commentaires %}
+          <div class="border-bottom pb-2 mb-2">
+            <div class="d-flex justify-content-between">
+              <strong>{{ com.auteur.first_name|default:com.auteur.username }}</strong>
+              <small class="text-muted">{{ com.created_at|date:"d/m/Y H:i" }}</small>
+            </div>
+            <p class="mb-0">{{ com.contenu }}</p>
+          </div>
+          {% empty %}
+          <p class="text-muted text-center mb-0">Aucun commentaire.</p>
+          {% endfor %}
+        </div>
+        {% if dossier.statut != 'archive' %}
+        <div class="card-footer">
+          <form method="post" action="{% url 'collaboration:commentaire' dossier.pk %}" class="d-flex gap-2">
+            {% csrf_token %}
+            <input type="text" name="contenu" class="form-control"
+                   placeholder="Ajouter un commentaire..." required>
+            <button type="submit" class="btn btn-lc-outline px-3">
+              <i class="bi bi-plus-lg"></i>
+            </button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Avis expert -->
+      {% if dossier.note_expert %}
+      <div class="card border-0" style="background:
+        {% if dossier.statut == 'valide' %}#EAFAF1{% elif dossier.statut == 'rejete' %}#FDEDEC{% else %}var(--bleu-clair){% endif %};">
+        <div class="card-body">
+          <h6 class="fw-bold mb-2">
+            <i class="bi bi-patch-check"></i> Avis de l'expert
+            {% if dossier.expert %}— {{ dossier.expert.first_name }} {{ dossier.expert.last_name }}{% endif %}
+          </h6>
+          <p class="mb-0">{{ dossier.note_expert }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Colonne latérale -->
+    <div class="col-lg-4">
+
+      <!-- Infos dossier -->
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-info-circle"></i> Informations</div>
+        <div class="card-body">
+          <table class="table table-borderless table-sm">
+            <tr><td class="text-muted small">Type</td><td class="small fw-bold">{{ dossier.get_type_dossier_display }}</td></tr>
+            <tr><td class="text-muted small">Client</td><td class="small">{{ dossier.client.first_name }} {{ dossier.client.last_name }}</td></tr>
+            <tr><td class="text-muted small">Expert</td>
+              <td class="small">
+                {% if dossier.expert %}{{ dossier.expert.first_name }} {{ dossier.expert.last_name }}
+                {% else %}<span class="text-muted">Non assigné</span>{% endif %}
+              </td>
+            </tr>
+            <tr><td class="text-muted small">Messages</td><td class="small">{{ dossier.nb_messages }}</td></tr>
+            <tr><td class="text-muted small">Créé le</td><td class="small">{{ dossier.created_at|date:"d/m/Y" }}</td></tr>
+          </table>
+          <p class="text-muted small mb-0">{{ dossier.description }}</p>
+        </div>
+      </div>
+
+      <!-- Actions expert -->
+      {% if role == 'expert' or role == 'admin' %}
+      {% if dossier.statut == 'en_attente' or dossier.statut == 'en_cours' %}
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-check-circle"></i> Décision de l'expert</div>
+        <div class="card-body">
+          <form method="post" action="{% url 'collaboration:valider' dossier.pk %}">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label fw-bold small">Avis / Conclusion *</label>
+              <textarea name="note_expert" class="form-control" rows="4" required
+                        placeholder="Rédigez votre avis, recommandations et conclusions..."></textarea>
+            </div>
+            <div class="d-grid gap-2">
+              <button type="submit" name="action" value="valider" class="btn btn-success">
+                <i class="bi bi-check-lg"></i> Valider le dossier
+              </button>
+              <button type="submit" name="action" value="rejeter" class="btn btn-outline-danger"
+                      onclick="return confirm('Confirmer le rejet ?')">
+                <i class="bi bi-x-lg"></i> Rejeter le dossier
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+
+      <!-- Assigner expert (admin) -->
+      {% if role == 'admin' and not dossier.expert %}
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-person-plus"></i> Assigner un expert</div>
+        <div class="card-body">
+          <form method="post" action="{% url 'collaboration:assigner' dossier.pk %}" class="d-flex gap-2">
+            {% csrf_token %}
+            <select name="expert_id" class="form-select" required>
+              <option value="">Choisir...</option>
+              {% for expert in experts %}
+              <option value="{{ expert.id }}">{{ expert.first_name }} {{ expert.last_name }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-lc-primary">OK</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Archiver -->
+      {% if dossier.client == request.user and dossier.statut != 'archive' %}
+      <div class="card border-warning">
+        <div class="card-body text-center">
+          <a href="{% url 'collaboration:archiver' dossier.pk %}" class="btn btn-outline-warning btn-sm w-100">
+            <i class="bi bi-archive"></i> Archiver ce dossier
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Auto-scroll vers le bas du chat
+  const chatZone = document.getElementById('chat-zone');
+  if (chatZone) chatZone.scrollTop = chatZone.scrollHeight;
+</script>
+{% endblock %}
