@@ -145,7 +145,12 @@
             <tr><td class="text-muted small">Client</td><td class="small">{{ dossier.client.first_name }} {{ dossier.client.last_name }}</td></tr>
             <tr><td class="text-muted small">Expert</td>
               <td class="small">
-                {% if dossier.expert %}{{ dossier.expert.first_name }} {{ dossier.expert.last_name }}
+                {% if dossier.expert %}
+                <a href="{% url 'annuaire:profil' dossier.expert.pk %}"
+                   class="text-decoration-none fw-bold" style="color:var(--bleu-principal);">
+                  <i class="bi bi-person-badge"></i>
+                  {{ dossier.expert.first_name }} {{ dossier.expert.last_name }}
+                </a>
                 {% else %}<span class="text-muted">Non assigné</span>{% endif %}
               </td>
             </tr>

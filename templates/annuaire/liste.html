@@ -60,7 +60,9 @@
   <div class="row g-3">
     {% for e in experts %}
     <div class="col-md-6 col-lg-4">
-      <div class="card h-100">
+      <div class="card h-100" style="cursor:pointer; transition:transform .15s, box-shadow .15s;"
+           onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 6px 20px rgba(27,79,114,.15)';"
+           onmouseout="this.style.transform='';this.style.boxShadow='';">
         <div class="card-body">
 
           <!-- Avatar + nom -->
@@ -149,11 +151,12 @@
         </div>
 
         <div class="card-footer bg-transparent border-0 d-flex gap-2">
-          <a href="{% url 'annuaire:profil' e.user.pk %}" class="btn btn-sm btn-lc-outline flex-grow-1">
-            <i class="bi bi-person"></i> Voir le profil
+          <a href="{% url 'annuaire:profil' e.user.pk %}" class="btn btn-sm btn-lc-primary flex-grow-1">
+            <i class="bi bi-eye"></i> Voir les détails
           </a>
           <a href="{% url 'collaboration:creer' %}?expert={{ e.user.pk }}"
-             class="btn btn-sm btn-lc-primary flex-grow-1">
+             class="btn btn-sm btn-outline-success flex-grow-1"
+             onclick="event.stopPropagation();">
             <i class="bi bi-send"></i> Contacter
           </a>
         </div>

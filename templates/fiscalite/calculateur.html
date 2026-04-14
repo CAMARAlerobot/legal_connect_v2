@@ -1,111 +1,378 @@
 {% extends 'base.html' %}
-{% block title %}Mes Documents — Légal Connect{% endblock %}
+{% block title %}Calculateur Fiscal — Légal Connect{% endblock %}
 
 {% block content %}
 <div class="main-content">
 
   <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
     <div>
-      <h1 class="page-title mb-1"><i class="bi bi-folder"></i> Mes Documents</h1>
-      <p class="text-muted mb-0">
-        <strong>{{ total }}</strong> document(s) — <strong>{{ total_size }}</strong> utilisés
-      </p>
+      <h1 class="page-title mb-1"><i class="bi bi-calculator"></i> Calculateur Fiscal</h1>
+      <p class="text-muted mb-0">Estimez vos impôts selon la fiscalité de la Côte d'Ivoire</p>
     </div>
-    <a href="{% url 'documents:upload' %}" class="btn btn-lc-primary">
-      <i class="bi bi-cloud-upload"></i> Uploader un document
+    <a href="{% url 'fiscalite:dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Tableau de bord
     </a>
   </div>
 
-  <!-- Filtres -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <form method="get" class="row g-2 align-items-end">
-        <div class="col-md-4">
-          <input type="text" name="q" class="form-control" placeholder="🔍 Rechercher..." value="{{ recherche }}">
+  {% if erreur %}
+  <div class="alert alert-danger"><i class="bi bi-exclamation-circle"></i> {{ erreur }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+
+    <!-- Formulaire de calcul -->
+    <div class="col-lg-5">
+      <form method="post">
+        {% csrf_token %}
+
+        <!-- Choix du type d'impôt -->
+        <div class="card mb-3">
+          <div class="card-header fw-bold"><i class="bi bi-list-ul"></i> Type d'impôt</div>
+          <div class="card-body">
+            <div class="d-flex flex-column gap-2">
+              {% for val, label in types_impot %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="type_impot"
+                       id="type_{{ val }}" value="{{ val }}"
+                       {% if type_actif == val %}checked{% endif %}>
+                <label class="form-check-label" for="type_{{ val }}">{{ label }}</label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
         </div>
-        <div class="col-md-3">
-          <select name="categorie" class="form-select">
-            <option value="">Toutes les catégories</option>
-            {% for val, label in categories %}
-            <option value="{{ val }}" {% if cat_active == val %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
+
+        <!-- Champs de saisie -->
+        <div class="card mb-3">
+          <div class="card-header fw-bold"><i class="bi bi-input-cursor-text"></i> Données financières</div>
+          <div class="card-body">
+
+            <!-- CA HT -->
+            <div class="mb-3" id="champ-ca">
+              <label class="form-label fw-bold">Chiffre d'affaires HT (FCFA)</label>
+              <input type="number" name="chiffre_affaires" id="id_ca_ht"
+                     class="form-control" placeholder="Ex : 5 000 000" min="0" step="1"
+                     value="{{ post_data.chiffre_affaires|default:'' }}">
+              <small class="text-muted">Montant hors taxes réalisé sur la période</small>
+            </div>
+
+            <!-- Charges / Achats HT -->
+            <div class="mb-3" id="champ-charges">
+              <label class="form-label fw-bold">Charges / Achats HT (FCFA)</label>
+              <input type="number" name="charges" id="id_charges_ht"
+                     class="form-control" placeholder="Ex : 1 500 000" min="0" step="1"
+                     value="{{ post_data.charges|default:'' }}">
+              <small class="text-muted">Total des dépenses déductibles HT</small>
+            </div>
+
+            <!-- Salaire (CNPS) -->
+            <div class="mb-3 d-none" id="champ-salaire">
+              <label class="form-label fw-bold">Salaire mensuel brut (FCFA)</label>
+              <input type="number" name="salaire" class="form-control"
+                     placeholder="Ex : 500 000" min="0" step="1"
+                     value="{{ post_data.salaire|default:'' }}">
+            </div>
+
+            <!-- Nombre d'employés (CNPS) -->
+            <div class="mb-3 d-none" id="champ-employes">
+              <label class="form-label fw-bold">Nombre d'employés</label>
+              <input type="number" name="nb_employes" class="form-control"
+                     placeholder="1" min="1"
+                     value="{{ post_data.nb_employes|default:'1' }}">
+            </div>
+
+            <!-- Période -->
+            <div class="mb-3">
+              <label class="form-label fw-bold">Période</label>
+              <select name="periode" class="form-select">
+                <option value="mensuel"     {% if post_data.periode == 'mensuel'      %}selected{% endif %}>Mensuel</option>
+                <option value="trimestriel" {% if post_data.periode == 'trimestriel'  %}selected{% endif %}>Trimestriel</option>
+                <option value="annuel"      {% if post_data.periode == 'annuel'       %}selected{% endif %}>Annuel</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div class="col-md-2">
-          <select name="statut" class="form-select">
-            <option value="">Tous les statuts</option>
-            <option value="prive"   {% if statut_actif == 'prive'   %}selected{% endif %}>Privé</option>
-            <option value="partage" {% if statut_actif == 'partage' %}selected{% endif %}>Partagé</option>
-            <option value="archive" {% if statut_actif == 'archive' %}selected{% endif %}>Archivé</option>
-          </select>
-        </div>
-        <div class="col-md-3 d-flex gap-2">
-          <button type="submit" class="btn btn-lc-primary flex-grow-1">Filtrer</button>
-          <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary">✕</a>
+
+        <!-- Boutons -->
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-lc-primary flex-grow-1">
+            <i class="bi bi-calculator"></i> Calculer
+          </button>
+          {% if resultat %}
+          <button type="submit" name="sauvegarder" value="1" class="btn btn-success">
+            <i class="bi bi-save"></i> Sauvegarder
+          </button>
+          {% endif %}
         </div>
       </form>
     </div>
-  </div>
 
-  <!-- Liste documents -->
-  {% if documents %}
-  <div class="row g-3">
-    {% for doc in documents %}
-    <div class="col-md-6 col-lg-4">
-      <div class="card h-100">
+    <!-- Résultats -->
+    <div class="col-lg-7">
+
+      {% if resultat %}
+      <!-- Résultat général -->
+      <div class="card mb-3 border-success">
+        <div class="card-header bg-success text-white fw-bold">
+          <i class="bi bi-check-circle"></i> Résultat du calcul — {{ resultat.type }}
+        </div>
         <div class="card-body">
-          <div class="d-flex align-items-start gap-3 mb-2">
-            <i class="bi {{ doc.icone }}" style="font-size:2.2rem;"></i>
-            <div class="flex-grow-1">
-              <h6 class="fw-bold mb-1" style="color:var(--bleu-principal);">{{ doc.titre }}</h6>
-              <span class="badge rounded-pill
-                {% if doc.statut == 'prive' %}bg-secondary
-                {% elif doc.statut == 'partage' %}bg-primary
-                {% else %}bg-warning text-dark{% endif %}">
-                {{ doc.get_statut_display }}
-              </span>
+          <div class="text-center mb-3">
+            <div class="text-muted small">Montant de l'impôt estimé</div>
+            <div class="fw-bold" style="font-size:2.2rem; color:var(--bleu-principal);">
+              {{ resultat.montant_impot|floatformat:0 }} FCFA
             </div>
           </div>
-          <p class="text-muted small mb-1">
-            <i class="bi bi-tag"></i> {{ doc.get_categorie_display }}
-          </p>
-          {% if doc.description %}
-          <p class="text-muted small mb-1">{{ doc.description|truncatechars:60 }}</p>
-          {% endif %}
-          <p class="text-muted small mb-0">
-            <i class="bi bi-hdd"></i> {{ doc.taille_lisible }} &nbsp;
-            <i class="bi bi-calendar ms-2"></i> {{ doc.created_at|date:"d/m/Y" }}
-          </p>
-        </div>
-        <div class="card-footer bg-transparent border-0 d-flex gap-2">
-          <a href="{% url 'documents:detail' doc.pk %}" class="btn btn-sm btn-lc-primary flex-grow-1">
-            <i class="bi bi-eye"></i> Voir
-          </a>
-          <a href="{% url 'documents:telecharger' doc.pk %}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-download"></i>
-          </a>
-          {% if doc.proprietaire == request.user %}
-          <a href="{% url 'documents:modifier' doc.pk %}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-pencil"></i>
-          </a>
-          {% endif %}
+          <p class="text-muted small text-center mb-0">{{ resultat.detail }}</p>
         </div>
       </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% else %}
-  <div class="card text-center py-5">
-    <div class="card-body">
-      <i class="bi bi-folder2-open" style="font-size:4rem; color:#ccc;"></i>
-      <h5 class="mt-3 text-muted">Aucun document trouvé</h5>
-      <p class="text-muted">Uploadez vos premiers documents pour les retrouver ici</p>
-      <a href="{% url 'documents:upload' %}" class="btn btn-lc-primary mt-2">
-        <i class="bi bi-cloud-upload"></i> Uploader un document
-      </a>
-    </div>
-  </div>
-  {% endif %}
 
+      {% if resultat.type == 'TVA' %}
+      <!-- Détail TVA collectée / TVA déductible -->
+      <div class="card mb-3 border-warning">
+        <div class="card-header bg-warning bg-opacity-10 fw-bold text-dark">
+          <i class="bi bi-receipt"></i> Détail TVA — Taux 18% (Art. 339 CGI)
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <tbody>
+              <tr>
+                <td class="ps-3 text-muted fw-bold">Chiffre d'affaires HT</td>
+                <td class="text-end pe-3 fw-bold">{{ resultat.ca_ttc|floatformat:0 }} FCFA</td>
+              </tr>
+              <tr>
+                <td class="ps-3 text-muted fw-bold">Chiffre d'affaires TTC</td>
+                <td class="text-end pe-3">
+                  {% with ca=post_data.chiffre_affaires %}
+                  {{ ca }} × 1,18
+                  {% endwith %}
+                </td>
+              </tr>
+              <tr class="table-warning">
+                <td class="ps-3 fw-bold">
+                  TVA collectée
+                  <small class="text-muted">(CA HT × 18%)</small>
+                </td>
+                <td class="text-end pe-3 fw-bold text-warning" style="font-size:1.1rem;">
+                  {{ resultat.montant_impot|floatformat:0 }} FCFA
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Calcul TVA déductible live -->
+          <div class="px-3 pb-3 pt-2" id="tva-deductible-section">
+            <div class="rounded border p-3 mt-2" style="background:#fff8f8; border-color:#f5c2c7 !important;">
+              <div class="fw-bold small mb-2 text-danger">
+                <i class="bi bi-dash-circle"></i> TVA déductible (sur vos achats)
+              </div>
+              <div class="row g-2 text-center" id="tva-ded-resultat">
+                <div class="col-md-4">
+                  <div class="p-2 rounded" style="background:#f8d7da; border:1px solid #f5c2c7;">
+                    <div class="small text-muted">Achats HT saisis</div>
+                    <div class="fw-bold" id="res-charges">—</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="p-2 rounded" style="background:#f8d7da; border:1px solid #f5c2c7;">
+                    <div class="small text-muted">TVA déductible</div>
+                    <div class="fw-bold text-danger" id="res-tva-ded">—</div>
+                    <div style="font-size:0.7rem;" class="text-muted">Achats HT × 18%</div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="p-2 rounded" id="res-nette-box" style="background:#d1ecf1; border:1px solid #86cfda;">
+                    <div class="small fw-bold">TVA nette</div>
+                    <div class="fw-bold" id="res-tva-nette">—</div>
+                    <div style="font-size:0.7rem;" class="text-muted">Collectée − Déductible</div>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-2 small text-muted">
+                <i class="bi bi-info-circle"></i>
+                Modifiez le champ <strong>Charges / Achats HT</strong> pour recalculer la TVA déductible en temps réel.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if resultat.tranches %}
+      <div class="card mb-3">
+        <div class="card-header fw-bold"><i class="bi bi-table"></i> Détail par tranches</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead class="table-dark">
+              <tr><th>Tranche</th><th class="text-end">Montant</th></tr>
+            </thead>
+            <tbody>
+              {% for t in resultat.tranches %}
+              <tr><td>{{ t }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      {% else %}
+      <!-- Calculateur TVA live avant soumission -->
+      <div class="card border-warning">
+        <div class="card-header bg-warning bg-opacity-10 fw-bold text-dark">
+          <i class="bi bi-receipt"></i> Aperçu TVA en temps réel (18%)
+        </div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">
+            Saisissez votre <strong>CA HT</strong> et vos <strong>Achats HT</strong> à gauche
+            pour voir instantanément la TVA collectée, déductible et nette.
+          </p>
+          <div class="row g-2 text-center">
+            <div class="col-6 col-md-3">
+              <div class="p-2 rounded" style="background:#e8f4fd; border:1px solid #b8d9f0;">
+                <div class="small text-muted">CA HT</div>
+                <div class="fw-bold" id="res-ca-ht">—</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-2 rounded" style="background:#e8f8ea; border:1px solid #b8e0bc;">
+                <div class="small text-muted">CA TTC</div>
+                <div class="fw-bold" id="res-ca-ttc">—</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-2 rounded" style="background:#fff3cd; border:1px solid #ffc107;">
+                <div class="small text-muted">TVA collectée</div>
+                <div class="fw-bold text-warning" id="res-tva-collectee">—</div>
+                <div style="font-size:0.7rem;" class="text-muted">CA HT × 18%</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="p-2 rounded" style="background:#f8d7da; border:1px solid #f5c2c7;">
+                <div class="small text-muted">TVA déductible</div>
+                <div class="fw-bold text-danger" id="res-tva-deductible">—</div>
+                <div style="font-size:0.7rem;" class="text-muted">Achats HT × 18%</div>
+              </div>
+            </div>
+          </div>
+          <hr class="my-2">
+          <div class="row g-2 text-center">
+            <div class="col-md-6 offset-md-3">
+              <div class="p-3 rounded" id="res-tva-nette-box" style="background:#d1ecf1; border:1px solid #86cfda;">
+                <div class="small fw-bold">TVA nette à reverser à l'État</div>
+                <div class="fw-bold fs-5" id="res-tva-nette">—</div>
+                <div style="font-size:0.7rem;" class="text-muted">TVA collectée − TVA déductible</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 small text-muted text-center">
+            <i class="bi bi-info-circle"></i>
+            Taux TVA Côte d'Ivoire : <strong>18%</strong> — Article 339 du Code Général des Impôts
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  const TVA = 0.18;
+
+  function fmt(n) {
+    return n.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' FCFA';
+  }
+
+  /* ── Affichage des champs selon le type d'impôt ── */
+  function majChamps() {
+    const type = document.querySelector('input[name="type_impot"]:checked')?.value || 'tva';
+    const isCnps = type === 'cnps';
+    document.getElementById('champ-ca').classList.toggle('d-none', isCnps);
+    document.getElementById('champ-charges').classList.toggle('d-none', isCnps);
+    document.getElementById('champ-salaire').classList.toggle('d-none', !isCnps);
+    document.getElementById('champ-employes').classList.toggle('d-none', !isCnps);
+  }
+  document.querySelectorAll('input[name="type_impot"]').forEach(r => r.addEventListener('change', majChamps));
+  majChamps();
+
+  /* ── Calculateur TVA live (avant soumission) ── */
+  const elCaHt  = document.getElementById('id_ca_ht');
+  const elChHt  = document.getElementById('id_charges_ht');
+
+  /* Éléments du panneau "avant soumission" */
+  const elCaHtRes       = document.getElementById('res-ca-ht');
+  const elCaTtcRes      = document.getElementById('res-ca-ttc');
+  const elCollecteeRes  = document.getElementById('res-tva-collectee');
+  const elDeductibleRes = document.getElementById('res-tva-deductible');
+  const elNetteRes      = document.getElementById('res-tva-nette');
+  const elNetteBox      = document.getElementById('res-tva-nette-box');
+
+  /* Éléments du panneau "après soumission" (résultat TVA) */
+  const elResCharges  = document.getElementById('res-charges');
+  const elResTvaDed   = document.getElementById('res-tva-ded');
+  const elResTvaNette = document.getElementById('res-tva-nette');
+  const elResNetteBox = document.getElementById('res-nette-box');
+
+  function calculerLive() {
+    if (!elCaHt) return;
+    const caHt      = parseFloat(elCaHt.value)  || 0;
+    const chargesHt = elChHt ? (parseFloat(elChHt.value) || 0) : 0;
+    const caTtc        = caHt * (1 + TVA);
+    const tvaCollectee = caHt * TVA;
+    const tvaDed       = chargesHt * TVA;
+    const tvaNette     = tvaCollectee - tvaDed;
+
+    /* Panneau avant soumission */
+    if (elCaHtRes)  elCaHtRes.textContent  = caHt > 0 ? fmt(caHt) : '—';
+    if (elCaTtcRes) elCaTtcRes.textContent = caHt > 0 ? fmt(caTtc) : '—';
+    if (elCollecteeRes)  elCollecteeRes.textContent  = caHt > 0 ? fmt(tvaCollectee) : '—';
+    if (elDeductibleRes) elDeductibleRes.textContent = chargesHt > 0 ? fmt(tvaDed) : '—';
+
+    if (elNetteRes && elNetteBox) {
+      if (caHt > 0) {
+        if (tvaNette < 0) {
+          elNetteBox.style.background = '#d4edda';
+          elNetteBox.style.border     = '1px solid #c3e6cb';
+          elNetteRes.textContent = 'Crédit TVA : ' + fmt(Math.abs(tvaNette));
+        } else {
+          elNetteBox.style.background = '#d1ecf1';
+          elNetteBox.style.border     = '1px solid #86cfda';
+          elNetteRes.textContent = fmt(tvaNette);
+        }
+      } else {
+        elNetteRes.textContent = '—';
+      }
+    }
+
+    /* Panneau après soumission (TVA result panel) */
+    if (elResCharges)  elResCharges.textContent  = chargesHt > 0 ? fmt(chargesHt) : '—';
+    if (elResTvaDed)   elResTvaDed.textContent   = chargesHt > 0 ? fmt(tvaDed) : '—';
+    if (elResTvaNette && elResNetteBox) {
+      const tvaCollecteePost = parseFloat('{{ resultat.montant_impot|default:0 }}') || tvaCollectee;
+      const nettePost = tvaCollecteePost - tvaDed;
+      if (tvaDed > 0) {
+        if (nettePost < 0) {
+          elResNetteBox.style.background = '#d4edda';
+          elResNetteBox.style.border     = '1px solid #c3e6cb';
+          elResTvaNette.textContent = 'Crédit TVA : ' + fmt(Math.abs(nettePost));
+        } else {
+          elResNetteBox.style.background = '#d1ecf1';
+          elResNetteBox.style.border     = '1px solid #86cfda';
+          elResTvaNette.textContent = fmt(nettePost);
+        }
+      } else {
+        elResTvaNette.textContent = '—';
+      }
+    }
+  }
+
+  if (elCaHt)  elCaHt.addEventListener('input', calculerLive);
+  if (elChHt)  elChHt.addEventListener('input', calculerLive);
+  calculerLive();
+})();
+</script>
 {% endblock %}

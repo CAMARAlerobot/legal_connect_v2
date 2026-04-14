@@ -80,25 +80,120 @@ def creer_contrat(request, modele_id):
 
 
 def generer_contenu(modele, data):
+    from datetime import date as _date
     contenu = modele.contenu
+
+    # Valeurs calculées
+    nom_client        = str(data.get('nom_client', '') or '')
+    nom_prestataire   = str(data.get('nom_prestataire', '') or '')
+    email_client      = str(data.get('email_client', '') or '')
+    email_presta      = str(data.get('email_prestataire', '') or '')
+    tel_client        = str(data.get('telephone_client', '') or '')
+    tel_presta        = str(data.get('telephone_prestataire', '') or '')
+    adr_client        = str(data.get('adresse_client', '') or '')
+    adr_presta        = str(data.get('adresse_prestataire', '') or '')
+    objet             = str(data.get('objet', '') or '')
+    montant           = str(data.get('montant', '') or '')
+    devise            = str(data.get('devise', 'FCFA') or 'FCFA')
+    date_debut        = str(data.get('date_debut', '') or '')
+    date_fin          = str(data.get('date_fin', '') or '')
+    lieu              = str(data.get('lieu_signature', '') or '')
+    clauses           = str(data.get('clauses_speciales', '') or '')
+    titre             = str(data.get('titre', '') or '')
+    today             = _date.today().strftime('%d/%m/%Y')
+
+    # Calcul de la durée en années entre date_debut et date_fin
+    duree_ans = ''
+    if data.get('date_debut') and data.get('date_fin'):
+        try:
+            delta = data['date_fin'] - data['date_debut']
+            duree_ans = str(round(delta.days / 365, 1)).rstrip('0').rstrip('.')
+        except Exception:
+            pass
+
     remplacements = {
-        '{{nom_client}}'           : data.get('nom_client', ''),
-        '{{email_client}}'         : data.get('email_client', ''),
-        '{{telephone_client}}'     : data.get('telephone_client', ''),
-        '{{adresse_client}}'       : data.get('adresse_client', ''),
-        '{{nom_prestataire}}'      : data.get('nom_prestataire', ''),
-        '{{email_prestataire}}'    : data.get('email_prestataire', ''),
-        '{{telephone_prestataire}}': data.get('telephone_prestataire', ''),
-        '{{adresse_prestataire}}'  : data.get('adresse_prestataire', ''),
-        '{{objet}}'                : data.get('objet', ''),
-        '{{montant}}'              : str(data.get('montant', '')),
-        '{{devise}}'               : data.get('devise', 'FCFA'),
-        '{{date_debut}}'           : str(data.get('date_debut', '')),
-        '{{date_fin}}'             : str(data.get('date_fin', '')),
-        '{{lieu_signature}}'       : data.get('lieu_signature', ''),
-        '{{clauses_speciales}}'    : data.get('clauses_speciales', ''),
-        '{{titre}}'                : data.get('titre', ''),
+        # ── format minuscule (variables internes) ──
+        '{{nom_client}}'           : nom_client,
+        '{{email_client}}'         : email_client,
+        '{{telephone_client}}'     : tel_client,
+        '{{adresse_client}}'       : adr_client,
+        '{{nom_prestataire}}'      : nom_prestataire,
+        '{{email_prestataire}}'    : email_presta,
+        '{{telephone_prestataire}}': tel_presta,
+        '{{adresse_prestataire}}'  : adr_presta,
+        '{{objet}}'                : objet,
+        '{{montant}}'              : montant,
+        '{{devise}}'               : devise,
+        '{{date_debut}}'           : date_debut,
+        '{{date_fin}}'             : date_fin,
+        '{{lieu_signature}}'       : lieu,
+        '{{clauses_speciales}}'    : clauses,
+        '{{titre}}'                : titre,
+
+        # ── format MAJUSCULE — Prestation de services ──
+        '{{CLIENT_NOM}}'           : nom_client,
+        '{{CLIENT_EMAIL}}'         : email_client,
+        '{{CLIENT_TEL}}'           : tel_client,
+        '{{CLIENT_ADRESSE}}'       : adr_client,
+        '{{PRESTATAIRE_NOM}}'      : nom_prestataire,
+        '{{PRESTATAIRE_EMAIL}}'    : email_presta,
+        '{{PRESTATAIRE_TEL}}'      : tel_presta,
+        '{{PRESTATAIRE_ADRESSE}}'  : adr_presta,
+        '{{DESCRIPTION_SERVICE}}'  : objet,
+        '{{OBJET}}'                : objet,
+        '{{MONTANT}}'              : montant,
+        '{{DEVISE}}'               : devise,
+        '{{DATE_DEBUT}}'           : date_debut,
+        '{{DATE_FIN}}'             : date_fin,
+        '{{LIEU}}'                 : lieu,
+        '{{LIEU_SIGNATURE}}'       : lieu,
+        '{{DATE_SIGNATURE}}'       : today,
+        '{{DATE}}'                 : today,
+        '{{CLAUSES}}'              : clauses,
+        '{{MODALITES_PAIEMENT}}'   : clauses or objet,
+        '{{PREAVIS}}'              : '30',
+        '{{TITRE}}'                : titre,
+
+        # ── Bail commercial ──
+        '{{BAILLEUR_NOM}}'         : nom_prestataire,   # Bailleur = PARTIE 2
+        '{{LOCATAIRE_NOM}}'        : nom_client,        # Locataire / Preneur = PARTIE 1
+        '{{ADRESSE_LOCAUX}}'       : adr_presta or lieu,
+        '{{LOYER}}'                : montant,
+        '{{DUREE}}'                : duree_ans or '1',
+        '{{SURFACE}}'              : clauses or '—',
+        '{{JOUR_PAIEMENT}}'        : '1',
+        '{{DEPOT_GARANTIE}}'       : montant,
+        '{{ACTIVITE}}'             : objet,
+
+        # ── Contrat de vente ──
+        '{{VENDEUR_NOM}}'          : nom_prestataire,   # Vendeur = PARTIE 2
+        '{{ACHETEUR_NOM}}'         : nom_client,        # Acheteur = PARTIE 1
+        '{{DESCRIPTION_BIEN}}'     : objet,
+        '{{PRIX}}'                 : montant,
+        '{{DATE_LIVRAISON}}'       : date_fin or today,
+        '{{LIEU_LIVRAISON}}'       : lieu,
+
+        # ── Contrat de travail ──
+        '{{EMPLOYEUR_NOM}}'        : nom_prestataire,
+        '{{EMPLOYE_NOM}}'          : nom_client,
+        '{{POSTE}}'                : objet,
+        '{{SALAIRE}}'              : montant,
+        '{{DATE_EMBAUCHE}}'        : date_debut,
+
+        # ── Partenariat / NDA ──
+        '{{PARTIE_A}}'             : nom_client,
+        '{{PARTIE_B}}'             : nom_prestataire,
+        '{{PARTENAIRE_A}}'         : nom_client,
+        '{{PARTENAIRE_B}}'         : nom_prestataire,
+        '{{SIGNATAIRE_A}}'         : nom_client,
+        '{{SIGNATAIRE_B}}'         : nom_prestataire,
+        '{{DUREE_NDA}}'            : duree_ans or '2',
+
+        # ── variantes alternatives ──
+        '{{NOM_CLIENT}}'           : nom_client,
+        '{{NOM_PRESTATAIRE}}'      : nom_prestataire,
     }
+
     for variable, valeur in remplacements.items():
         contenu = contenu.replace(variable, valeur)
     return contenu

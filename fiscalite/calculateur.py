@@ -61,15 +61,15 @@ def calculer_is(chiffre_affaires: Decimal, charges: Decimal) -> dict:
 
 
 # ── CNPS ───────────────────────────────────────────────────────────
-CNPS_EMPLOYE    = Decimal('0.072')   # 7.2% salarié
-CNPS_EMPLOYEUR  = Decimal('0.16')    # 16% employeur
-CNPS_PLAFOND    = Decimal('2500000') # Plafond mensuel
+CNPS_EMPLOYE    = Decimal('0.063')   # 6.3% salarié
+CNPS_EMPLOYEUR  = Decimal('0.077')   # 7.7% employeur  → taux global 14%
+CNPS_PLAFOND    = Decimal('3375000') # Plafond mensuel par employé
 
 def calculer_cnps(salaire_mensuel: Decimal, nb_employes: int = 1) -> dict:
     sal     = Decimal(str(salaire_mensuel))
     base    = min(sal, CNPS_PLAFOND)
     employe = base * CNPS_EMPLOYE
-    employeur = base * CNPS_EMPLOYE  # simplification
+    employeur = base * CNPS_EMPLOYEUR
     total   = (employe + employeur) * nb_employes
     return {
         'type'             : 'CNPS',
@@ -80,9 +80,9 @@ def calculer_cnps(salaire_mensuel: Decimal, nb_employes: int = 1) -> dict:
         'part_employeur'   : round(employeur, 2),
         'total_mensuel'    : round(total, 2),
         'total_annuel'     : round(total * 12, 2),
-        'taux'             : f"{CNPS_EMPLOYE*100:.1f}% + {CNPS_EMPLOYE*100:.1f}%",
+        'taux'             : f"{CNPS_EMPLOYE*100:.1f}% (salarié) + {CNPS_EMPLOYEUR*100:.1f}% (employeur)",
         'montant_impot'    : round(total, 2),
-        'detail'           : f"Base = {base:,.0f} FCFA × ({CNPS_EMPLOYE*100:.1f}% + {CNPS_EMPLOYE*100:.1f}%) × {nb_employes} = {round(total,2):,.0f} FCFA/mois",
+        'detail'           : f"Base = min({sal:,.0f}, {CNPS_PLAFOND:,.0f}) = {base:,.0f} FCFA × (6,3% + 7,7%) × {nb_employes} = {round(total,2):,.0f} FCFA/mois",
     }
 
 

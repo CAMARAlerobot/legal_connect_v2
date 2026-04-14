@@ -4,145 +4,510 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Légal Connect{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
   <style>
-    :root { --bleu-principal: #1B4F72; --bleu-secondaire: #2E86C1; --bleu-clair: #D6EAF8; }
-    body { background: #f4f7fb; font-family: 'Segoe UI', sans-serif; }
-    .navbar-lc { background: var(--bleu-principal); }
-    .navbar-lc .navbar-brand { color: white; font-weight: 700; font-size: 1.3rem; }
-    .navbar-lc .nav-link { color: rgba(255,255,255,0.85) !important; padding: 0.4rem 0.75rem; border-radius: 6px; transition: all 0.2s; }
-    .navbar-lc .nav-link:hover { color: white !important; background: rgba(255,255,255,0.15); }
-    .navbar-lc .nav-link.active { color: white !important; background: rgba(255,255,255,0.2); }
-    .main-content { padding: 2rem; }
-    .page-title { color: var(--bleu-principal); font-weight: 700; border-bottom: 3px solid var(--bleu-secondaire); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
-    .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
-    .card-header { background: var(--bleu-principal); color: white; border-radius: 12px 12px 0 0 !important; font-weight: 600; padding: 0.75rem 1rem; }
-    .btn-lc-primary { background: var(--bleu-principal); color: white; border: none; }
-    .btn-lc-primary:hover { background: var(--bleu-secondaire); color: white; }
-    .btn-lc-outline { border: 2px solid var(--bleu-principal); color: var(--bleu-principal); background: transparent; }
-    .btn-lc-outline:hover { background: var(--bleu-principal); color: white; }
-    .avatar-circle { width: 36px; height: 36px; background: var(--bleu-secondaire); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
-    .footer-lc { background: var(--bleu-principal); color: rgba(255,255,255,0.7); padding: 1rem; text-align: center; font-size: 13px; margin-top: auto; }
-    .notif-badge { position: absolute; top: 2px; right: 2px; font-size: 9px; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%; padding: 0 3px; }
+    /* ── Design Tokens ── */
+    :root {
+      --bleu-principal:  #1B4F72;
+      --bleu-secondaire: #2E86C1;
+      --bleu-clair:      #D6EAF8;
+      --or:              #D4A853;
+      --or-clair:        #FEF3D0;
+      --success:         #1E8449;
+      --danger:          #922B21;
+      --bg-page:         #F0F4F8;
+      --bg-card:         #FFFFFF;
+      --text-primary:    #1A2332;
+      --text-muted:      #6B7280;
+      --border:          #E5E9EF;
+      --shadow-sm:       0 1px 4px rgba(27,79,114,.08);
+      --shadow-md:       0 4px 16px rgba(27,79,114,.12);
+      --shadow-lg:       0 8px 32px rgba(27,79,114,.16);
+      --shadow-xl:       0 16px 48px rgba(27,79,114,.20);
+      --radius-sm:       8px;
+      --radius-md:       12px;
+      --radius-lg:       18px;
+      --radius-xl:       24px;
+      --transition:      all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ── Base ── */
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      background: var(--bg-page);
+      font-family: 'DM Sans', 'Segoe UI', sans-serif;
+      color: var(--text-primary);
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+    h1, h2, h3, .page-title, .navbar-brand { font-family: 'Playfair Display', Georgia, serif; }
+
+    /* ── Navbar ── */
+    .navbar-lc {
+      background: linear-gradient(135deg, var(--bleu-principal) 0%, #163D5E 100%);
+      min-height: 66px;
+      box-shadow: 0 2px 20px rgba(27,79,114,.35);
+      position: sticky;
+      top: 0;
+      z-index: 1040;
+    }
+    .navbar-brand-box {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--or), #B8860B);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(212,168,83,.45);
+    }
+    .brand-text {
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+    }
+    .brand-text small {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      opacity: 0.65;
+    }
+    .navbar-toggler { border-color: rgba(255,255,255,.35); }
+    .navbar-toggler-icon { filter: invert(1); }
+
+    /* Nav links */
+    .navbar-lc .nav-link {
+      color: rgba(255,255,255,.8) !important;
+      font-weight: 500;
+      font-size: 0.875rem;
+      padding: 0.45rem 0.8rem;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      position: relative;
+    }
+    .navbar-lc .nav-link:hover {
+      color: #fff !important;
+      background: rgba(255,255,255,.12);
+    }
+    .navbar-lc .nav-link.active {
+      color: #fff !important;
+      background: rgba(255,255,255,.15);
+    }
+    .navbar-lc .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 50%;
+      transform: translateX(-50%);
+      width: 60%; height: 2px;
+      background: var(--or);
+      border-radius: 2px;
+    }
+
+    /* Notification bell */
+    .btn-notif {
+      position: relative;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.9);
+      border-radius: 50%;
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+    .btn-notif:hover { background: rgba(255,255,255,.2); color: #fff; }
+    .notif-badge {
+      position: absolute; top: -3px; right: -3px;
+      font-size: 9px; min-width: 17px; height: 17px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; padding: 0 3px;
+      background: #E74C3C;
+      color: #fff; font-weight: 700;
+      border: 2px solid var(--bleu-principal);
+    }
+
+    /* Avatar */
+    .avatar-circle {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--bleu-secondaire), #1A5276);
+      color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 13px;
+      flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,.3);
+    }
+
+    /* Dropdown */
+    .dropdown-menu {
+      border: none;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-xl);
+      padding: 0;
+      overflow: hidden;
+      min-width: 220px;
+    }
+    .dropdown-user-header {
+      background: linear-gradient(135deg, var(--bleu-principal), var(--bleu-secondaire));
+      padding: 1rem;
+      color: #fff;
+    }
+    .dropdown-user-header .avatar-lg {
+      width: 48px; height: 48px;
+      background: rgba(255,255,255,.25);
+      border: 2px solid rgba(255,255,255,.5);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 1.1rem;
+    }
+    .dropdown-body { padding: 0.5rem 0; }
+    .dropdown-item {
+      padding: 0.55rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: var(--transition);
+      color: var(--text-primary);
+    }
+    .dropdown-item:hover { background: var(--bleu-clair); color: var(--bleu-principal); }
+    .dropdown-item i { width: 18px; opacity: 0.7; }
+    .dropdown-item.text-danger:hover { background: #FDEDEC; }
+    .dropdown-divider { border-color: var(--border); margin: 0.3rem 0; }
+
+    /* ── Alerts ── */
+    .alert {
+      border: none;
+      border-radius: var(--radius-md);
+      border-left: 4px solid transparent;
+      padding: 0.85rem 1.1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-sm);
+    }
+    .alert-success  { background: #EAFAF1; border-left-color: #27AE60; color: #1E8449; }
+    .alert-danger   { background: #FDEDEC; border-left-color: #E74C3C; color: #922B21; }
+    .alert-warning  { background: #FEF9E7; border-left-color: #F39C12; color: #9A6516; }
+    .alert-info     { background: #EBF5FB; border-left-color: #2E86C1; color: #1A5276; }
+    .alert-primary  { background: var(--bleu-clair); border-left-color: var(--bleu-principal); color: var(--bleu-principal); }
+    .btn-close { filter: opacity(0.5); }
+
+    /* ── Main content ── */
+    .main-content { padding: 2rem 2rem 1rem; }
+    .page-title {
+      color: var(--bleu-principal);
+      font-weight: 700;
+      font-size: 1.6rem;
+      border-bottom: 3px solid var(--bleu-secondaire);
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Cards ── */
+    .card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      background: var(--bg-card);
+      transition: var(--transition);
+    }
+    .card-header {
+      background: linear-gradient(135deg, var(--bleu-principal) 0%, var(--bleu-secondaire) 100%);
+      color: #fff;
+      border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 0.8rem 1.1rem;
+      border: none;
+      letter-spacing: 0.2px;
+    }
+    .card-clickable { cursor: pointer; }
+    .card-clickable:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--bleu-clair);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      font-weight: 600;
+      font-size: 0.875rem;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      letter-spacing: 0.2px;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .btn:active { transform: translateY(0); }
+    .btn-lc-primary {
+      background: linear-gradient(135deg, var(--bleu-principal), var(--bleu-secondaire));
+      color: #fff; border: none;
+    }
+    .btn-lc-primary:hover { color: #fff; filter: brightness(1.1); }
+    .btn-lc-outline {
+      border: 2px solid var(--bleu-principal);
+      color: var(--bleu-principal);
+      background: transparent;
+    }
+    .btn-lc-outline:hover { background: var(--bleu-principal); color: #fff; }
+
+    /* ── Forms ── */
+    .form-control, .form-select {
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      padding: 0.55rem 0.85rem;
+      transition: var(--transition);
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--bleu-secondaire);
+      box-shadow: 0 0 0 3px rgba(46,134,193,.15);
+    }
+    .form-label { font-weight: 600; font-size: 0.875rem; color: var(--text-primary); }
+
+    /* ── Tables ── */
+    .table th {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+      border-color: var(--border);
+      padding: 0.7rem 0.9rem;
+    }
+    .table td { border-color: var(--border); padding: 0.75rem 0.9rem; vertical-align: middle; }
+    .table-hover tbody tr:hover { background: var(--bleu-clair); transition: var(--transition); }
+
+    /* ── Utility classes ── */
+    .stat-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.2rem;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+    .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .stat-card .stat-value { font-size: 2rem; font-weight: 700; line-height: 1; }
+    .stat-card .stat-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-top: 0.3rem; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+    .empty-state i { font-size: 3.5rem; opacity: 0.25; display: block; margin-bottom: 0.75rem; }
+    .empty-state p { font-size: 0.9rem; }
+
+    .section-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.8rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .section-header::after {
+      content: ''; flex: 1;
+      height: 1px; background: var(--border);
+    }
+
+    /* ── Footer ── */
+    .footer-lc {
+      background: linear-gradient(135deg, var(--bleu-principal) 0%, #163D5E 100%);
+      color: rgba(255,255,255,.6);
+      padding: 1.1rem 1.5rem;
+      text-align: center;
+      font-size: 0.8rem;
+      margin-top: auto;
+      letter-spacing: 0.2px;
+    }
+    .footer-lc .footer-brand {
+      color: rgba(255,255,255,.9);
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    /* ── Badges ── */
+    .badge { font-weight: 600; letter-spacing: 0.2px; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(27,79,114,.25); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(27,79,114,.45); }
   </style>
   {% block extra_css %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-<nav class="navbar navbar-expand-lg navbar-lc px-3" style="min-height:64px;">
-  <a class="navbar-brand" href="/dashboard/">⚖ Légal Connect</a>
-  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-    <span class="navbar-toggler-icon" style="filter:invert(1);"></span>
+<!-- ── Navbar ── -->
+<nav class="navbar navbar-expand-lg navbar-lc px-3 px-lg-4">
+  <a class="navbar-brand-box" href="/dashboard/">
+    <div class="brand-icon">⚖</div>
+    <div class="brand-text">
+      Légal Connect
+      <small>Plateforme juridique</small>
+    </div>
+  </a>
+
+  <button class="navbar-toggler ms-auto me-2" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+    <span class="navbar-toggler-icon"></span>
   </button>
+
   <div class="collapse navbar-collapse" id="navMenu">
-    <ul class="navbar-nav me-auto gap-1">
+    <ul class="navbar-nav me-auto gap-1 mt-2 mt-lg-0 ms-lg-3">
       <li class="nav-item">
         <a class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}" href="/dashboard/">
-          <i class="bi bi-house"></i> Accueil
+          <i class="bi bi-house-door me-1"></i> Accueil
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if '/contrats/' in request.path %}active{% endif %}" href="/contrats/">
-          <i class="bi bi-file-earmark-text"></i> Contrats
+          <i class="bi bi-file-earmark-text me-1"></i> Contrats
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if '/documents/' in request.path %}active{% endif %}" href="/documents/">
-          <i class="bi bi-folder"></i> Documents
+          <i class="bi bi-folder2 me-1"></i> Documents
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if '/fiscalite/' in request.path %}active{% endif %}" href="/fiscalite/">
-          <i class="bi bi-calculator"></i> Fiscalité
+          <i class="bi bi-calculator me-1"></i> Fiscalité
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if '/collaboration/' in request.path %}active{% endif %}" href="/collaboration/">
-          <i class="bi bi-people"></i> Collaboration
+          <i class="bi bi-people me-1"></i> Collaboration
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if '/annuaire/' in request.path %}active{% endif %}" href="/annuaire/">
-          <i class="bi bi-person-badge"></i> Experts
+          <i class="bi bi-person-badge me-1"></i> Experts
         </a>
       </li>
     </ul>
 
-    <ul class="navbar-nav align-items-center gap-2">
+    <ul class="navbar-nav align-items-center gap-2 mt-2 mt-lg-0">
       {% if request.user.is_authenticated %}
-      <!-- Cloche notifications -->
-      <li class="nav-item position-relative">
-        <a class="nav-link p-2" href="/notifications/" title="Notifications">
-          <i class="bi bi-bell" style="font-size:1.2rem;"></i>
-          <span id="notif-badge" class="badge bg-danger notif-badge d-none">0</span>
+
+      <!-- Notifications -->
+      <li class="nav-item">
+        <a class="btn-notif" href="/notifications/" title="Notifications">
+          <i class="bi bi-bell" style="font-size:1rem;"></i>
+          <span id="notif-badge" class="notif-badge d-none">0</span>
         </a>
       </li>
-      <!-- Menu utilisateur -->
+
+      <!-- User menu -->
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 ps-1" href="#" data-bs-toggle="dropdown" aria-expanded="false">
           <div class="avatar-circle">
             {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
           </div>
-          <span class="d-none d-lg-inline">{{ request.user.first_name|default:request.user.username }}</span>
-          <span class="badge px-2 py-1" style="font-size:10px; background:
-            {% if request.user.profil.role == 'expert' %}#1E8449
-            {% elif request.user.profil.role == 'admin' %}#922B21
-            {% else %}rgba(255,255,255,0.25){% endif %};">
-            {{ request.user.profil.get_role_display }}
+          <span class="d-none d-lg-inline text-white fw-600" style="font-size:.875rem;">
+            {{ request.user.first_name|default:request.user.username }}
           </span>
         </a>
         <ul class="dropdown-menu dropdown-menu-end shadow">
-          <li><span class="dropdown-item-text text-muted small">{{ request.user.email }}</span></li>
-          <li><hr class="dropdown-divider my-1"></li>
-          <li><a class="dropdown-item" href="/accounts/profil/"><i class="bi bi-person me-2"></i>Mon profil</a></li>
-          <li><a class="dropdown-item" href="/notifications/"><i class="bi bi-bell me-2"></i>Notifications</a></li>
-          <li><a class="dropdown-item" href="/annuaire/"><i class="bi bi-person-badge me-2"></i>Annuaire experts</a></li>
-          {% if request.user.profil.role == 'admin' %}
-          <li><hr class="dropdown-divider my-1"></li>
-          <li><a class="dropdown-item" href="/admin/"><i class="bi bi-gear me-2"></i>Administration</a></li>
-          <li><a class="dropdown-item" href="/accounts/admin/users/"><i class="bi bi-people me-2"></i>Utilisateurs</a></li>
-          {% endif %}
-          <li><hr class="dropdown-divider my-1"></li>
-          <li><a class="dropdown-item text-danger" href="/accounts/logout/"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
+          <!-- Header -->
+          <li>
+            <div class="dropdown-user-header d-flex align-items-center gap-3">
+              <div class="avatar-lg">
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+              </div>
+              <div>
+                <div class="fw-bold" style="font-size:.9rem;">{{ request.user.get_full_name|default:request.user.username }}</div>
+                <div style="font-size:.75rem; opacity:.75;">{{ request.user.email }}</div>
+                <span class="badge mt-1 px-2 py-1" style="font-size:9px; background:rgba(255,255,255,.25);">
+                  {{ request.user.profil.get_role_display }}
+                </span>
+              </div>
+            </div>
+          </li>
+          <!-- Body -->
+          <div class="dropdown-body">
+            <li><a class="dropdown-item" href="/accounts/profil/">
+              <i class="bi bi-person-circle me-2"></i>Mon profil
+            </a></li>
+            <li><a class="dropdown-item" href="/notifications/">
+              <i class="bi bi-bell me-2"></i>Notifications
+            </a></li>
+            <li><a class="dropdown-item" href="/annuaire/">
+              <i class="bi bi-person-badge me-2"></i>Annuaire experts
+            </a></li>
+            {% if request.user.profil.role == 'admin' %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="/admin/">
+              <i class="bi bi-gear me-2"></i>Administration Django
+            </a></li>
+            <li><a class="dropdown-item" href="/accounts/admin/users/">
+              <i class="bi bi-people me-2"></i>Gestion utilisateurs
+            </a></li>
+            {% endif %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="/accounts/logout/">
+              <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+            </a></li>
+          </div>
         </ul>
       </li>
+
       {% else %}
       <li class="nav-item">
-        <a class="nav-link" href="/accounts/login/"><i class="bi bi-box-arrow-in-right"></i> Connexion</a>
+        <a class="nav-link" href="/accounts/login/">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Connexion
+        </a>
       </li>
       {% endif %}
     </ul>
   </div>
 </nav>
 
+<!-- ── Flash messages ── -->
 {% if messages %}
-<div class="container-fluid px-4 pt-3">
+<div class="container-fluid px-4 pt-3 pb-0">
   {% for message in messages %}
-  <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-2">
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center gap-2 mb-2" role="alert">
+    {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill flex-shrink-0"></i>
+    {% elif message.tags == 'danger' or message.tags == 'error' %}<i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+    {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
+    {% else %}<i class="bi bi-info-circle-fill flex-shrink-0"></i>{% endif %}
+    <span>{{ message }}</span>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fermer"></button>
   </div>
   {% endfor %}
 </div>
 {% endif %}
 
+<!-- ── Page content ── -->
 <div class="flex-grow-1">{% block content %}{% endblock %}</div>
 
+<!-- ── Footer ── -->
 <footer class="footer-lc">
-  Légal Connect &copy; 2025-2026 &mdash; Université Nangui Abrogoua &mdash; Master 1 MIAGE &mdash; Dr. ZEZE
+  <span class="footer-brand">⚖ Légal Connect</span>
+  &nbsp;&mdash;&nbsp;
+  &copy; 2025-2026 Université Nangui Abrogoua &mdash; Master 1 MIAGE &mdash; Dr. ZEZE
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+/* Notification badge */
 {% if request.user.is_authenticated %}
 function updateNotifBadge() {
   fetch('/notifications/api/non-lues/')
     .then(r => r.json())
     .then(data => {
       const badge = document.getElementById('notif-badge');
+      if (!badge) return;
       if (data.count > 0) {
-        badge.textContent = data.count;
+        badge.textContent = data.count > 99 ? '99+' : data.count;
         badge.classList.remove('d-none');
       } else {
         badge.classList.add('d-none');
@@ -152,6 +517,16 @@ function updateNotifBadge() {
 updateNotifBadge();
 setInterval(updateNotifBadge, 30000);
 {% endif %}
+
+/* Auto-dismiss alerts after 5s */
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.alert.alert-dismissible').forEach(function (el) {
+    setTimeout(function () {
+      const bsAlert = bootstrap.Alert.getOrCreateInstance(el);
+      if (bsAlert) bsAlert.close();
+    }, 5000);
+  });
+});
 </script>
 {% block extra_js %}{% endblock %}
 </body>
