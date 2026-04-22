@@ -1,0 +1,438 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord — Légal Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+  .action-item { transition: background .18s; }
+  .action-item:hover { background: #f0f4ff; }
+  .kpi-card { border-left: 4px solid transparent; transition: all .2s; }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(27,79,114,.12); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <!-- En-tête personnalisé -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1">
+        <i class="bi bi-shop"></i> Mon Espace Commerçant
+      </h1>
+      <p class="text-muted mb-0">
+        Bonjour <strong>{{ request.user.first_name|default:request.user.username }}</strong> —
+        <span class="badge px-3 py-1 rounded-pill"
+              style="background:var(--bleu-principal); color:#fff;">
+          {{ request.user.profil.get_role_display }}
+        </span>
+        {% if profil.entreprise %}
+        <span class="text-muted ms-2"><i class="bi bi-building"></i> {{ profil.entreprise }}</span>
+        {% endif %}
+      </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if echeances_urgentes > 0 %}
+      <a href="/fiscalite/calendrier/" class="btn btn-warning">
+        <i class="bi bi-exclamation-triangle"></i> {{ echeances_urgentes }} échéance(s) urgente(s)
+      </a>
+      {% endif %}
+      {% if docs_expires > 0 %}
+      <a href="/documents/?expire=1" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-file-earmark-x"></i> {{ docs_expires }} document(s) expiré(s)
+      </a>
+      {% endif %}
+      <a href="{% url 'contrats:choisir_modele' %}" class="btn btn-lc-primary">
+        <i class="bi bi-plus-lg"></i> Nouveau contrat
+      </a>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#1B4F72;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Contrats</div>
+            <div style="font-size:2.2rem; font-weight:800; color:#1B4F72; line-height:1;">{{ total_contrats }}</div>
+            <div class="mt-1 d-flex gap-1 flex-wrap">
+              <span class="badge bg-warning text-dark">{{ brouillons }} brouillon</span>
+              <span class="badge bg-success">{{ signes }} signé</span>
+            </div>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#D6EAF8;flex-shrink:0;">
+            <i class="bi bi-file-earmark-text" style="font-size:1.4rem;color:#1B4F72;"></i>
+          </div>
+        </div>
+        <div class="mt-2">
+          <a href="{% url 'contrats:liste' %}" class="btn btn-sm btn-lc-outline w-100">Voir mes contrats</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#2E86C1;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Documents</div>
+            <div style="font-size:2.2rem; font-weight:800; color:#2E86C1; line-height:1;">{{ total_documents }}</div>
+            {% if docs_bientot > 0 %}
+            <span class="badge bg-warning text-dark">{{ docs_bientot }} expire bientôt</span>
+            {% else %}
+            <small class="text-muted">fichiers stockés</small>
+            {% endif %}
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#D6EAF8;flex-shrink:0;">
+            <i class="bi bi-folder" style="font-size:1.4rem;color:#2E86C1;"></i>
+          </div>
+        </div>
+        <div class="mt-2">
+          <a href="/documents/" class="btn btn-sm btn-lc-outline w-100">Mes documents</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#1E8449;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Dossiers</div>
+            <div style="font-size:2.2rem; font-weight:800; color:#1E8449; line-height:1;">{{ total_dossiers }}</div>
+            <small class="text-muted">{{ dossiers_en_attente }} en attente · {{ dossiers_en_cours }} en cours</small>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#EAFAF1;flex-shrink:0;">
+            <i class="bi bi-people" style="font-size:1.4rem;color:#1E8449;"></i>
+          </div>
+        </div>
+        <div class="mt-2">
+          <a href="/collaboration/" class="btn btn-sm btn-lc-outline w-100">Mes dossiers</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#D35400;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Déclarations</div>
+            <div style="font-size:2.2rem; font-weight:800; color:#D35400; line-height:1;">{{ total_declarations }}</div>
+            {% if echeances_urgentes > 0 %}
+            <span class="badge bg-danger">{{ echeances_urgentes }} urgent(s)</span>
+            {% else %}
+            <small class="text-muted">fiscales</small>
+            {% endif %}
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#FEF9E7;flex-shrink:0;">
+            <i class="bi bi-calculator" style="font-size:1.4rem;color:#D35400;"></i>
+          </div>
+        </div>
+        <div class="mt-2">
+          <a href="/fiscalite/" class="btn btn-sm btn-lc-outline w-100">Espace fiscal</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+
+    <!-- Derniers contrats -->
+    <div class="col-lg-8">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-clock-history"></i> Derniers contrats</span>
+          <a href="{% url 'contrats:liste' %}" class="btn btn-sm btn-outline-light">Voir tout</a>
+        </div>
+        <div class="card-body p-0">
+          {% if derniers_contrats %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead style="background:#f8f9fa;">
+                <tr>
+                  <th class="ps-3">Titre</th>
+                  <th>Type</th>
+                  <th>Client</th>
+                  <th>Statut</th>
+                  <th>Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for c in derniers_contrats %}
+                <tr>
+                  <td class="fw-bold ps-3 small">{{ c.titre|truncatechars:28 }}</td>
+                  <td><small class="text-muted">{{ c.get_type_contrat_display|truncatechars:18 }}</small></td>
+                  <td><small>{{ c.nom_client|truncatechars:18 }}</small></td>
+                  <td>
+                    <span class="badge rounded-pill
+                      {% if c.statut == 'signe' %}bg-success
+                      {% elif c.statut == 'finalise' %}bg-primary
+                      {% elif c.statut == 'archive' %}bg-secondary
+                      {% else %}bg-warning text-dark{% endif %}">
+                      {{ c.get_statut_display }}
+                    </span>
+                  </td>
+                  <td><small class="text-muted">{{ c.created_at|date:"d/m/Y" }}</small></td>
+                  <td>
+                    <a href="{% url 'contrats:detail' c.pk %}" class="btn btn-sm btn-lc-primary">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-file-earmark-text" style="font-size:3rem;color:#ccc;"></i>
+            <p class="text-muted mt-2">Aucun contrat. Créez votre premier !</p>
+            <a href="{% url 'contrats:choisir_modele' %}" class="btn btn-lc-primary btn-sm">
+              <i class="bi bi-plus-lg"></i> Créer un contrat
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions rapides -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-lightning"></i> Actions rapides</div>
+        <div class="card-body p-0">
+          <a href="{% url 'contrats:choisir_modele' %}" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#D6EAF8;flex-shrink:0;">
+              <i class="bi bi-file-earmark-plus" style="color:#1B4F72;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Nouveau contrat</div>
+              <div class="text-muted" style="font-size:11px;">Générez en 5 minutes</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/documents/upload/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#EAFAF1;flex-shrink:0;">
+              <i class="bi bi-upload" style="color:#1E8449;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Uploader un document</div>
+              <div class="text-muted" style="font-size:11px;">PDF, Word, Images</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/fiscalite/calculateur/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#FEF9E7;flex-shrink:0;">
+              <i class="bi bi-calculator" style="color:#D35400;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Calculer mes impôts</div>
+              <div class="text-muted" style="font-size:11px;">TVA, IS, CNPS, Patente…</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/collaboration/creer/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#EAFAF1;flex-shrink:0;">
+              <i class="bi bi-folder-plus" style="color:#1E8449;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Soumettre un dossier</div>
+              <div class="text-muted" style="font-size:11px;">Conseil expert en 48h</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/annuaire/" class="d-flex align-items-center gap-3 p-3 text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#D6EAF8;flex-shrink:0;">
+              <i class="bi bi-person-badge" style="color:#2E86C1;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Trouver un expert</div>
+              <div class="text-muted" style="font-size:11px;">Annuaire des spécialistes</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row g-3 mb-4">
+
+    <!-- Documents récents -->
+    <div class="col-lg-5">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-folder"></i> Documents récents</span>
+          <a href="/documents/" class="btn btn-sm btn-outline-light">Voir tout</a>
+        </div>
+        <div class="card-body p-0">
+          {% if derniers_documents %}
+          {% for doc in derniers_documents %}
+          <a href="{% url 'documents:detail' doc.pk %}"
+             class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <i class="bi {{ doc.icone }}" style="font-size:1.5rem;flex-shrink:0;"></i>
+            <div class="flex-grow-1 min-width-0">
+              <div class="fw-bold small text-truncate" style="color:var(--bleu-principal);">{{ doc.titre }}</div>
+              <div class="text-muted" style="font-size:11px;">
+                {{ doc.taille_lisible }} · {{ doc.created_at|date:"d/m/Y" }}
+                {% if doc.est_expire %}<span class="badge bg-danger ms-1">Expiré</span>{% endif %}
+              </div>
+            </div>
+            <span class="badge rounded-pill
+              {% if doc.statut == 'partage' %}bg-primary
+              {% elif doc.statut == 'signe' %}bg-success
+              {% elif doc.statut == 'archive' %}bg-secondary
+              {% else %}bg-light text-dark border{% endif %}">
+              {{ doc.get_statut_display }}
+            </span>
+          </a>
+          {% endfor %}
+          {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-folder2-open" style="font-size:2.5rem;color:#ccc;"></i>
+            <p class="text-muted mt-2 mb-0 small">Aucun document.</p>
+          </div>
+          {% endif %}
+          <div class="p-2 text-center border-top">
+            <a href="/documents/upload/" class="btn btn-sm btn-lc-primary">
+              <i class="bi bi-upload"></i> Uploader
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prochaines échéances fiscales -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-calendar-check"></i> Prochaines échéances</span>
+          <a href="/fiscalite/calendrier/" class="btn btn-sm btn-outline-light">Calendrier</a>
+        </div>
+        <div class="card-body p-0">
+          {% if prochaines_echeances %}
+          {% for ech in prochaines_echeances %}
+          <div class="d-flex align-items-center gap-3 p-3 border-bottom">
+            <div class="rounded text-center p-2 flex-shrink-0"
+                 style="width:46px;background:{% if ech.jours_restants <= 3 %}#FDEDEC{% elif ech.jours_restants <= 7 %}#FEF9E7{% else %}#EBF5FB{% endif %};">
+              <div class="fw-bold" style="font-size:1.1rem;line-height:1;
+                color:{% if ech.jours_restants <= 3 %}#C0392B{% elif ech.jours_restants <= 7 %}#D35400{% else %}#1A5276{% endif %};">
+                {{ ech.date_limite|date:"d" }}
+              </div>
+              <div style="font-size:10px;color:#888;">{{ ech.date_limite|date:"M" }}</div>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small">{{ ech.description|truncatechars:30 }}</div>
+              <div class="text-muted" style="font-size:11px;">
+                <span class="{% if ech.jours_restants <= 3 %}text-danger fw-bold{% elif ech.jours_restants <= 7 %}text-warning fw-bold{% endif %}">
+                  Dans {{ ech.jours_restants }} jour(s)
+                </span>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+          {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-calendar-check" style="font-size:2.5rem;color:#ccc;"></i>
+            <p class="text-muted mt-2 mb-0 small">Aucune échéance prochaine.</p>
+          </div>
+          {% endif %}
+          <div class="p-2 text-center border-top">
+            <a href="/fiscalite/" class="btn btn-sm btn-lc-primary">
+              <i class="bi bi-calculator"></i> Espace fiscal
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Taux fiscaux rapides -->
+    <div class="col-lg-3">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-percent"></i> Taux fiscaux CIV</div>
+        <div class="card-body p-0">
+          <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+            <span class="badge px-2 py-1" style="background:#1B4F72;">TVA</span>
+            <span class="fw-bold small" style="color:#1B4F72;">18%</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+            <span class="badge px-2 py-1" style="background:#2E86C1;">IS</span>
+            <span class="fw-bold small" style="color:#2E86C1;">20-30%</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+            <span class="badge px-2 py-1 bg-warning text-dark">CNPS</span>
+            <span class="fw-bold small" style="color:#D35400;">23.2%</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2 border-bottom">
+            <span class="badge px-2 py-1" style="background:#1E8449;">BNC</span>
+            <span class="fw-bold small" style="color:#1E8449;">20%</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center p-2">
+            <span class="badge px-2 py-1" style="background:#8E44AD;">BIC</span>
+            <span class="fw-bold small" style="color:#8E44AD;">25%</span>
+          </div>
+          <div class="p-2 border-top">
+            <a href="/fiscalite/calculateur/" class="btn btn-lc-primary btn-sm w-100">
+              <i class="bi bi-calculator"></i> Calculer
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Dossiers en cours -->
+  {% if derniers_dossiers %}
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-people"></i> Mes dossiers récents</span>
+      <a href="/collaboration/" class="btn btn-sm btn-outline-light">Voir tout</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="row g-0">
+        {% for d in derniers_dossiers %}
+        <div class="col-md-4 border-end">
+          <div class="p-3">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <span class="fw-bold small text-truncate me-2" style="color:var(--bleu-principal);">
+                {{ d.titre|truncatechars:30 }}
+              </span>
+              <span class="badge flex-shrink-0
+                {% if d.statut == 'valide' %}bg-success
+                {% elif d.statut == 'rejete' %}bg-danger
+                {% elif d.statut == 'en_cours' %}bg-primary
+                {% elif d.statut == 'en_attente' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ d.get_statut_display }}
+              </span>
+            </div>
+            <p class="text-muted small mb-2">{{ d.description|truncatechars:55 }}</p>
+            {% if d.expert %}
+            <p class="text-muted mb-1" style="font-size:11px;">
+              <i class="bi bi-person-check text-success"></i>
+              Expert : {{ d.expert.first_name }} {{ d.expert.last_name }}
+            </p>
+            {% endif %}
+            <a href="{% url 'collaboration:detail' d.pk %}" class="btn btn-sm btn-lc-primary w-100">
+              <i class="bi bi-eye"></i> Ouvrir
+            </a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

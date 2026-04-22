@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Rapport de Conformité — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="page-title mb-0"><i class="bi bi-shield-check"></i> Rapport de Conformité Fiscale</h1>
+    <div class="d-flex gap-2">
+      <span class="text-muted small align-self-center">{{ aujourd_hui|date:"d/m/Y" }}</span>
+      <a href="{% url 'fiscalite:dashboard' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Tableau de bord
+      </a>
+    </div>
+  </div>
+
+  <!-- Score global -->
+  <div class="card mb-4 border-0" style="background:linear-gradient(135deg,
+    {% if score >= 80 %}#27AE60,#1E8449
+    {% elif score >= 50 %}#F39C12,#D68910
+    {% else %}#E74C3C,#C0392B{% endif %}); color:white;">
+    <div class="card-body text-center py-4">
+      <div class="display-3 fw-bold">{{ score }}%</div>
+      <div class="fs-5 mt-1">Score de conformité</div>
+      <div class="opacity-75 small mt-1">{{ nb_ok }} / {{ nb_total }} points de contrôle validés</div>
+    </div>
+  </div>
+
+  <!-- Points de contrôle -->
+  <div class="row g-3">
+    {% for check in checks %}
+    <div class="col-12">
+      <div class="card border-start border-4 {% if check.ok %}border-success{% else %}border-danger{% endif %}">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+              <div class="fs-3">
+                {% if check.ok %}
+                <i class="bi bi-check-circle-fill text-success"></i>
+                {% else %}
+                <i class="bi bi-x-circle-fill text-danger"></i>
+                {% endif %}
+              </div>
+              <div>
+                <div class="fw-bold">{{ check.titre }}</div>
+                <div class="text-muted small">{{ check.detail }}</div>
+              </div>
+            </div>
+            <span class="badge rounded-pill
+              {% if check.priorite == 'haute' %}bg-danger
+              {% elif check.priorite == 'moyenne' %}bg-warning text-dark
+              {% elif check.priorite == 'info' %}bg-info
+              {% else %}bg-secondary{% endif %}">
+              {% if check.priorite == 'haute' %}Priorité haute
+              {% elif check.priorite == 'moyenne' %}Priorité moyenne
+              {% elif check.priorite == 'info' %}Information
+              {% else %}Faible{% endif %}
+            </span>
+          </div>
+
+          {% if check.items %}
+          <div class="mt-2 ms-5">
+            {% for item in check.items %}
+            <div class="small text-muted">
+              <i class="bi bi-arrow-right-short"></i>
+              {% if item.titre is defined %}{{ item.titre }} — {{ item.date_limite|date:"d/m/Y" }}
+              {% else %}{{ item.get_type_impot_display }} {{ item.annee }} — {{ item.montant_impot|floatformat:0 }} FCFA{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Actions recommandées -->
+  {% with failing=checks|length %}
+  <div class="card mt-4">
+    <div class="card-header fw-bold"><i class="bi bi-lightning"></i> Actions recommandées</div>
+    <div class="card-body">
+      <div class="d-flex flex-wrap gap-2">
+        <a href="{% url 'fiscalite:calculateur' %}" class="btn btn-lc-primary btn-sm">
+          <i class="bi bi-calculator"></i> Faire une déclaration
+        </a>
+        <a href="{% url 'fiscalite:calendrier' %}" class="btn btn-outline-warning btn-sm">
+          <i class="bi bi-calendar-check"></i> Voir les échéances
+        </a>
+        <a href="{% url 'fiscalite:penalites' %}" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-exclamation-triangle"></i> Calculer les pénalités
+        </a>
+        <a href="{% url 'fiscalite:historique' %}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-clock-history"></i> Voir l'historique
+        </a>
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+</div>
+{% endblock %}

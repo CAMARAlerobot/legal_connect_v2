@@ -3,114 +3,231 @@
 
 {% block content %}
 <div class="main-content">
-  <h1 class="page-title"><i class="bi bi-calendar-check"></i> Calendrier Fiscal</h1>
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="page-title mb-0"><i class="bi bi-calendar-check"></i> Calendrier Fiscal</h1>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" id="btnVueListe" onclick="toggleVue('liste')">
+        <i class="bi bi-list-ul"></i> Liste
+      </button>
+      <button class="btn btn-lc-primary btn-sm" id="btnVueCal" onclick="toggleVue('cal')">
+        <i class="bi bi-calendar3"></i> Calendrier
+      </button>
+    </div>
+  </div>
 
   <div class="row g-4">
     <!-- Formulaire ajout -->
-    <div class="col-lg-4">
+    <div class="col-12 col-lg-3">
       <div class="card">
-        <div class="card-header"><i class="bi bi-plus-circle"></i> Ajouter une échéance</div>
+        <div class="card-header fw-bold"><i class="bi bi-plus-circle"></i> Ajouter une échéance</div>
         <div class="card-body">
           <form method="post" action="{% url 'fiscalite:ajouter_echeance' %}">
             {% csrf_token %}
-            <div class="mb-3">
-              <label class="form-label fw-bold">Titre *</label>
-              <input type="text" name="titre" class="form-control" placeholder="Ex: Déclaration TVA Mars" required>
+            <div class="mb-2">
+              <label class="form-label small fw-bold">Titre *</label>
+              <input type="text" name="titre" class="form-control form-control-sm" placeholder="Ex: TVA Mars" required>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold">Type d'impôt *</label>
-              <select name="type_impot" class="form-select" required>
+            <div class="mb-2">
+              <label class="form-label small fw-bold">Type d'impôt *</label>
+              <select name="type_impot" class="form-select form-select-sm" required>
                 {% for val, label in types_impot %}
-                <option value="{{ val }}">{{ label }}</option>
+                <option value="{{ val }}">{{ label|truncatechars:30 }}</option>
                 {% endfor %}
               </select>
             </div>
-            <div class="mb-3">
-              <label class="form-label fw-bold">Date limite *</label>
-              <input type="date" name="date_limite" class="form-control" required>
+            <div class="mb-2">
+              <label class="form-label small fw-bold">Date limite *</label>
+              <input type="date" name="date_limite" class="form-control form-control-sm" required>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Montant estimé (FCFA)</label>
+              <input type="number" name="montant" class="form-control form-control-sm" placeholder="Optionnel" min="0">
             </div>
             <div class="mb-3">
-              <label class="form-label">Montant estimé (FCFA)</label>
-              <input type="number" name="montant" class="form-control" placeholder="Optionnel" min="0">
+              <label class="form-label small">Notes</label>
+              <textarea name="notes" class="form-control form-control-sm" rows="2"></textarea>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Notes</label>
-              <textarea name="notes" class="form-control" rows="2" placeholder="Notes..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-lc-primary w-100">
+            <button type="submit" class="btn btn-lc-primary btn-sm w-100">
               <i class="bi bi-plus-lg"></i> Ajouter
             </button>
           </form>
         </div>
       </div>
+
+      <!-- Légende -->
+      <div class="card mt-3">
+        <div class="card-body py-2">
+          <div class="small fw-bold mb-2">Légende</div>
+          <div class="d-flex flex-column gap-1">
+            <span><span class="badge bg-success">●</span> Fait</span>
+            <span><span class="badge bg-danger">●</span> En retard</span>
+            <span><span class="badge bg-warning text-dark">●</span> À faire</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Liste échéances -->
-    <div class="col-lg-8">
-      {% if echeances %}
-      <div class="row g-3">
-        {% for ech in echeances %}
-        <div class="col-md-6">
-          <div class="card h-100 border-start border-4
-            {% if ech.statut == 'fait' %}border-success
-            {% elif ech.statut == 'en_retard' %}border-danger
-            {% elif ech.date_limite <= aujourd_hui %}border-warning
-            {% else %}border-primary{% endif %}">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                <h6 class="fw-bold mb-0">{{ ech.titre }}</h6>
-                <span class="badge rounded-pill
-                  {% if ech.statut == 'fait' %}bg-success
-                  {% elif ech.statut == 'en_retard' %}bg-danger
-                  {% else %}bg-warning text-dark{% endif %}">
-                  {{ ech.get_statut_display }}
-                </span>
-              </div>
-              <p class="text-muted small mb-1"><i class="bi bi-tag"></i> {{ ech.get_type_impot_display }}</p>
-              <p class="small mb-1">
-                <i class="bi bi-calendar"></i>
-                <strong>{{ ech.date_limite|date:"d/m/Y" }}</strong>
-                {% if ech.date_limite < aujourd_hui and ech.statut != 'fait' %}
-                <span class="text-danger ms-1">⚠ En retard</span>
-                {% endif %}
-              </p>
-              {% if ech.montant %}
-              <p class="small mb-1"><i class="bi bi-cash"></i> {{ ech.montant|floatformat:0 }} FCFA</p>
-              {% endif %}
-              {% if ech.notes %}
-              <p class="text-muted small mb-0">{{ ech.notes|truncatechars:60 }}</p>
-              {% endif %}
+    <!-- Vue principale -->
+    <div class="col-12 col-lg-9">
+
+      <!-- Vue calendrier mensuelle -->
+      <div id="vueCalendrier">
+        <!-- Navigation mois -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <a href="?mois={{ mois_prec }}&annee={{ annee_prec }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-left"></i>
+          </a>
+          <h5 class="mb-0 fw-bold">{{ mois_nom }} {{ annee_cal }}</h5>
+          <a href="?mois={{ mois_suiv }}&annee={{ annee_suiv }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-chevron-right"></i>
+          </a>
+        </div>
+
+        <!-- Grille calendrier -->
+        <div class="card">
+          <div class="card-body p-2" style="overflow-x:auto;">
+            <div style="min-width:320px;">
+            <div class="row g-0 text-center">
+              {% for jour in jours_semaine %}
+              <div class="col fw-bold small py-1" style="color:var(--bleu-principal);">{{ jour }}</div>
+              {% endfor %}
             </div>
-            <div class="card-footer bg-transparent border-0 d-flex gap-2">
-              {% if ech.statut != 'fait' %}
-              <a href="{% url 'fiscalite:marquer_echeance' ech.pk %}" class="btn btn-sm btn-success flex-grow-1">
-                <i class="bi bi-check-lg"></i> Marquer fait
-              </a>
-              {% else %}
-              <span class="btn btn-sm btn-success flex-grow-1 disabled">✓ Fait</span>
-              {% endif %}
-              <form method="post" action="{% url 'fiscalite:supprimer_echeance' ech.pk %}" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger"
-                        onclick="return confirm('Supprimer cette échéance ?')">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
+            {% for semaine in cal_semaines %}
+            <div class="row g-0">
+              {% for jour in semaine %}
+              <div class="col p-1" style="min-height:60px;">
+                {% if jour != 0 %}
+                <div class="h-100 rounded p-1
+                  {% if jour == aujourd_hui.day and annee_cal == aujourd_hui.year and mois_cal == aujourd_hui.month %}
+                  border border-primary{% endif %}"
+                  style="background:#f8f9fa; font-size:0.8rem;">
+                  <div class="fw-bold mb-1
+                    {% if jour == aujourd_hui.day and annee_cal == aujourd_hui.year and mois_cal == aujourd_hui.month %}
+                    text-white rounded px-1" style="background:var(--bleu-principal); display:inline-block;
+                    {% else %}text-muted{% endif %}">
+                    {{ jour }}
+                  </div>
+                  {% if ech_par_jour|default:'' %}
+                  {% for ech in ech_par_jour|default:'' %}{% endfor %}
+                  {% endif %}
+                  {% for e in ech_par_jour %}
+                  {% endfor %}
+                  <!-- Affichage des échéances du jour -->
+                  <div style="font-size:0.65rem; line-height:1.1;">
+                  {% for day_key, ech_list in ech_par_jour.items %}
+                  {% if day_key == jour %}
+                    {% for e in ech_list %}
+                    <div class="rounded px-1 mb-1 fw-bold
+                      {% if e.statut == 'fait' %}bg-success text-white
+                      {% elif e.statut == 'en_retard' %}bg-danger text-white
+                      {% else %}bg-warning text-dark{% endif %}"
+                      title="{{ e.titre }}">
+                      {{ e.titre|truncatechars:10 }}
+                    </div>
+                    {% endfor %}
+                  {% endif %}
+                  {% endfor %}
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% endfor %}
             </div>
           </div>
         </div>
-        {% endfor %}
       </div>
-      {% else %}
-      <div class="card text-center py-5">
-        <div class="card-body">
-          <i class="bi bi-calendar-x" style="font-size:4rem; color:#ccc;"></i>
-          <h5 class="mt-3 text-muted">Aucune échéance planifiée</h5>
-          <p class="text-muted">Ajoutez vos échéances fiscales pour ne plus jamais les oublier</p>
+
+      <!-- Vue liste -->
+      <div id="vueListe" class="d-none">
+        {% if echeances %}
+        <div class="row g-3">
+          {% for ech in echeances %}
+          <div class="col-md-6">
+            <div class="card h-100 border-start border-4
+              {% if ech.statut == 'fait' %}border-success
+              {% elif ech.statut == 'en_retard' %}border-danger
+              {% elif ech.date_limite <= aujourd_hui %}border-warning
+              {% else %}border-primary{% endif %}">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h6 class="fw-bold mb-0">{{ ech.titre }}</h6>
+                  <span class="badge rounded-pill
+                    {% if ech.statut == 'fait' %}bg-success
+                    {% elif ech.statut == 'en_retard' %}bg-danger
+                    {% else %}bg-warning text-dark{% endif %}">
+                    {{ ech.get_statut_display }}
+                  </span>
+                </div>
+                <p class="text-muted small mb-1"><i class="bi bi-tag"></i> {{ ech.get_type_impot_display }}</p>
+                <p class="small mb-1">
+                  <i class="bi bi-calendar"></i>
+                  <strong>{{ ech.date_limite|date:"d/m/Y" }}</strong>
+                  {% if ech.date_limite < aujourd_hui and ech.statut != 'fait' %}
+                  <span class="text-danger ms-1">⚠ En retard</span>
+                  {% endif %}
+                </p>
+                {% if ech.montant %}<p class="small mb-1"><i class="bi bi-cash"></i> {{ ech.montant|floatformat:0 }} FCFA</p>{% endif %}
+                {% if ech.notes %}<p class="text-muted small mb-0">{{ ech.notes|truncatechars:60 }}</p>{% endif %}
+              </div>
+              <div class="card-footer bg-transparent border-0 d-flex gap-2">
+                {% if ech.statut != 'fait' %}
+                <a href="{% url 'fiscalite:marquer_echeance' ech.pk %}" class="btn btn-sm btn-success flex-grow-1">
+                  <i class="bi bi-check-lg"></i> Marquer fait
+                </a>
+                {% else %}
+                <span class="btn btn-sm btn-success flex-grow-1 disabled">✓ Fait</span>
+                {% endif %}
+                <form method="post" action="{% url 'fiscalite:supprimer_echeance' ech.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                          onclick="return confirm('Supprimer cette échéance ?')">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
         </div>
+        {% else %}
+        <div class="card text-center py-5">
+          <div class="card-body">
+            <i class="bi bi-calendar-x" style="font-size:4rem; color:#ccc;"></i>
+            <h5 class="mt-3 text-muted">Aucune échéance planifiée</h5>
+          </div>
+        </div>
+        {% endif %}
       </div>
-      {% endif %}
+
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleVue(vue) {
+  const cal   = document.getElementById('vueCalendrier');
+  const liste = document.getElementById('vueListe');
+  const btnCal   = document.getElementById('btnVueCal');
+  const btnListe = document.getElementById('btnVueListe');
+  if (vue === 'cal') {
+    cal.classList.remove('d-none');
+    liste.classList.add('d-none');
+    btnCal.className   = 'btn btn-lc-primary btn-sm';
+    btnListe.className = 'btn btn-outline-secondary btn-sm';
+  } else {
+    cal.classList.add('d-none');
+    liste.classList.remove('d-none');
+    btnCal.className   = 'btn btn-outline-secondary btn-sm';
+    btnListe.className = 'btn btn-lc-primary btn-sm';
+  }
+  localStorage.setItem('fiscalVue', vue);
+}
+// Restaurer la vue préférée
+const vuePref = localStorage.getItem('fiscalVue');
+if (vuePref === 'liste') toggleVue('liste');
+</script>
 {% endblock %}

@@ -1,280 +1,678 @@
 {% extends 'base.html' %}
 {% block title %}Calculateur Fiscal — Légal Connect{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ── Tax type tile ───────────────────────────────────── */
+.tax-tile {
+  display: block;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  padding: 10px 6px 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all .2s ease;
+  background: #fff;
+  user-select: none;
+}
+.tax-tile:hover {
+  border-color: var(--bleu-secondaire);
+  background: #f0f7ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(46,134,193,.15);
+}
+.tax-tile.active {
+  border-color: var(--bleu-principal);
+  background: linear-gradient(135deg, #eaf3fb, #dbeeff);
+  box-shadow: 0 4px 14px rgba(27,79,114,.2);
+}
+.tax-tile-icon { font-size: 1.6rem; line-height: 1; margin-bottom: 4px; }
+.tax-tile-name { font-size: .78rem; font-weight: 700; margin-bottom: 2px; }
+.tax-tile-rate { font-size: .68rem; color: #6c757d; }
+.tax-tile input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+
+/* ── Period radio ───────────────────────────────────── */
+.period-btn { cursor: pointer; }
+.period-btn input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+.period-btn .period-inner {
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: .82rem;
+  font-weight: 600;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.period-btn input:checked ~ .period-inner {
+  border-color: var(--bleu-principal);
+  background: linear-gradient(135deg, #eaf3fb, #dbeeff);
+  color: var(--bleu-principal);
+}
+.period-btn:hover .period-inner { border-color: var(--bleu-secondaire); background: #f0f7ff; }
+
+/* ── Result hero ────────────────────────────────────── */
+.result-hero {
+  background: linear-gradient(135deg, var(--bleu-principal), var(--bleu-secondaire));
+  border-radius: 14px;
+  color: white;
+  padding: 28px 24px 20px;
+  margin-bottom: 16px;
+}
+.result-amount {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+/* ── Step badge ─────────────────────────────────────── */
+.step-badge {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .78rem; font-weight: 700; color: white;
+  background: var(--bleu-principal);
+  flex-shrink: 0;
+}
+
+/* ── Suggestion card ────────────────────────────────── */
+.suggest-icon {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Live preview number animate ───────────────────── */
+.live-number { transition: all .25s ease; }
+
+/* ── Input group override ───────────────────────────── */
+.input-group-text { background: #f8f9fa; }
+
+/* ── Guide item ─────────────────────────────────────── */
+.guide-item {
+  display: flex; align-items: center; gap: 10px;
+  background: white; border-radius: 8px;
+  padding: 8px 10px;
+  border: 1px solid #f0f0f0;
+  transition: box-shadow .15s;
+}
+.guide-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="main-content">
 
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <!-- ── Header ──────────────────────────────────────── -->
+  <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
     <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1 small">
+          <li class="breadcrumb-item">
+            <a href="{% url 'fiscalite:dashboard' %}" class="text-decoration-none">
+              <i class="bi bi-calculator me-1"></i>Fiscalité
+            </a>
+          </li>
+          <li class="breadcrumb-item active">Calculateur</li>
+        </ol>
+      </nav>
       <h1 class="page-title mb-1"><i class="bi bi-calculator"></i> Calculateur Fiscal</h1>
-      <p class="text-muted mb-0">Estimez vos impôts selon la fiscalité de la Côte d'Ivoire</p>
+      <p class="text-muted mb-0 small">
+        Estimez vos impôts selon la fiscalité de la Côte d'Ivoire — CGI 2025-2026
+      </p>
     </div>
-    <a href="{% url 'fiscalite:dashboard' %}" class="btn btn-outline-secondary">
-      <i class="bi bi-arrow-left"></i> Tableau de bord
-    </a>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'fiscalite:penalites' %}" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-exclamation-triangle"></i> Pénalités
+      </a>
+      <a href="{% url 'fiscalite:historique' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-clock-history"></i> Historique
+      </a>
+      <a href="{% url 'fiscalite:dashboard' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Tableau de bord
+      </a>
+    </div>
   </div>
 
   {% if erreur %}
-  <div class="alert alert-danger"><i class="bi bi-exclamation-circle"></i> {{ erreur }}</div>
+  <div class="alert alert-danger alert-dismissible d-flex align-items-center gap-2">
+    <i class="bi bi-exclamation-circle-fill fs-5"></i>
+    <span>{{ erreur }}</span>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+  </div>
   {% endif %}
 
-  <div class="row g-4">
+  <form method="post" id="formCalculateur">
+    {% csrf_token %}
+    <div class="row g-4">
 
-    <!-- Formulaire de calcul -->
-    <div class="col-lg-5">
-      <form method="post">
-        {% csrf_token %}
+      <!-- ═══════════════════════════════════════════════
+           COLONNE GAUCHE — Formulaire
+      ═══════════════════════════════════════════════ -->
+      <div class="col-12 col-lg-5">
 
-        <!-- Choix du type d'impôt -->
+        <!-- Étape 1 : Type d'impôt -->
         <div class="card mb-3">
-          <div class="card-header fw-bold"><i class="bi bi-list-ul"></i> Type d'impôt</div>
-          <div class="card-body">
-            <div class="d-flex flex-column gap-2">
+          <div class="card-header d-flex align-items-center gap-2 fw-bold">
+            <span class="step-badge">1</span>
+            Type d'impôt
+          </div>
+          <div class="card-body p-2">
+            <div class="row g-2">
               {% for val, label in types_impot %}
-              <div class="form-check">
-                <input class="form-check-input" type="radio" name="type_impot"
-                       id="type_{{ val }}" value="{{ val }}"
-                       {% if type_actif == val %}checked{% endif %}>
-                <label class="form-check-label" for="type_{{ val }}">{{ label }}</label>
+              <div class="col-6 col-sm-4 col-lg-6 col-xl-4">
+                <label class="tax-tile w-100 position-relative {% if type_actif == val %}active{% endif %}" for="type_{{ val }}">
+                  <input class="visually-hidden" type="radio" name="type_impot"
+                         id="type_{{ val }}" value="{{ val }}"
+                         {% if type_actif == val %}checked{% endif %}>
+                  <div class="tax-tile-icon" id="icon-{{ val }}">
+                    <i class="bi bi-percent"></i>
+                  </div>
+                  <div class="tax-tile-name">{{ val|upper }}</div>
+                  <div class="tax-tile-rate" id="rate-{{ val }}">—</div>
+                </label>
               </div>
               {% endfor %}
             </div>
           </div>
         </div>
 
-        <!-- Champs de saisie -->
+        <!-- Hint contextuel -->
+        <div id="type-hint" class="alert py-2 px-3 mb-3 d-flex align-items-start gap-2 border-0"
+             style="background:var(--bleu-clair); font-size:.85rem;">
+          <i class="bi bi-info-circle text-primary mt-1 flex-shrink-0"></i>
+          <span id="type-hint-text">Sélectionnez un type d'impôt ci-dessus pour voir son mode de calcul.</span>
+        </div>
+
+        <!-- Étape 2 : Données financières -->
         <div class="card mb-3">
-          <div class="card-header fw-bold"><i class="bi bi-input-cursor-text"></i> Données financières</div>
+          <div class="card-header d-flex align-items-center gap-2 fw-bold">
+            <span class="step-badge">2</span>
+            Données financières
+          </div>
           <div class="card-body">
 
             <!-- CA HT -->
             <div class="mb-3" id="champ-ca">
-              <label class="form-label fw-bold">Chiffre d'affaires HT (FCFA)</label>
-              <input type="number" name="chiffre_affaires" id="id_ca_ht"
-                     class="form-control" placeholder="Ex : 5 000 000" min="0" step="1"
-                     value="{{ post_data.chiffre_affaires|default:'' }}">
-              <small class="text-muted">Montant hors taxes réalisé sur la période</small>
+              <label class="form-label small fw-bold text-uppercase text-muted mb-1">
+                <i class="bi bi-graph-up-arrow text-success"></i> Chiffre d'affaires HT
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-cash text-success"></i></span>
+                <input type="number" name="chiffre_affaires" id="id_ca_ht"
+                       class="form-control" placeholder="Ex : 5 000 000"
+                       min="0" step="1"
+                       value="{{ post_data.chiffre_affaires|default:'' }}">
+                <span class="input-group-text text-muted small">FCFA</span>
+              </div>
+              <div class="form-text">Montant hors taxes réalisé sur la période</div>
             </div>
 
-            <!-- Charges / Achats HT -->
+            <!-- Charges -->
             <div class="mb-3" id="champ-charges">
-              <label class="form-label fw-bold">Charges / Achats HT (FCFA)</label>
-              <input type="number" name="charges" id="id_charges_ht"
-                     class="form-control" placeholder="Ex : 1 500 000" min="0" step="1"
-                     value="{{ post_data.charges|default:'' }}">
-              <small class="text-muted">Total des dépenses déductibles HT</small>
+              <label class="form-label small fw-bold text-uppercase text-muted mb-1">
+                <i class="bi bi-arrow-down-circle text-danger"></i> Charges / Achats HT
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-bag text-danger"></i></span>
+                <input type="number" name="charges" id="id_charges_ht"
+                       class="form-control" placeholder="Ex : 1 500 000"
+                       min="0" step="1"
+                       value="{{ post_data.charges|default:'' }}">
+                <span class="input-group-text text-muted small">FCFA</span>
+              </div>
+              <div class="form-text">Dépenses déductibles HT</div>
             </div>
 
             <!-- Salaire (CNPS) -->
             <div class="mb-3 d-none" id="champ-salaire">
-              <label class="form-label fw-bold">Salaire mensuel brut (FCFA)</label>
-              <input type="number" name="salaire" class="form-control"
-                     placeholder="Ex : 500 000" min="0" step="1"
-                     value="{{ post_data.salaire|default:'' }}">
+              <label class="form-label small fw-bold text-uppercase text-muted mb-1">
+                <i class="bi bi-person-check text-info"></i> Salaire mensuel brut / employé
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-wallet2 text-info"></i></span>
+                <input type="number" name="salaire" id="id_salaire"
+                       class="form-control" placeholder="Ex : 500 000"
+                       min="0" step="1"
+                       value="{{ post_data.salaire|default:'' }}">
+                <span class="input-group-text text-muted small">FCFA</span>
+              </div>
             </div>
 
             <!-- Nombre d'employés (CNPS) -->
             <div class="mb-3 d-none" id="champ-employes">
-              <label class="form-label fw-bold">Nombre d'employés</label>
-              <input type="number" name="nb_employes" class="form-control"
-                     placeholder="1" min="1"
-                     value="{{ post_data.nb_employes|default:'1' }}">
+              <label class="form-label small fw-bold text-uppercase text-muted mb-1">
+                <i class="bi bi-people text-secondary"></i> Nombre d'employés
+              </label>
+              <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3"
+                        onclick="changeEmp(-1)">−</button>
+                <input type="number" name="nb_employes" id="id_nb_employes"
+                       class="form-control text-center" style="max-width:80px;"
+                       min="1" value="{{ post_data.nb_employes|default:'1' }}">
+                <button type="button" class="btn btn-outline-secondary btn-sm px-3"
+                        onclick="changeEmp(1)">+</button>
+                <span class="text-muted small">employé(s)</span>
+              </div>
             </div>
 
             <!-- Période -->
-            <div class="mb-3">
-              <label class="form-label fw-bold">Période</label>
-              <select name="periode" class="form-select">
-                <option value="mensuel"     {% if post_data.periode == 'mensuel'      %}selected{% endif %}>Mensuel</option>
-                <option value="trimestriel" {% if post_data.periode == 'trimestriel'  %}selected{% endif %}>Trimestriel</option>
-                <option value="annuel"      {% if post_data.periode == 'annuel'       %}selected{% endif %}>Annuel</option>
-              </select>
+            <div id="champ-periode">
+              <label class="form-label small fw-bold text-uppercase text-muted mb-1">
+                <i class="bi bi-calendar3 text-primary"></i> Période de déclaration
+              </label>
+              <div class="d-flex flex-wrap gap-2">
+                {% for p_val, p_label in periodes %}
+                <label class="period-btn">
+                  <input type="radio" name="periode" value="{{ p_val }}"
+                    {% if post_data.periode == p_val %}checked
+                    {% elif not post_data.periode and p_val == 'mensuel' %}checked
+                    {% endif %}>
+                  <span class="period-inner">{{ p_label }}</span>
+                </label>
+                {% empty %}
+                <label class="period-btn"><input type="radio" name="periode" value="mensuel" checked><span class="period-inner">Mensuel</span></label>
+                <label class="period-btn"><input type="radio" name="periode" value="trimestriel"><span class="period-inner">Trimestriel</span></label>
+                <label class="period-btn"><input type="radio" name="periode" value="annuel"><span class="period-inner">Annuel</span></label>
+                {% endfor %}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Étape 3 : Action -->
+        <div class="card mb-0">
+          <div class="card-body d-grid gap-2">
+            <button type="submit" class="btn btn-lc-primary btn-lg" id="btnCalculer">
+              <i class="bi bi-calculator me-1"></i> Calculer l'impôt
+            </button>
+            {% if resultat %}
+            <button type="submit" name="sauvegarder" value="1" class="btn btn-success">
+              <i class="bi bi-save me-1"></i> Sauvegarder dans l'historique
+            </button>
+            <a href="{% url 'fiscalite:calculateur' %}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-arrow-counterclockwise me-1"></i> Nouveau calcul
+            </a>
+            {% endif %}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ═══════════════════════════════════════════════
+           COLONNE DROITE — Résultats / Aperçu
+      ═══════════════════════════════════════════════ -->
+      <div class="col-12 col-lg-7">
+
+        {% if resultat %}
+        <!-- ── Résultat principal ─────────────────────── -->
+        <div class="result-hero mb-3">
+          <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+              <span class="badge bg-white bg-opacity-25 rounded-pill mb-2">
+                <i class="bi bi-check-circle-fill me-1"></i>Calcul effectué
+              </span>
+              <div class="small opacity-75">{{ resultat.type }}</div>
+            </div>
+            <a href="{% url 'fiscalite:pdf_declaration' 0 %}" class="btn btn-sm btn-outline-light d-none">
+              <i class="bi bi-file-pdf"></i>
+            </a>
+          </div>
+          <div class="text-center py-2">
+            <div class="opacity-75 small mb-1">Montant de l'impôt estimé</div>
+            <div class="result-amount">{{ resultat.montant_impot|floatformat:0 }}</div>
+            <div class="fs-5 opacity-75 mt-1">FCFA</div>
+          </div>
+          <div class="mt-3 pt-2 border-top border-white border-opacity-25">
+            <small class="opacity-75">
+              <i class="bi bi-info-circle me-1"></i>{{ resultat.detail }}
+            </small>
+          </div>
+        </div>
+
+        <!-- ── Détail TVA ─────────────────────────────── -->
+        {% if resultat.type == 'TVA' %}
+        <div class="card mb-3">
+          <div class="card-header fw-bold">
+            <i class="bi bi-receipt text-warning"></i> Détail TVA — Art. 339 CGI (18%)
+          </div>
+          <div class="card-body">
+            <div class="row g-2 text-center mb-3">
+              <div class="col-4">
+                <div class="p-2 rounded h-100" style="background:#e8f4fd; border:1px solid #b8d9f0;">
+                  <div class="small text-muted fw-bold">CA HT</div>
+                  <div class="fw-bold" style="color:var(--bleu-principal); font-size:.9rem;">
+                    {{ resultat.ca_ttc|floatformat:0 }}
+                  </div>
+                  <div class="text-muted" style="font-size:.7rem;">FCFA</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 rounded h-100" style="background:#fff3cd; border:1px solid #ffc107;">
+                  <div class="small text-muted fw-bold">TVA collectée</div>
+                  <div class="fw-bold text-warning" style="font-size:.9rem;">
+                    {{ resultat.montant_impot|floatformat:0 }}
+                  </div>
+                  <div class="text-muted" style="font-size:.7rem;">18% × CA</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 rounded h-100" id="res-nette-box" style="background:#d1ecf1; border:1px solid #86cfda;">
+                  <div class="small fw-bold">TVA nette</div>
+                  <div class="fw-bold" id="res-tva-nette" style="font-size:.9rem;">—</div>
+                  <div class="text-muted" style="font-size:.7rem;">à reverser</div>
+                </div>
+              </div>
+            </div>
+            <div class="small text-muted mb-1">
+              <i class="bi bi-dash-circle text-danger"></i>
+              TVA déductible sur achats HT :
+              <strong class="text-danger" id="res-tva-ded">—</strong>
+            </div>
+            <div class="progress mb-1" style="height:10px; border-radius:6px; overflow:hidden;">
+              <div class="progress-bar bg-warning" id="bar-tva-col"
+                   style="width:100%;" title="TVA collectée"></div>
+              <div class="progress-bar bg-danger" id="bar-tva-ded"
+                   style="width:0%;" title="TVA déductible"></div>
+            </div>
+            <div class="d-flex gap-3 small text-muted mt-1">
+              <span><i class="bi bi-circle-fill text-warning me-1" style="font-size:8px;"></i>Collectée</span>
+              <span><i class="bi bi-circle-fill text-danger me-1" style="font-size:8px;"></i>Déductible</span>
+            </div>
+            <div class="small text-muted mt-2" id="res-charges-line" style="display:none;">
+              Achats HT : <span id="res-charges" class="fw-bold"></span>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- ── Détail IS tranches ─────────────────────── -->
+        {% if resultat.tranches %}
+        <div class="card mb-3">
+          <div class="card-header fw-bold">
+            <i class="bi bi-table text-primary"></i> IS — Détail par tranches progressives
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+              <thead class="table-dark">
+                <tr><th>Tranche</th><th class="text-end">Impôt</th></tr>
+              </thead>
+              <tbody>
+                {% for t in resultat.tranches %}
+                <tr><td colspan="2" class="ps-3">{{ t }}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- ── Détail Patente ─────────────────────────── -->
+        {% if resultat.type == 'Patente' %}
+        <div class="card mb-3">
+          <div class="card-header fw-bold">
+            <i class="bi bi-shop text-info"></i> Détail Patente
+          </div>
+          <div class="card-body">
+            <div class="row g-2 text-center">
+              <div class="col-4">
+                <div class="p-2 rounded" style="background:#e0f4ff; border:1px solid #b3e0f5;">
+                  <div class="small text-muted">Droit fixe</div>
+                  <div class="fw-bold text-info">{{ resultat.droit_fixe|floatformat:0 }}</div>
+                  <div style="font-size:.7rem;" class="text-muted">FCFA</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 rounded" style="background:#e0f4ff; border:1px solid #b3e0f5;">
+                  <div class="small text-muted">Droit prop. ({{ resultat.taux }}%)</div>
+                  <div class="fw-bold text-info">{{ resultat.droit_proportionnel|floatformat:0 }}</div>
+                  <div style="font-size:.7rem;" class="text-muted">FCFA</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 rounded" style="background:#cfe2ff; border:1px solid #9ec5fe;">
+                  <div class="small fw-bold">Total</div>
+                  <div class="fw-bold" style="color:var(--bleu-principal);">{{ resultat.montant_impot|floatformat:0 }}</div>
+                  <div style="font-size:.7rem;" class="text-muted">FCFA</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- ── Détail CNPS ────────────────────────────── -->
+        {% if resultat.type == 'CNPS' %}
+        <div class="card mb-3">
+          <div class="card-header fw-bold">
+            <i class="bi bi-people text-secondary"></i> CNPS — {{ resultat.nb_employes }} employé(s)
+          </div>
+          <div class="card-body">
+            <div class="row g-2 text-center mb-2">
+              <div class="col-6">
+                <div class="p-2 rounded" style="background:#f8f9fa;">
+                  <div class="small text-muted">Part salarié (6,3%)</div>
+                  <div class="fw-bold text-secondary">{{ resultat.part_employe|floatformat:0 }} FCFA</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-2 rounded" style="background:#f8f9fa;">
+                  <div class="small text-muted">Part employeur (7,7%)</div>
+                  <div class="fw-bold text-secondary">{{ resultat.part_employeur|floatformat:0 }} FCFA</div>
+                </div>
+              </div>
+            </div>
+            <div class="row g-2 text-center">
+              <div class="col-6">
+                <div class="p-2 rounded border">
+                  <div class="small text-muted">Total mensuel</div>
+                  <div class="fw-bold">{{ resultat.total_mensuel|floatformat:0 }} FCFA</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-2 rounded" style="background:linear-gradient(135deg,#e8f0fe,#dbeeff);">
+                  <div class="small fw-bold text-muted">Total annuel</div>
+                  <div class="fw-bold" style="color:var(--bleu-principal);">{{ resultat.total_annuel|floatformat:0 }} FCFA</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- ── Suggestions ───────────────────────────── -->
+        {% if suggestions %}
+        <div class="card border-0" style="background:linear-gradient(135deg,#f5fbff,#edfaf3);">
+          <div class="card-header fw-bold border-0" style="background:transparent;">
+            <i class="bi bi-lightbulb-fill text-warning"></i> Conseils d'optimisation fiscale
+          </div>
+          <div class="card-body pt-0">
+            {% for s in suggestions %}
+            <div class="d-flex gap-3 mb-3 p-3 rounded-3" style="background:rgba(255,255,255,.78); box-shadow:0 1px 4px rgba(0,0,0,.06);">
+              <div class="suggest-icon
+                {% if s.priorite == 'haute' %}bg-danger bg-opacity-10
+                {% elif s.priorite == 'moyenne' %}bg-warning bg-opacity-10
+                {% elif s.priorite == 'info' %}bg-info bg-opacity-10
+                {% else %}bg-secondary bg-opacity-10{% endif %}">
+                {% if s.priorite == 'haute' %}<i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                {% elif s.priorite == 'moyenne' %}<i class="bi bi-lightbulb-fill text-warning"></i>
+                {% elif s.priorite == 'info' %}<i class="bi bi-info-circle-fill text-info"></i>
+                {% else %}<i class="bi bi-dash-circle text-muted"></i>{% endif %}
+              </div>
+              <div class="flex-grow-1">
+                <div class="fw-bold small">{{ s.titre }}</div>
+                <div class="text-muted small mt-1">{{ s.detail }}</div>
+                {% if s.economie %}
+                <span class="badge bg-success mt-2">
+                  <i class="bi bi-piggy-bank me-1"></i>Économie estimée : {{ s.economie|floatformat:0 }} FCFA
+                </span>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- ══════════════════════════════════════
+             AVANT CALCUL — Aperçu live + Guide
+        ══════════════════════════════════════ -->
+
+        <!-- Aperçu TVA live -->
+        <div class="card mb-3" id="card-live-tva">
+          <div class="card-header fw-bold d-flex align-items-center justify-content-between">
+            <span>
+              <i class="bi bi-lightning-fill text-warning"></i> Aperçu en temps réel
+            </span>
+            <span class="badge rounded-pill" style="background:var(--bleu-secondaire);" id="badge-type-live">TVA</span>
+          </div>
+          <div class="card-body" id="live-tva-body">
+            <p class="text-muted small mb-3" id="live-description">
+              Saisissez votre CA HT et vos achats HT pour voir la TVA instantanément.
+            </p>
+            <div class="row g-2 text-center mb-2">
+              <div class="col-6 col-sm-3">
+                <div class="p-2 rounded h-100" style="background:#e8f4fd; border:1px solid #b8d9f0;">
+                  <div class="small text-muted">CA HT</div>
+                  <div class="fw-bold live-number small" id="res-ca-ht">—</div>
+                </div>
+              </div>
+              <div class="col-6 col-sm-3">
+                <div class="p-2 rounded h-100" style="background:#e8f8ea; border:1px solid #b8e0bc;">
+                  <div class="small text-muted">CA TTC</div>
+                  <div class="fw-bold live-number small" id="res-ca-ttc">—</div>
+                </div>
+              </div>
+              <div class="col-6 col-sm-3">
+                <div class="p-2 rounded h-100" style="background:#fff3cd; border:1px solid #ffc107;">
+                  <div class="small text-muted">TVA collectée</div>
+                  <div class="fw-bold live-number text-warning small" id="res-tva-collectee">—</div>
+                </div>
+              </div>
+              <div class="col-6 col-sm-3">
+                <div class="p-2 rounded h-100" style="background:#f8d7da; border:1px solid #f5c2c7;">
+                  <div class="small text-muted">TVA déductible</div>
+                  <div class="fw-bold live-number text-danger small" id="res-tva-deductible">—</div>
+                </div>
+              </div>
+            </div>
+            <div class="p-3 rounded text-center mt-1" id="res-tva-nette-box"
+                 style="background:#d1ecf1; border:1px solid #86cfda; transition:background .3s;">
+              <div class="small fw-bold text-muted">TVA nette à reverser</div>
+              <div class="fw-bold fs-5 live-number" id="res-tva-nette">—</div>
+              <div class="small text-muted">TVA collectée − TVA déductible</div>
+            </div>
+            <div class="text-center mt-2 small text-muted" id="live-other-section" style="display:none;">
+              <div class="py-3">
+                <i class="bi bi-calculator fs-2 text-muted opacity-50"></i>
+                <div class="mt-2">Saisissez vos données et cliquez <strong>Calculer</strong></div>
+              </div>
+            </div>
+            <div class="mt-2 text-center small text-muted">
+              <i class="bi bi-info-circle"></i>
+              Taux TVA Côte d'Ivoire : <strong>18%</strong> — Article 339 CGI
             </div>
           </div>
         </div>
 
-        <!-- Boutons -->
-        <div class="d-flex gap-2">
-          <button type="submit" class="btn btn-lc-primary flex-grow-1">
-            <i class="bi bi-calculator"></i> Calculer
-          </button>
-          {% if resultat %}
-          <button type="submit" name="sauvegarder" value="1" class="btn btn-success">
-            <i class="bi bi-save"></i> Sauvegarder
-          </button>
-          {% endif %}
+        <!-- Guide des impôts -->
+        <div class="card border-0" style="background:#f8f9fa;">
+          <div class="card-header fw-bold border-0" style="background:transparent;">
+            <i class="bi bi-book text-primary"></i> Guide des impôts — CGI CI 2025-2026
+          </div>
+          <div class="card-body pt-0">
+            <div class="row g-2">
+              <div class="col-6">
+                <div class="guide-item">
+                  <i class="bi bi-percent fs-5 text-warning"></i>
+                  <div>
+                    <div class="fw-bold small">TVA</div>
+                    <div class="text-muted" style="font-size:.72rem;">18% sur CA HT</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="guide-item">
+                  <i class="bi bi-building-check fs-5 text-primary"></i>
+                  <div>
+                    <div class="fw-bold small">IS</div>
+                    <div class="text-muted" style="font-size:.72rem;">20% à 30% progressif</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="guide-item">
+                  <i class="bi bi-people fs-5 text-secondary"></i>
+                  <div>
+                    <div class="fw-bold small">CNPS</div>
+                    <div class="text-muted" style="font-size:.72rem;">14% (6,3% + 7,7%)</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="guide-item">
+                  <i class="bi bi-pencil-square fs-5 text-info"></i>
+                  <div>
+                    <div class="fw-bold small">BNC</div>
+                    <div class="text-muted" style="font-size:.72rem;">20% sur bénéfice</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="guide-item">
+                  <i class="bi bi-briefcase fs-5 text-success"></i>
+                  <div>
+                    <div class="fw-bold small">BIC</div>
+                    <div class="text-muted" style="font-size:.72rem;">25% sur bénéfice</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="guide-item">
+                  <i class="bi bi-shop fs-5 text-info"></i>
+                  <div>
+                    <div class="fw-bold small">Patente</div>
+                    <div class="text-muted" style="font-size:.72rem;">Droit fixe + proportionnel</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="guide-item">
+                  <i class="bi bi-receipt fs-5 text-warning"></i>
+                  <div>
+                    <div class="fw-bold small">TSE</div>
+                    <div class="text-muted" style="font-size:.72rem;">0,1% CA (min 25 000)</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="guide-item">
+                  <i class="bi bi-cash-stack fs-5 text-danger"></i>
+                  <div>
+                    <div class="fw-bold small">IMF</div>
+                    <div class="text-muted" style="font-size:.72rem;">1% CA (min 300 000)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Disclaimer -->
+            <div class="alert alert-warning py-2 px-3 mb-0 mt-3 small border-0">
+              <i class="bi bi-shield-exclamation"></i>
+              <strong>Estimation indicative.</strong> Ces calculs sont basés sur le CGI 2025-2026 CI.
+              Consultez un expert fiscal pour une déclaration officielle.
+            </div>
+          </div>
         </div>
-      </form>
+        {% endif %}
+
+      </div>
     </div>
-
-    <!-- Résultats -->
-    <div class="col-lg-7">
-
-      {% if resultat %}
-      <!-- Résultat général -->
-      <div class="card mb-3 border-success">
-        <div class="card-header bg-success text-white fw-bold">
-          <i class="bi bi-check-circle"></i> Résultat du calcul — {{ resultat.type }}
-        </div>
-        <div class="card-body">
-          <div class="text-center mb-3">
-            <div class="text-muted small">Montant de l'impôt estimé</div>
-            <div class="fw-bold" style="font-size:2.2rem; color:var(--bleu-principal);">
-              {{ resultat.montant_impot|floatformat:0 }} FCFA
-            </div>
-          </div>
-          <p class="text-muted small text-center mb-0">{{ resultat.detail }}</p>
-        </div>
-      </div>
-
-      {% if resultat.type == 'TVA' %}
-      <!-- Détail TVA collectée / TVA déductible -->
-      <div class="card mb-3 border-warning">
-        <div class="card-header bg-warning bg-opacity-10 fw-bold text-dark">
-          <i class="bi bi-receipt"></i> Détail TVA — Taux 18% (Art. 339 CGI)
-        </div>
-        <div class="card-body p-0">
-          <table class="table table-sm mb-0">
-            <tbody>
-              <tr>
-                <td class="ps-3 text-muted fw-bold">Chiffre d'affaires HT</td>
-                <td class="text-end pe-3 fw-bold">{{ resultat.ca_ttc|floatformat:0 }} FCFA</td>
-              </tr>
-              <tr>
-                <td class="ps-3 text-muted fw-bold">Chiffre d'affaires TTC</td>
-                <td class="text-end pe-3">
-                  {% with ca=post_data.chiffre_affaires %}
-                  {{ ca }} × 1,18
-                  {% endwith %}
-                </td>
-              </tr>
-              <tr class="table-warning">
-                <td class="ps-3 fw-bold">
-                  TVA collectée
-                  <small class="text-muted">(CA HT × 18%)</small>
-                </td>
-                <td class="text-end pe-3 fw-bold text-warning" style="font-size:1.1rem;">
-                  {{ resultat.montant_impot|floatformat:0 }} FCFA
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Calcul TVA déductible live -->
-          <div class="px-3 pb-3 pt-2" id="tva-deductible-section">
-            <div class="rounded border p-3 mt-2" style="background:#fff8f8; border-color:#f5c2c7 !important;">
-              <div class="fw-bold small mb-2 text-danger">
-                <i class="bi bi-dash-circle"></i> TVA déductible (sur vos achats)
-              </div>
-              <div class="row g-2 text-center" id="tva-ded-resultat">
-                <div class="col-md-4">
-                  <div class="p-2 rounded" style="background:#f8d7da; border:1px solid #f5c2c7;">
-                    <div class="small text-muted">Achats HT saisis</div>
-                    <div class="fw-bold" id="res-charges">—</div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="p-2 rounded" style="background:#f8d7da; border:1px solid #f5c2c7;">
-                    <div class="small text-muted">TVA déductible</div>
-                    <div class="fw-bold text-danger" id="res-tva-ded">—</div>
-                    <div style="font-size:0.7rem;" class="text-muted">Achats HT × 18%</div>
-                  </div>
-                </div>
-                <div class="col-md-4">
-                  <div class="p-2 rounded" id="res-nette-box" style="background:#d1ecf1; border:1px solid #86cfda;">
-                    <div class="small fw-bold">TVA nette</div>
-                    <div class="fw-bold" id="res-tva-nette">—</div>
-                    <div style="font-size:0.7rem;" class="text-muted">Collectée − Déductible</div>
-                  </div>
-                </div>
-              </div>
-              <div class="mt-2 small text-muted">
-                <i class="bi bi-info-circle"></i>
-                Modifiez le champ <strong>Charges / Achats HT</strong> pour recalculer la TVA déductible en temps réel.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
-      {% if resultat.tranches %}
-      <div class="card mb-3">
-        <div class="card-header fw-bold"><i class="bi bi-table"></i> Détail par tranches</div>
-        <div class="card-body p-0">
-          <table class="table table-sm mb-0">
-            <thead class="table-dark">
-              <tr><th>Tranche</th><th class="text-end">Montant</th></tr>
-            </thead>
-            <tbody>
-              {% for t in resultat.tranches %}
-              <tr><td>{{ t }}</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {% endif %}
-
-      {% else %}
-      <!-- Calculateur TVA live avant soumission -->
-      <div class="card border-warning">
-        <div class="card-header bg-warning bg-opacity-10 fw-bold text-dark">
-          <i class="bi bi-receipt"></i> Aperçu TVA en temps réel (18%)
-        </div>
-        <div class="card-body">
-          <p class="text-muted small mb-3">
-            Saisissez votre <strong>CA HT</strong> et vos <strong>Achats HT</strong> à gauche
-            pour voir instantanément la TVA collectée, déductible et nette.
-          </p>
-          <div class="row g-2 text-center">
-            <div class="col-6 col-md-3">
-              <div class="p-2 rounded" style="background:#e8f4fd; border:1px solid #b8d9f0;">
-                <div class="small text-muted">CA HT</div>
-                <div class="fw-bold" id="res-ca-ht">—</div>
-              </div>
-            </div>
-            <div class="col-6 col-md-3">
-              <div class="p-2 rounded" style="background:#e8f8ea; border:1px solid #b8e0bc;">
-                <div class="small text-muted">CA TTC</div>
-                <div class="fw-bold" id="res-ca-ttc">—</div>
-              </div>
-            </div>
-            <div class="col-6 col-md-3">
-              <div class="p-2 rounded" style="background:#fff3cd; border:1px solid #ffc107;">
-                <div class="small text-muted">TVA collectée</div>
-                <div class="fw-bold text-warning" id="res-tva-collectee">—</div>
-                <div style="font-size:0.7rem;" class="text-muted">CA HT × 18%</div>
-              </div>
-            </div>
-            <div class="col-6 col-md-3">
-              <div class="p-2 rounded" style="background:#f8d7da; border:1px solid #f5c2c7;">
-                <div class="small text-muted">TVA déductible</div>
-                <div class="fw-bold text-danger" id="res-tva-deductible">—</div>
-                <div style="font-size:0.7rem;" class="text-muted">Achats HT × 18%</div>
-              </div>
-            </div>
-          </div>
-          <hr class="my-2">
-          <div class="row g-2 text-center">
-            <div class="col-md-6 offset-md-3">
-              <div class="p-3 rounded" id="res-tva-nette-box" style="background:#d1ecf1; border:1px solid #86cfda;">
-                <div class="small fw-bold">TVA nette à reverser à l'État</div>
-                <div class="fw-bold fs-5" id="res-tva-nette">—</div>
-                <div style="font-size:0.7rem;" class="text-muted">TVA collectée − TVA déductible</div>
-              </div>
-            </div>
-          </div>
-          <div class="mt-3 small text-muted text-center">
-            <i class="bi bi-info-circle"></i>
-            Taux TVA Côte d'Ivoire : <strong>18%</strong> — Article 339 du Code Général des Impôts
-          </div>
-        </div>
-      </div>
-      {% endif %}
-
-    </div>
-  </div>
+  </form>
 </div>
 {% endblock %}
 
@@ -283,96 +681,185 @@
 (function () {
   const TVA = 0.18;
 
-  function fmt(n) {
-    return n.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' FCFA';
+  /* ── Icons & metadata per type ─────────────────────── */
+  const TYPE_META = {
+    tva     : { icon:'bi-percent',        rate:'18% sur CA HT',          color:'#F39C12',
+                hint:'La TVA est collectée sur votre CA HT au taux de 18% et reversée mensuellement à la DGI. Vous pouvez déduire la TVA payée sur vos achats.' },
+    is      : { icon:'bi-building-check', rate:'20% – 30% progressif',   color:'#2E86C1',
+                hint:'L\'Impôt sur les Sociétés est calculé sur le bénéfice imposable selon un barème progressif de 20% à 30% (Art. 84 CGI CI).' },
+    bnc     : { icon:'bi-pencil-square',  rate:'20% sur bénéfice',       color:'#17A2B8',
+                hint:'Les Bénéfices Non Commerciaux (professions libérales, consultants) sont imposés à 20% sur le bénéfice net.' },
+    bic     : { icon:'bi-briefcase',      rate:'25% sur bénéfice',       color:'#27AE60',
+                hint:'Les Bénéfices Industriels et Commerciaux sont soumis à un taux de 25% sur le bénéfice net imposable.' },
+    cnps    : { icon:'bi-people',         rate:'14% (6,3% + 7,7%)',      color:'#6C757D',
+                hint:'La CNPS regroupe la part salariale (6,3%) et patronale (7,7%), calculées sur le salaire brut mensuel de chaque employé.' },
+    patente : { icon:'bi-shop',           rate:'Droit fixe + prop.',     color:'#20C9A4',
+                hint:'La Patente comprend un droit fixe selon la catégorie d\'activité et un droit proportionnel calculé sur le CA HT.' },
+    tse     : { icon:'bi-receipt',        rate:'0,1% CA (min 25 000)',   color:'#E67E22',
+                hint:'La Taxe de Services de l\'État est de 0,1% du CA HT avec un minimum de 25 000 FCFA par an.' },
+    imf     : { icon:'bi-cash-stack',     rate:'1% CA (min 300 000)',    color:'#E74C3C',
+                hint:'L\'Impôt Minimum Forfaitaire est dû si l\'impôt calculé est inférieur à 1% du CA HT, avec un minimum de 300 000 FCFA.' },
+  };
+
+  /* ── Apply icons & rates on load ───────────────────── */
+  function applyMeta() {
+    Object.entries(TYPE_META).forEach(([val, meta]) => {
+      const iconEl = document.getElementById('icon-' + val);
+      const rateEl = document.getElementById('rate-' + val);
+      if (iconEl) iconEl.innerHTML = `<i class="bi ${meta.icon}" style="color:${meta.color}"></i>`;
+      if (rateEl) rateEl.textContent = meta.rate;
+    });
   }
 
-  /* ── Affichage des champs selon le type d'impôt ── */
+  /* ── Tax tile selection ─────────────────────────────── */
+  function updateTiles() {
+    const checked = document.querySelector('input[name="type_impot"]:checked');
+    document.querySelectorAll('.tax-tile').forEach(t => t.classList.remove('active'));
+    if (checked) {
+      checked.closest('.tax-tile')?.classList.add('active');
+      const meta = TYPE_META[checked.value] || {};
+      const hintEl = document.getElementById('type-hint-text');
+      if (hintEl) hintEl.textContent = meta.hint || '';
+      const badge = document.getElementById('badge-type-live');
+      if (badge) badge.textContent = checked.value.toUpperCase();
+    }
+  }
+
+  /* ── Show / hide fields based on type ──────────────── */
   function majChamps() {
-    const type = document.querySelector('input[name="type_impot"]:checked')?.value || 'tva';
+    const checked = document.querySelector('input[name="type_impot"]:checked');
+    const type = checked?.value || 'tva';
     const isCnps = type === 'cnps';
+
     document.getElementById('champ-ca').classList.toggle('d-none', isCnps);
     document.getElementById('champ-charges').classList.toggle('d-none', isCnps);
     document.getElementById('champ-salaire').classList.toggle('d-none', !isCnps);
     document.getElementById('champ-employes').classList.toggle('d-none', !isCnps);
+
+    /* Live section toggle */
+    const liveTva   = document.getElementById('live-tva-body');
+    const liveDesc  = document.getElementById('live-description');
+    if (liveTva) {
+      if (type === 'tva') {
+        if (liveDesc) liveDesc.textContent = 'Saisissez votre CA HT et vos achats HT pour voir la TVA instantanément.';
+        liveTva.querySelectorAll('.row').forEach(r => r.style.display = '');
+        document.getElementById('res-tva-nette-box')?.style?.removeProperty('display');
+        const liveOther = document.getElementById('live-other-section');
+        if (liveOther) liveOther.style.display = 'none';
+      } else {
+        if (liveDesc) liveDesc.textContent = 'Saisissez vos données et cliquez Calculer pour obtenir l\'estimation.';
+      }
+    }
+
+    /* Hint */
+    updateTiles();
   }
-  document.querySelectorAll('input[name="type_impot"]').forEach(r => r.addEventListener('change', majChamps));
-  majChamps();
 
-  /* ── Calculateur TVA live (avant soumission) ── */
-  const elCaHt  = document.getElementById('id_ca_ht');
-  const elChHt  = document.getElementById('id_charges_ht');
+  /* ── fmt helper ─────────────────────────────────────── */
+  function fmt(n) {
+    return n.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' FCFA';
+  }
 
-  /* Éléments du panneau "avant soumission" */
-  const elCaHtRes       = document.getElementById('res-ca-ht');
-  const elCaTtcRes      = document.getElementById('res-ca-ttc');
-  const elCollecteeRes  = document.getElementById('res-tva-collectee');
-  const elDeductibleRes = document.getElementById('res-tva-deductible');
-  const elNetteRes      = document.getElementById('res-tva-nette');
-  const elNetteBox      = document.getElementById('res-tva-nette-box');
-
-  /* Éléments du panneau "après soumission" (résultat TVA) */
-  const elResCharges  = document.getElementById('res-charges');
-  const elResTvaDed   = document.getElementById('res-tva-ded');
-  const elResTvaNette = document.getElementById('res-tva-nette');
-  const elResNetteBox = document.getElementById('res-nette-box');
-
+  /* ── Live TVA calculator ────────────────────────────── */
   function calculerLive() {
-    if (!elCaHt) return;
-    const caHt      = parseFloat(elCaHt.value)  || 0;
-    const chargesHt = elChHt ? (parseFloat(elChHt.value) || 0) : 0;
+    const caHtEl  = document.getElementById('id_ca_ht');
+    const chHtEl  = document.getElementById('id_charges_ht');
+    if (!caHtEl) return;
+
+    const caHt      = parseFloat(caHtEl.value) || 0;
+    const chargesHt = chHtEl ? (parseFloat(chHtEl.value) || 0) : 0;
     const caTtc        = caHt * (1 + TVA);
     const tvaCollectee = caHt * TVA;
     const tvaDed       = chargesHt * TVA;
     const tvaNette     = tvaCollectee - tvaDed;
 
-    /* Panneau avant soumission */
-    if (elCaHtRes)  elCaHtRes.textContent  = caHt > 0 ? fmt(caHt) : '—';
-    if (elCaTtcRes) elCaTtcRes.textContent = caHt > 0 ? fmt(caTtc) : '—';
-    if (elCollecteeRes)  elCollecteeRes.textContent  = caHt > 0 ? fmt(tvaCollectee) : '—';
-    if (elDeductibleRes) elDeductibleRes.textContent = chargesHt > 0 ? fmt(tvaDed) : '—';
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
-    if (elNetteRes && elNetteBox) {
-      if (caHt > 0) {
-        if (tvaNette < 0) {
-          elNetteBox.style.background = '#d4edda';
-          elNetteBox.style.border     = '1px solid #c3e6cb';
-          elNetteRes.textContent = 'Crédit TVA : ' + fmt(Math.abs(tvaNette));
-        } else {
-          elNetteBox.style.background = '#d1ecf1';
-          elNetteBox.style.border     = '1px solid #86cfda';
-          elNetteRes.textContent = fmt(tvaNette);
-        }
-      } else {
-        elNetteRes.textContent = '—';
-      }
+    set('res-ca-ht',        caHt > 0 ? fmt(caHt) : '—');
+    set('res-ca-ttc',       caHt > 0 ? fmt(caTtc) : '—');
+    set('res-tva-collectee', caHt > 0 ? fmt(tvaCollectee) : '—');
+    set('res-tva-deductible', chargesHt > 0 ? fmt(tvaDed) : '—');
+
+    /* TVA nette box */
+    const netteBox = document.getElementById('res-tva-nette-box');
+    const netteEl  = document.getElementById('res-tva-nette');
+    if (netteEl && netteBox && caHt > 0) {
+      netteBox.style.background = tvaNette < 0 ? '#d4edda' : '#d1ecf1';
+      netteEl.textContent = tvaNette < 0
+        ? 'Crédit TVA : ' + fmt(Math.abs(tvaNette))
+        : fmt(tvaNette);
+    } else if (netteEl) {
+      netteEl.textContent = '—';
     }
 
-    /* Panneau après soumission (TVA result panel) */
-    if (elResCharges)  elResCharges.textContent  = chargesHt > 0 ? fmt(chargesHt) : '—';
-    if (elResTvaDed)   elResTvaDed.textContent   = chargesHt > 0 ? fmt(tvaDed) : '—';
-    if (elResTvaNette && elResNetteBox) {
-      const tvaCollecteePost = parseFloat('{{ resultat.montant_impot|default:0 }}') || tvaCollectee;
-      const nettePost = tvaCollecteePost - tvaDed;
-      if (tvaDed > 0) {
-        if (nettePost < 0) {
-          elResNetteBox.style.background = '#d4edda';
-          elResNetteBox.style.border     = '1px solid #c3e6cb';
-          elResTvaNette.textContent = 'Crédit TVA : ' + fmt(Math.abs(nettePost));
-        } else {
-          elResNetteBox.style.background = '#d1ecf1';
-          elResNetteBox.style.border     = '1px solid #86cfda';
-          elResTvaNette.textContent = fmt(nettePost);
-        }
-      } else {
-        elResTvaNette.textContent = '—';
-      }
+    /* TVA detail on result page */
+    const tvaDedEl  = document.getElementById('res-tva-ded');
+    const resCharges = document.getElementById('res-charges');
+    const resChargesLine = document.getElementById('res-charges-line');
+    const barCol = document.getElementById('bar-tva-col');
+    const barDed = document.getElementById('bar-tva-ded');
+
+    if (tvaDedEl) tvaDedEl.textContent = chargesHt > 0 ? fmt(tvaDed) : '—';
+    if (resCharges) resCharges.textContent = chargesHt > 0 ? fmt(chargesHt) : '';
+    if (resChargesLine) resChargesLine.style.display = chargesHt > 0 ? '' : 'none';
+
+    if (barCol && barDed && tvaCollectee > 0) {
+      const pctDed = Math.min((tvaDed / tvaCollectee) * 100, 100);
+      barCol.style.width = (100 - pctDed) + '%';
+      barDed.style.width = pctDed + '%';
     }
   }
 
-  if (elCaHt)  elCaHt.addEventListener('input', calculerLive);
-  if (elChHt)  elChHt.addEventListener('input', calculerLive);
+  /* ── Employee counter ───────────────────────────────── */
+  window.changeEmp = function(delta) {
+    const el = document.getElementById('id_nb_employes');
+    if (!el) return;
+    const val = Math.max(1, (parseInt(el.value) || 1) + delta);
+    el.value = val;
+    calculerLive();
+  };
+
+  /* ── Event wiring ───────────────────────────────────── */
+  document.querySelectorAll('input[name="type_impot"]').forEach(r => {
+    r.addEventListener('change', () => { majChamps(); calculerLive(); });
+  });
+
+  const caHtEl = document.getElementById('id_ca_ht');
+  const chHtEl = document.getElementById('id_charges_ht');
+  const salEl  = document.getElementById('id_salaire');
+  const empEl  = document.getElementById('id_nb_employes');
+
+  if (caHtEl) caHtEl.addEventListener('input', calculerLive);
+  if (chHtEl) chHtEl.addEventListener('input', calculerLive);
+  if (salEl)  salEl.addEventListener('input', calculerLive);
+  if (empEl)  empEl.addEventListener('input', calculerLive);
+
+  /* ── Tile click → radio select ──────────────────────── */
+  document.querySelectorAll('.tax-tile').forEach(tile => {
+    tile.addEventListener('click', () => {
+      const radio = tile.querySelector('input[type="radio"]');
+      if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    });
+  });
+
+  /* ── Period radio styling ───────────────────────────── */
+  document.querySelectorAll('input[name="periode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.querySelectorAll('input[name="periode"]').forEach(o => {
+        o.closest('.period-btn')?.querySelector('.period-inner')?.classList.remove('border-primary');
+      });
+      r.closest('.period-btn')?.querySelector('.period-inner')?.classList.add('border-primary');
+    });
+  });
+
+  /* ── Init ───────────────────────────────────────────── */
+  applyMeta();
+  majChamps();
   calculerLive();
+
 })();
 </script>
 {% endblock %}

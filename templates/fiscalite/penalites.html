@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Calcul des Pénalités — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-exclamation-triangle text-danger"></i> Calcul des Pénalités de Retard</h1>
+      <p class="text-muted mb-0">Majorations : 10% fixe + 1% par mois de retard (CGI CI)</p>
+    </div>
+    <a href="{% url 'fiscalite:calculateur' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Calculateur
+    </a>
+  </div>
+
+  {% if erreur %}
+  <div class="alert alert-danger"><i class="bi bi-exclamation-circle"></i> {{ erreur }}</div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-5">
+      <div class="card">
+        <div class="card-header fw-bold"><i class="bi bi-input-cursor-text"></i> Données du retard</div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label fw-bold">Montant principal de l'impôt (FCFA)</label>
+              <input type="number" name="montant" class="form-control" placeholder="Ex : 1 500 000"
+                     min="0" step="1" value="{{ post_data.montant|default:'' }}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Date d'échéance initiale</label>
+              <input type="date" name="date_echeance" class="form-control"
+                     value="{{ post_data.date_echeance|default:'' }}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-bold">Date de paiement (réel ou prévu)</label>
+              <input type="date" name="date_paiement" class="form-control"
+                     value="{{ post_data.date_paiement|default:aujourd_hui }}">
+              <small class="text-muted">Laissez vide pour aujourd'hui ({{ aujourd_hui }})</small>
+            </div>
+            <button type="submit" class="btn btn-danger w-100">
+              <i class="bi bi-calculator"></i> Calculer les pénalités
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card mt-3 border-warning">
+        <div class="card-header bg-warning bg-opacity-10 fw-bold text-dark">
+          <i class="bi bi-info-circle"></i> Base légale (CGI CI)
+        </div>
+        <div class="card-body small">
+          <ul class="mb-0">
+            <li><strong>Majoration fixe :</strong> 10% du montant principal dès le premier jour de retard</li>
+            <li><strong>Majoration mensuelle :</strong> 1% supplémentaire par mois de retard</li>
+            <li><strong>Plafond :</strong> Pénalités totales limitées à 100% du principal</li>
+            <li><strong>Conseil :</strong> Régularisez dès que possible pour limiter les pénalités</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-7">
+      {% if resultat %}
+        {% if resultat.en_retard %}
+        <!-- Pénalités calculées -->
+        <div class="card border-danger mb-3">
+          <div class="card-header bg-danger text-white fw-bold">
+            <i class="bi bi-exclamation-triangle"></i> Retard de {{ resultat.jours_retard }} jours ({{ resultat.mois_retard }} mois)
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+            <table class="table table-sm mb-3">
+              <tbody>
+                <tr>
+                  <td class="fw-bold">Montant principal</td>
+                  <td class="text-end">{{ resultat.montant_principal|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr class="table-warning">
+                  <td class="fw-bold">Majoration fixe ({{ resultat.taux_fixe }}%)</td>
+                  <td class="text-end text-warning fw-bold">+ {{ resultat.majoration_fixe|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr class="table-warning">
+                  <td class="fw-bold">Majoration mensuelle ({{ resultat.mois_retard }} × 1% = {{ resultat.taux_mensuel_total }}%)</td>
+                  <td class="text-end text-warning fw-bold">+ {{ resultat.majoration_mensuelle|floatformat:0 }} FCFA</td>
+                </tr>
+                <tr class="table-danger">
+                  <td class="fw-bold">Total pénalités ({{ resultat.taux_total }}%)</td>
+                  <td class="text-end text-danger fw-bold">+ {{ resultat.total_penalites|floatformat:0 }} FCFA</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+
+            <div class="text-center p-3 rounded" style="background:#fff3cd; border:2px solid #ffc107;">
+              <div class="small fw-bold text-dark mb-1">TOTAL À PAYER</div>
+              <div class="fw-bold" style="font-size:2.2rem; color:#856404;">
+                {{ resultat.montant_total|floatformat:0 }} FCFA
+              </div>
+              <div class="small text-muted">Principal + Pénalités</div>
+            </div>
+            <p class="text-muted small mt-3 mb-0 text-center">{{ resultat.detail }}</p>
+          </div>
+        </div>
+        {% else %}
+        <!-- Pas de retard -->
+        <div class="card border-success">
+          <div class="card-body text-center py-4">
+            <i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>
+            <h5 class="mt-3 text-success">Aucune pénalité</h5>
+            <p class="text-muted">Le paiement est dans les délais. Aucune majoration applicable.</p>
+            <div class="fw-bold fs-4" style="color:var(--bleu-principal);">
+              Montant dû : {{ resultat.montant_total|floatformat:0 }} FCFA
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      {% else %}
+      <!-- Aide -->
+      <div class="card border-0" style="background:#f8f9fa;">
+        <div class="card-body text-center py-5">
+          <i class="bi bi-calculator" style="font-size:4rem; color:#ccc;"></i>
+          <h5 class="mt-3 text-muted">Simulez vos pénalités</h5>
+          <p class="text-muted small">Renseignez le montant, la date d'échéance et la date de paiement pour calculer les majorations applicables.</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

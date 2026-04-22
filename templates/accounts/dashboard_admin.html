@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+{% block title %}Administration — Légal Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+  .action-item { transition: background .18s; }
+  .action-item:hover { background: #f0f4ff; }
+  .kpi-card { border-left: 4px solid transparent; transition: all .2s; }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(27,79,114,.12); }
+  .user-row { transition: background .15s; }
+  .user-row:hover { background: var(--bleu-clair); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <!-- En-tête admin -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1">
+        <i class="bi bi-shield-lock"></i>
+        {% if role == 'institution' %}Espace Institution{% else %}Administration{% endif %}
+      </h1>
+      <p class="text-muted mb-0">
+        Bonjour <strong>{{ request.user.first_name|default:request.user.username }}</strong> —
+        <span class="badge px-3 py-1 rounded-pill"
+              style="background:{% if role == 'admin' %}#922B21{% else %}#1B4F72{% endif %}; color:#fff;">
+          <i class="bi bi-shield-fill me-1"></i>{{ request.user.profil.get_role_display }}
+        </span>
+      </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if dossiers_en_attente > 0 %}
+      <a href="/collaboration/" class="btn btn-warning">
+        <i class="bi bi-hourglass-split"></i> {{ dossiers_en_attente }} dossier(s) en attente
+      </a>
+      {% endif %}
+      {% if role == 'admin' %}
+      <a href="/admin/" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-gear"></i> Admin Django
+      </a>
+      <a href="/accounts/admin/users/" class="btn btn-lc-primary">
+        <i class="bi bi-people"></i> Gestion utilisateurs
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- KPIs globaux -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#1B4F72;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Utilisateurs</div>
+            <div style="font-size:2.4rem;font-weight:800;color:#1B4F72;line-height:1;">{{ total_users }}</div>
+            <div class="mt-1">
+              <span class="badge bg-success">{{ users_experts }} experts</span>
+              <span class="badge bg-secondary ms-1">{{ users_commercants }} commerçants</span>
+            </div>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#D6EAF8;flex-shrink:0;">
+            <i class="bi bi-people-fill" style="font-size:1.4rem;color:#1B4F72;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#2E86C1;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Contrats générés</div>
+            <div style="font-size:2.4rem;font-weight:800;color:#2E86C1;line-height:1;">{{ total_contrats }}</div>
+            <small class="text-muted">sur la plateforme</small>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#D6EAF8;flex-shrink:0;">
+            <i class="bi bi-file-earmark-text" style="font-size:1.4rem;color:#2E86C1;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#D35400;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Dossiers</div>
+            <div style="font-size:2.4rem;font-weight:800;color:#D35400;line-height:1;">{{ total_dossiers }}</div>
+            {% if dossiers_en_attente > 0 %}
+            <span class="badge bg-warning text-dark">{{ dossiers_en_attente }} en attente</span>
+            {% else %}
+            <small class="text-muted">tous traités</small>
+            {% endif %}
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#FEF9E7;flex-shrink:0;">
+            <i class="bi bi-folder2-open" style="font-size:1.4rem;color:#D35400;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#1E8449;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Déclarations</div>
+            <div style="font-size:2.4rem;font-weight:800;color:#1E8449;line-height:1;">{{ total_declarations }}</div>
+            <small class="text-muted">fiscales</small>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#EAFAF1;flex-shrink:0;">
+            <i class="bi bi-calculator" style="font-size:1.4rem;color:#1E8449;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+
+    <!-- Graphique activité globale -->
+    <div class="col-lg-5">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-pie-chart"></i> Activité globale</div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          <canvas id="chartActivite" height="220"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dossiers sans expert (assignation urgente) -->
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span>
+            <i class="bi bi-exclamation-triangle text-warning"></i>
+            Dossiers sans expert assigné
+          </span>
+          {% if dossiers_sans_expert %}
+          <span class="badge bg-warning text-dark">{{ dossiers_sans_expert|length }}</span>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          {% if dossiers_sans_expert %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead style="background:#f8f9fa;">
+                <tr>
+                  <th class="ps-3">Dossier</th>
+                  <th>Client</th>
+                  <th>Type</th>
+                  <th>Priorité</th>
+                  <th>Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for d in dossiers_sans_expert %}
+                <tr class="user-row">
+                  <td class="ps-3 fw-bold small">{{ d.titre|truncatechars:25 }}</td>
+                  <td><small>{{ d.client.first_name }} {{ d.client.last_name }}</small></td>
+                  <td><small class="text-muted">{{ d.get_type_dossier_display|truncatechars:15 }}</small></td>
+                  <td>
+                    <span class="badge
+                      {% if d.priorite == 'urgente' %}bg-danger
+                      {% elif d.priorite == 'haute' %}bg-warning text-dark
+                      {% else %}bg-secondary{% endif %}">
+                      {{ d.get_priorite_display }}
+                    </span>
+                  </td>
+                  <td><small class="text-muted">{{ d.created_at|date:"d/m/Y" }}</small></td>
+                  <td>
+                    <a href="{% url 'collaboration:detail' d.pk %}" class="btn btn-sm btn-lc-primary">
+                      <i class="bi bi-person-plus"></i> Assigner
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-check-circle-fill text-success" style="font-size:2.5rem;"></i>
+            <p class="text-muted mt-2 mb-0">Tous les dossiers ont un expert assigné.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Derniers utilisateurs inscrits -->
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-person-plus"></i> Derniers inscrits</span>
+          {% if role == 'admin' %}
+          <a href="/accounts/admin/users/" class="btn btn-sm btn-outline-light">Gérer</a>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead style="background:#f8f9fa;">
+                <tr>
+                  <th class="ps-3">Nom</th>
+                  <th>Email</th>
+                  <th>Rôle</th>
+                  <th>Inscription</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for u in derniers_users %}
+                <tr class="user-row">
+                  <td class="ps-3">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
+                           style="width:32px;height:32px;font-size:.8rem;
+                                  background:linear-gradient(135deg,var(--bleu-principal),var(--bleu-secondaire));">
+                        {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                      </div>
+                      <div>
+                        <div class="fw-bold small">{{ u.get_full_name|default:u.username }}</div>
+                        {% if u.profil.entreprise %}
+                        <div class="text-muted" style="font-size:10px;">{{ u.profil.entreprise }}</div>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </td>
+                  <td><small class="text-muted">{{ u.email|truncatechars:22 }}</small></td>
+                  <td>
+                    <span class="badge rounded-pill
+                      {% if u.profil.role == 'expert' %}bg-success
+                      {% elif u.profil.role == 'admin' %}bg-danger
+                      {% elif u.profil.role == 'institution' %}bg-primary
+                      {% else %}bg-secondary{% endif %}">
+                      {{ u.profil.get_role_display }}
+                    </span>
+                  </td>
+                  <td><small class="text-muted">{{ u.date_joined|date:"d/m/Y" }}</small></td>
+                  <td>
+                    {% if u.is_active %}
+                    <span class="badge bg-success">Actif</span>
+                    {% else %}
+                    <span class="badge bg-danger">Inactif</span>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accès rapide + Stats documents -->
+    <div class="col-lg-5">
+      <div class="card mb-3">
+        <div class="card-header"><i class="bi bi-lightning"></i> Administration rapide</div>
+        <div class="card-body p-0">
+          {% if role == 'admin' %}
+          <a href="/admin/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#FDEDEC;flex-shrink:0;">
+              <i class="bi bi-gear-fill" style="color:#922B21;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Interface Django Admin</div>
+              <div class="text-muted" style="font-size:11px;">Gestion complète des données</div>
+            </div>
+            <i class="bi bi-box-arrow-up-right text-muted"></i>
+          </a>
+          <a href="/accounts/admin/users/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#D6EAF8;flex-shrink:0;">
+              <i class="bi bi-people-fill" style="color:#1B4F72;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Gestion utilisateurs</div>
+              <div class="text-muted" style="font-size:11px;">{{ total_users }} comptes inscrits</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          {% endif %}
+          <a href="/collaboration/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#FEF9E7;flex-shrink:0;">
+              <i class="bi bi-folder2-open" style="color:#D35400;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Tous les dossiers</div>
+              <div class="text-muted" style="font-size:11px;">{{ dossiers_en_attente }} en attente d'assignation</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/annuaire/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#EAFAF1;flex-shrink:0;">
+              <i class="bi bi-person-badge-fill" style="color:#1E8449;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Annuaire des experts</div>
+              <div class="text-muted" style="font-size:11px;">{{ users_experts }} expert(s) actifs</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/fiscalite/" class="d-flex align-items-center gap-3 p-3 text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#D6EAF8;flex-shrink:0;">
+              <i class="bi bi-calculator" style="color:#2E86C1;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Espace fiscal</div>
+              <div class="text-muted" style="font-size:11px;">{{ total_declarations }} déclarations</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Statistiques plateforme -->
+      <div class="card border-0" style="background:linear-gradient(135deg,var(--bleu-principal),var(--bleu-secondaire));color:#fff;">
+        <div class="card-body p-3">
+          <div class="fw-bold mb-2 small"><i class="bi bi-bar-chart-fill me-1"></i> Vue plateforme</div>
+          <div class="row g-2 text-center">
+            <div class="col-6">
+              <div class="p-2 rounded" style="background:rgba(255,255,255,.12);">
+                <div class="fw-bold fs-4">{{ total_documents }}</div>
+                <div style="font-size:10px;opacity:.8;">Documents</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 rounded" style="background:rgba(255,255,255,.12);">
+                <div class="fw-bold fs-4">{{ total_contrats }}</div>
+                <div style="font-size:10px;opacity:.8;">Contrats</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 rounded" style="background:rgba(255,255,255,.12);">
+                <div class="fw-bold fs-4">{{ total_dossiers }}</div>
+                <div style="font-size:10px;opacity:.8;">Dossiers</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 rounded" style="background:rgba(255,255,255,.12);">
+                <div class="fw-bold fs-4">{{ total_declarations }}</div>
+                <div style="font-size:10px;opacity:.8;">Déclarations</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('chartActivite'), {
+  type: 'bar',
+  data: {
+    labels: ['Utilisateurs', 'Contrats', 'Dossiers', 'Documents', 'Déclarations'],
+    datasets: [{
+      label: 'Total',
+      data: [{{ total_users }}, {{ total_contrats }}, {{ total_dossiers }}, {{ total_documents }}, {{ total_declarations }}],
+      backgroundColor: ['#1B4F72','#2E86C1','#D35400','#1E8449','#8E44AD'],
+      borderRadius: 6,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,.05)' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+</script>
+{% endblock %}

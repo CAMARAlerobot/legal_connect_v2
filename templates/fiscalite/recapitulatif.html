@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}Récapitulatif Annuel — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="page-title mb-0"><i class="bi bi-file-earmark-bar-graph"></i> Récapitulatif Fiscal Annuel</h1>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'fiscalite:export_pdf_recapitulatif' %}?annee={{ annee }}" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-file-pdf"></i> Exporter PDF
+      </a>
+      <a href="{% url 'fiscalite:export_excel' %}?annee={{ annee }}" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-file-earmark-excel"></i> Exporter Excel
+      </a>
+    </div>
+  </div>
+
+  <!-- Sélecteur d'année -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <form method="get" class="d-flex flex-wrap gap-2 align-items-center">
+        <label class="fw-bold">Exercice :</label>
+        <select name="annee" class="form-select form-select-sm" style="width:120px;">
+          {% for a in annees_dispo %}
+          <option value="{{ a }}" {% if a == annee %}selected{% endif %}>{{ a }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-lc-primary btn-sm">Afficher</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Total annuel -->
+  <div class="card mb-4 border-0" style="background:linear-gradient(135deg,var(--bleu-principal),var(--bleu-secondaire)); color:white;">
+    <div class="card-body text-center py-4">
+      <div class="small mb-1 opacity-75">Total impôts — Exercice {{ annee }}</div>
+      <div class="fw-bold" style="font-size:2.8rem;">{{ total_annuel|floatformat:0 }} FCFA</div>
+      <div class="small opacity-75 mt-1">{{ nb_total }} déclaration(s)</div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Tableau par type -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-table"></i> Par type d'impôt</div>
+        <div class="card-body p-0">
+          {% if par_type %}
+          <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead style="background:#f8f9fa;">
+              <tr><th>Type</th><th class="text-center">Nb</th><th class="text-end">Total (FCFA)</th></tr>
+            </thead>
+            <tbody>
+              {% for t in par_type %}
+              <tr>
+                <td class="fw-bold">{{ t.label }}</td>
+                <td class="text-center">{{ t.nb }}</td>
+                <td class="text-end fw-bold" style="color:var(--bleu-principal);">{{ t.total|floatformat:0 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot style="background:#e8f4fd;">
+              <tr>
+                <td class="fw-bold">TOTAL</td>
+                <td class="text-center fw-bold">{{ nb_total }}</td>
+                <td class="text-end fw-bold" style="color:var(--bleu-principal);">{{ total_annuel|floatformat:0 }}</td>
+              </tr>
+            </tfoot>
+          </table>
+          </div>
+          {% else %}
+          <div class="text-center py-4 text-muted">Aucune déclaration pour {{ annee }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphique mensuel -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-graph-up"></i> Répartition mensuelle</div>
+        <div class="card-body">
+          <canvas id="chartMois" style="max-height:280px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau mensuel détaillé -->
+  <div class="card mt-4">
+    <div class="card-header fw-bold"><i class="bi bi-calendar3"></i> Détail mensuel</div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0">
+          <thead style="background:#f8f9fa;">
+            <tr>
+              <th>Mois</th>
+              <th class="text-end">Impôts (FCFA)</th>
+              <th>Barre</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in par_mois %}
+            <tr {% if m.total == 0 %}class="text-muted"{% endif %}>
+              <td>{{ m.mois }}</td>
+              <td class="text-end fw-bold">
+                {% if m.total > 0 %}{{ m.total|floatformat:0 }}{% else %}—{% endif %}
+              </td>
+              <td style="width:40%;">
+                {% if total_annuel > 0 and m.total > 0 %}
+                <div class="progress" style="height:8px;">
+                  <div class="progress-bar" style="width:{% widthratio m.total total_annuel 100 %}%; background:var(--bleu-principal);"></div>
+                </div>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('chartMois'), {
+  type: 'bar',
+  data: {
+    labels: {{ chart_mois_labels|safe }},
+    datasets: [{
+      label: 'Impôts FCFA',
+      data: {{ chart_mois_data|safe }},
+      backgroundColor: '#2E86C1',
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString('fr-FR') } } }
+  }
+});
+</script>
+{% endblock %}

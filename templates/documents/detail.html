@@ -3,121 +3,353 @@
 
 {% block content %}
 <div class="main-content">
+
   <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
     <div>
       <h1 class="page-title mb-1">
         <i class="bi {{ doc.icone }}"></i> {{ doc.titre }}
       </h1>
-      <span class="badge rounded-pill px-3 py-2 fs-6
-        {% if doc.statut == 'prive' %}bg-secondary
-        {% elif doc.statut == 'partage' %}bg-primary
-        {% else %}bg-warning text-dark{% endif %}">
-        {{ doc.get_statut_display }}
-      </span>
+      <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="badge rounded-pill px-3 py-2
+          {% if doc.statut == 'prive' %}bg-secondary
+          {% elif doc.statut == 'partage' %}bg-primary
+          {% elif doc.statut == 'en_revision' %}bg-info
+          {% elif doc.statut == 'signe' %}bg-success
+          {% else %}bg-warning text-dark{% endif %}">
+          {{ doc.get_statut_display }}
+        </span>
+        {% if doc.est_expire %}
+        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Expiré</span>
+        {% elif doc.expire_bientot %}
+        <span class="badge bg-warning text-dark"><i class="bi bi-clock"></i> Expire bientôt</span>
+        {% endif %}
+        {% if versions %}
+        <span class="badge bg-light text-dark border"><i class="bi bi-layers"></i> v{{ versions.first.numero|add:1 }}</span>
+        {% endif %}
+      </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-      <a href="{% url 'documents:telecharger' doc.pk %}" class="btn btn-success">
+      <a href="{% url 'documents:telecharger' doc.pk %}" class="btn btn-success btn-sm">
         <i class="bi bi-download"></i> Télécharger
       </a>
-      {% if doc.proprietaire == request.user %}
-      <a href="{% url 'documents:modifier' doc.pk %}" class="btn btn-lc-outline">
+      {% if est_proprio %}
+      <a href="{% url 'documents:modifier' doc.pk %}" class="btn btn-lc-outline btn-sm">
         <i class="bi bi-pencil"></i> Modifier
       </a>
       {% endif %}
-      <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary">
+      <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary btn-sm">
         <i class="bi bi-arrow-left"></i> Retour
       </a>
     </div>
   </div>
 
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+  {% endif %}
+
   <div class="row g-3">
-    <!-- Infos document -->
+
+    <!-- Colonne principale -->
     <div class="col-lg-8">
+
+      <!-- Aperçu du fichier -->
+      {% if doc.est_image %}
       <div class="card mb-3">
-        <div class="card-header"><i class="bi bi-info-circle"></i> Informations</div>
-        <div class="card-body">
-          <table class="table table-borderless table-sm">
-            <tr><td class="text-muted fw-bold" style="width:140px;">Titre</td><td>{{ doc.titre }}</td></tr>
-            <tr><td class="text-muted fw-bold">Catégorie</td><td>{{ doc.get_categorie_display }}</td></tr>
-            <tr><td class="text-muted fw-bold">Type</td><td><span class="text-uppercase fw-bold">{{ doc.extension }}</span></td></tr>
-            <tr><td class="text-muted fw-bold">Taille</td><td>{{ doc.taille_lisible }}</td></tr>
-            <tr><td class="text-muted fw-bold">Propriétaire</td><td>{{ doc.proprietaire.first_name }} {{ doc.proprietaire.last_name }}</td></tr>
-            {% if doc.expert %}
-            <tr><td class="text-muted fw-bold">Partagé avec</td>
-              <td><span class="badge bg-primary">{{ doc.expert.first_name }} {{ doc.expert.last_name }}</span></td>
+        <div class="card-header fw-bold"><i class="bi bi-image"></i> Aperçu</div>
+        <div class="card-body text-center p-2">
+          <img src="{{ doc.fichier.url }}" alt="{{ doc.titre }}"
+               class="img-fluid rounded" style="max-height:400px; object-fit:contain;">
+        </div>
+      </div>
+      {% elif doc.est_pdf %}
+      <div class="card mb-3">
+        <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-file-pdf text-danger"></i> Aperçu PDF</span>
+          <a href="{{ doc.fichier.url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-box-arrow-up-right"></i> Ouvrir dans un onglet
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <iframe src="{{ doc.fichier.url }}" style="width:100%; height:500px; border:none;"
+                  title="{{ doc.titre }}"></iframe>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Informations -->
+      <div class="card mb-3">
+        <div class="card-header fw-bold"><i class="bi bi-info-circle"></i> Informations</div>
+        <div class="card-body p-0">
+          <table class="table table-borderless table-sm mb-0">
+            <tr>
+              <td class="ps-3 text-muted fw-bold" style="width:160px;">Titre</td>
+              <td>{{ doc.titre }}</td>
+            </tr>
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Catégorie</td>
+              <td>{{ doc.get_categorie_display }}</td>
+            </tr>
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Type de fichier</td>
+              <td><span class="badge bg-secondary text-uppercase">{{ doc.extension }}</span></td>
+            </tr>
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Taille</td>
+              <td>{{ doc.taille_lisible }}</td>
+            </tr>
+            {% if doc.numero_reference %}
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Référence</td>
+              <td><code>{{ doc.numero_reference }}</code></td>
             </tr>
             {% endif %}
-            <tr><td class="text-muted fw-bold">Uploadé le</td><td>{{ doc.created_at|date:"d/m/Y à H:i" }}</td></tr>
+            {% if doc.date_expiration %}
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Expiration</td>
+              <td>
+                <span class="{% if doc.est_expire %}text-danger fw-bold{% elif doc.expire_bientot %}text-warning fw-bold{% endif %}">
+                  {{ doc.date_expiration|date:"d/m/Y" }}
+                </span>
+              </td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Propriétaire</td>
+              <td>{{ doc.proprietaire.first_name }} {{ doc.proprietaire.last_name }}</td>
+            </tr>
+            {% if doc.experts_partage.exists %}
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Partagé avec</td>
+              <td>
+                {% for e in doc.experts_partage.all %}
+                <span class="badge bg-primary me-1">{{ e.get_full_name|default:e.username }}</span>
+                {% endfor %}
+              </td>
+            </tr>
+            {% endif %}
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Téléchargements</td>
+              <td>{{ doc.nb_telechargements }}</td>
+            </tr>
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Uploadé le</td>
+              <td>{{ doc.created_at|date:"d/m/Y à H:i" }}</td>
+            </tr>
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Modifié le</td>
+              <td>{{ doc.updated_at|date:"d/m/Y à H:i" }}</td>
+            </tr>
             {% if doc.description %}
-            <tr><td class="text-muted fw-bold">Description</td><td>{{ doc.description }}</td></tr>
+            <tr>
+              <td class="ps-3 text-muted fw-bold">Description</td>
+              <td>{{ doc.description }}</td>
+            </tr>
             {% endif %}
           </table>
         </div>
       </div>
 
-      <!-- Partage avec expert -->
-      {% if doc.proprietaire == request.user and doc.statut != 'archive' %}
+      <!-- Mots-clés -->
+      {% if doc.tags_liste %}
       <div class="card mb-3">
-        <div class="card-header"><i class="bi bi-share"></i> Partager avec un expert</div>
+        <div class="card-header fw-bold"><i class="bi bi-tags"></i> Mots-clés</div>
         <div class="card-body">
-          {% if doc.statut == 'partage' %}
-          <div class="alert alert-info mb-3">
-            <i class="bi bi-check-circle"></i>
-            Document actuellement partagé avec <strong>{{ doc.expert.first_name }} {{ doc.expert.last_name }}</strong>
+          {% for tag in doc.tags_liste %}
+          <span class="badge bg-light text-dark border me-1 mb-1 px-2 py-1">{{ tag }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Partage avec experts -->
+      {% if est_proprio and doc.statut != 'archive' %}
+      <div class="card mb-3">
+        <div class="card-header fw-bold"><i class="bi bi-share"></i> Partager avec des experts</div>
+        <div class="card-body">
+          {% if doc.experts_partage.exists %}
+          <div class="alert alert-info py-2 mb-3">
+            <i class="bi bi-people"></i> Partagé avec :
+            {% for e in doc.experts_partage.all %}
+            <strong>{{ e.get_full_name|default:e.username }}</strong>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
           </div>
           {% endif %}
-          <form method="post" action="{% url 'documents:partager' doc.pk %}" class="d-flex gap-2">
+          <form method="post" action="{% url 'documents:partager' doc.pk %}">
             {% csrf_token %}
-            <select name="expert_id" class="form-select">
-              <option value="">Choisissez un expert...</option>
-              {% for expert in experts %}
-              <option value="{{ expert.id }}" {% if doc.expert == expert %}selected{% endif %}>
-                {{ expert.first_name }} {{ expert.last_name }} — {{ expert.profil.entreprise|default:"Expert" }}
-              </option>
-              {% endfor %}
-            </select>
-            <button type="submit" class="btn btn-lc-primary">
-              <i class="bi bi-share"></i> Partager
+            <div class="mb-2">
+              <select name="expert_ids" class="form-select form-select-sm" multiple size="4">
+                {% for expert in experts %}
+                <option value="{{ expert.id }}"
+                  {% if expert in doc.experts_partage.all %}selected{% endif %}>
+                  {{ expert.get_full_name|default:expert.username }}
+                  {% if expert.profil.entreprise %} — {{ expert.profil.entreprise }}{% endif %}
+                </option>
+                {% endfor %}
+              </select>
+              <small class="text-muted">Maintenir Ctrl/Cmd pour sélectionner plusieurs experts. Aucune sélection = révoquer le partage.</small>
+            </div>
+            <button type="submit" class="btn btn-lc-primary btn-sm">
+              <i class="bi bi-share"></i> Mettre à jour le partage
             </button>
           </form>
         </div>
       </div>
       {% endif %}
+
+      <!-- Commentaires -->
+      <div class="card mb-3">
+        <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-chat-left-text"></i> Commentaires & Annotations</span>
+          <span class="badge bg-secondary">{{ commentaires.count }}</span>
+        </div>
+        <div class="card-body" style="max-height:320px; overflow-y:auto;">
+          {% if commentaires %}
+          {% for c in commentaires %}
+          <div class="mb-3 p-2 rounded {% if c.est_expert %}border-start border-3 border-primary bg-light{% else %}bg-white border{% endif %}">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-bold small">
+                {{ c.auteur.get_full_name|default:c.auteur.username }}
+                {% if c.est_expert %}
+                <span class="badge bg-primary ms-1" style="font-size:0.6rem;">Expert</span>
+                {% endif %}
+              </span>
+              <span class="text-muted" style="font-size:0.72rem;">{{ c.created_at|date:"d/m/Y à H:i" }}</span>
+            </div>
+            <p class="mb-0 small">{{ c.texte }}</p>
+          </div>
+          {% endfor %}
+          {% else %}
+          <p class="text-muted text-center py-3 small">Aucun commentaire pour l'instant.</p>
+          {% endif %}
+        </div>
+        <div class="card-footer">
+          <form method="post" action="{% url 'documents:commenter' doc.pk %}">
+            {% csrf_token %}
+            <div class="input-group">
+              <textarea name="texte" class="form-control form-control-sm" rows="2"
+                        placeholder="Ajouter un commentaire..." required></textarea>
+              <button type="submit" class="btn btn-lc-primary btn-sm align-self-end">
+                <i class="bi bi-send"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Historique des versions -->
+      {% if versions %}
+      <div class="card mb-3">
+        <div class="card-header fw-bold"><i class="bi bi-layers"></i> Historique des versions</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead style="background:#f8f9fa;">
+              <tr><th>Version</th><th>Note</th><th>Taille</th><th>Par</th><th>Date</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for v in versions %}
+              <tr>
+                <td><span class="badge bg-secondary">v{{ v.numero }}</span></td>
+                <td class="small">{{ v.note|default:"—" }}</td>
+                <td class="small">{{ v.taille_lisible }}</td>
+                <td class="small">{{ v.cree_par.username|default:"—" }}</td>
+                <td class="small">{{ v.created_at|date:"d/m/Y" }}</td>
+                <td>
+                  <a href="{% url 'documents:telecharger_version' doc.pk v.pk %}"
+                     class="btn btn-sm btn-outline-secondary" title="Télécharger cette version">
+                    <i class="bi bi-download"></i>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
     </div>
 
-    <!-- Actions -->
+    <!-- Barre latérale -->
     <div class="col-lg-4">
       <div class="card mb-3">
-        <div class="card-header"><i class="bi bi-lightning"></i> Actions rapides</div>
+        <div class="card-header fw-bold"><i class="bi bi-lightning"></i> Actions rapides</div>
         <div class="card-body d-grid gap-2">
           <a href="{% url 'documents:telecharger' doc.pk %}" class="btn btn-success">
-            <i class="bi bi-download"></i> Télécharger le fichier
+            <i class="bi bi-download"></i> Télécharger
           </a>
-          {% if doc.proprietaire == request.user %}
+          {% if est_proprio %}
           <a href="{% url 'documents:modifier' doc.pk %}" class="btn btn-lc-outline">
-            <i class="bi bi-pencil"></i> Modifier les infos
+            <i class="bi bi-pencil"></i> Modifier
           </a>
           {% if doc.statut != 'archive' %}
-          <a href="{% url 'documents:archiver' doc.pk %}" class="btn btn-outline-warning">
+          <a href="{% url 'documents:archiver' doc.pk %}" class="btn btn-outline-warning"
+             onclick="return confirm('Archiver ce document ?')">
             <i class="bi bi-archive"></i> Archiver
           </a>
+          {% else %}
+          <a href="{% url 'documents:desarchiver' doc.pk %}" class="btn btn-outline-success">
+            <i class="bi bi-arrow-counterclockwise"></i> Restaurer
+          </a>
           {% endif %}
+          {% endif %}
+          {% if doc.est_pdf or doc.est_image %}
+          <a href="{{ doc.fichier.url }}" target="_blank" class="btn btn-outline-secondary">
+            <i class="bi bi-box-arrow-up-right"></i> Ouvrir dans l'onglet
+          </a>
           {% endif %}
         </div>
       </div>
 
-      {% if doc.proprietaire == request.user %}
-      <div class="card border-danger">
-        <div class="card-header bg-danger text-white"><i class="bi bi-trash"></i> Zone dangereuse</div>
+      <!-- Statistiques du document -->
+      <div class="card mb-3">
+        <div class="card-header fw-bold"><i class="bi bi-bar-chart"></i> Statistiques</div>
         <div class="card-body">
-          <p class="text-muted small">La suppression est irréversible.</p>
+          <div class="row g-2 text-center">
+            <div class="col-6">
+              <div class="p-2 rounded bg-light">
+                <div class="fw-bold fs-4" style="color:var(--bleu-principal);">{{ doc.nb_telechargements }}</div>
+                <div class="text-muted small">Téléchargements</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 rounded bg-light">
+                <div class="fw-bold fs-4" style="color:var(--bleu-principal);">{{ commentaires.count }}</div>
+                <div class="text-muted small">Commentaires</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 rounded bg-light">
+                <div class="fw-bold fs-4" style="color:var(--bleu-principal);">{{ versions.count }}</div>
+                <div class="text-muted small">Versions</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 rounded bg-light">
+                <div class="fw-bold fs-4" style="color:var(--bleu-principal);">{{ doc.experts_partage.count }}</div>
+                <div class="text-muted small">Partagé avec</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {% if est_proprio %}
+      <div class="card border-danger">
+        <div class="card-header bg-danger text-white fw-bold"><i class="bi bi-trash"></i> Zone dangereuse</div>
+        <div class="card-body">
+          <p class="text-muted small">La suppression efface le fichier et toutes ses versions. Cette action est irréversible.</p>
           <a href="{% url 'documents:supprimer' doc.pk %}" class="btn btn-outline-danger btn-sm w-100">
-            <i class="bi bi-trash"></i> Supprimer
+            <i class="bi bi-trash"></i> Supprimer définitivement
           </a>
         </div>
       </div>
       {% endif %}
     </div>
+
   </div>
 </div>
 {% endblock %}

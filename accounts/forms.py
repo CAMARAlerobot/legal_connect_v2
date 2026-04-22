@@ -1,12 +1,11 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profil, ROLES
+from .models import Profil, ROLES, SPECIALITES
 
 ROLES_INSCRIPTION = [
-    ('commercant',   'Commerçant'),
-    ('prestataire',  'Prestataire de service'),
-    ('fonctionnaire','Fonctionnaire'),
-    ('expert',       'Expert (Juriste / Comptable)'),
+    ('commercant',  'Commerçant'),
+    ('prestataire', 'Prestataire de service'),
+    ('expert',      'Expert (Juriste / Comptable)'),
 ]
 
 class InscriptionForm(forms.ModelForm):
@@ -24,11 +23,20 @@ class InscriptionForm(forms.ModelForm):
     )
     telephone = forms.CharField(
         label='Téléphone', required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '07 01 02 03 04'})
+        widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'id_telephone', 'placeholder': '07 01 02 03 04'})
     )
     entreprise = forms.CharField(
-        label='Entreprise / Cabinet', required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Boutique Yao'})
+        label='Organisation', required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'id_entreprise', 'placeholder': 'Nom de votre structure'})
+    )
+    adresse = forms.CharField(
+        label='Localité', required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'id_adresse', 'placeholder': 'Ville / Quartier'})
+    )
+    specialite = forms.ChoiceField(
+        label='Spécialité', required=False,
+        choices=[('', '— Choisir une spécialité —')] + list(SPECIALITES),
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_specialite'})
     )
 
     class Meta:

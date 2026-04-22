@@ -3,22 +3,62 @@
 
 {% block content %}
 <div class="main-content">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="page-title mb-0"><i class="bi bi-file-earmark-text"></i> Mes Contrats</h1>
+
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-file-earmark-text"></i> Mes Contrats</h1>
+      <p class="text-muted mb-0"><strong>{{ total }}</strong> contrat(s) au total</p>
+    </div>
     <a href="{% url 'contrats:choisir_modele' %}" class="btn btn-lc-primary">
       <i class="bi bi-plus-lg"></i> Nouveau contrat
     </a>
   </div>
 
+  <!-- Stats -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-3">
+        <div class="fw-bold fs-3" style="color:var(--bleu-principal);">{{ total }}</div>
+        <div class="text-muted small">Total</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-3">
+        <div class="fw-bold fs-3 text-warning">
+          {{ contrats|length }}
+        </div>
+        <div class="text-muted small">Cette page</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-3">
+        <div class="fw-bold fs-3 text-success">
+          {% with contrats.object_list as cl %}
+          {% for c in cl %}{% if c.statut == 'signe' %}{% with 1 as x %}{% endwith %}{% endif %}{% endfor %}
+          {% endwith %}
+          —
+        </div>
+        <div class="text-muted small">Signés</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center p-3">
+        <div class="fw-bold fs-3 text-primary">—</div>
+        <div class="text-muted small">Finalisés</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Filtres -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <form method="get" class="row g-2">
+  <div class="card mb-3">
+    <div class="card-body py-2">
+      <form method="get" class="row g-2 align-items-end">
         <div class="col-md-4">
-          <input type="text" name="q" class="form-control" placeholder="🔍 Rechercher..." value="{{ recherche }}">
+          <input type="text" name="q" class="form-control form-control-sm"
+                 placeholder="Rechercher..." value="{{ recherche }}">
         </div>
         <div class="col-md-3">
-          <select name="statut" class="form-select">
+          <select name="statut" class="form-select form-select-sm">
             <option value="">Tous les statuts</option>
             <option value="brouillon"  {% if statut_actif == 'brouillon'  %}selected{% endif %}>Brouillon</option>
             <option value="finalise"   {% if statut_actif == 'finalise'   %}selected{% endif %}>Finalisé</option>
@@ -27,23 +67,20 @@
           </select>
         </div>
         <div class="col-md-3">
-          <select name="type" class="form-select">
+          <select name="type" class="form-select form-select-sm">
             <option value="">Tous les types</option>
             {% for val, label in types_contrat %}
             <option value="{{ val }}" {% if type_actif == val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-2 d-flex gap-2">
-          <button type="submit" class="btn btn-lc-primary flex-grow-1">Filtrer</button>
-          <a href="{% url 'contrats:liste' %}" class="btn btn-outline-secondary">✕</a>
+        <div class="col-md-2 d-flex gap-1">
+          <button type="submit" class="btn btn-lc-primary btn-sm flex-grow-1">OK</button>
+          <a href="{% url 'contrats:liste' %}" class="btn btn-outline-secondary btn-sm">✕</a>
         </div>
       </form>
     </div>
   </div>
-
-  <!-- Résultats -->
-  <p class="text-muted mb-3"><strong>{{ total }}</strong> contrat(s) trouvé(s)</p>
 
   {% if contrats %}
   <div class="row g-3">
@@ -52,24 +89,54 @@
       <div class="card h-100">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start mb-2">
-            <h6 class="fw-bold mb-0" style="color:var(--bleu-principal);">{{ contrat.titre }}</h6>
-            <span class="badge badge-{{ contrat.statut }} rounded-pill">{{ contrat.get_statut_display }}</span>
+            <div class="flex-grow-1 me-2">
+              <h6 class="fw-bold mb-1 text-truncate" style="color:var(--bleu-principal);"
+                  title="{{ contrat.titre }}">{{ contrat.titre }}</h6>
+            </div>
+            <span class="badge rounded-pill flex-shrink-0
+              {% if contrat.statut == 'signe' %}bg-success
+              {% elif contrat.statut == 'finalise' %}bg-primary
+              {% elif contrat.statut == 'archive' %}bg-secondary
+              {% else %}bg-warning text-dark{% endif %}">
+              {{ contrat.get_statut_display }}
+            </span>
           </div>
-          <p class="text-muted small mb-1"><i class="bi bi-tag"></i> {{ contrat.get_type_contrat_display }}</p>
-          <p class="text-muted small mb-1"><i class="bi bi-person"></i> {{ contrat.nom_client }}</p>
-          {% if contrat.montant %}
-          <p class="text-muted small mb-1"><i class="bi bi-cash"></i> {{ contrat.montant }} {{ contrat.devise }}</p>
+          <p class="text-muted small mb-1">
+            <i class="bi bi-tag"></i> {{ contrat.get_type_contrat_display }}
+          </p>
+          <p class="text-muted small mb-1">
+            <i class="bi bi-person"></i> {{ contrat.nom_client }}
+          </p>
+          {% if contrat.nom_prestataire %}
+          <p class="text-muted small mb-1">
+            <i class="bi bi-building"></i> {{ contrat.nom_prestataire }}
+          </p>
           {% endif %}
-          <p class="text-muted small"><i class="bi bi-calendar"></i> {{ contrat.created_at|date:"d/m/Y" }}</p>
+          {% if contrat.montant %}
+          <p class="text-muted small mb-1">
+            <i class="bi bi-cash"></i>
+            <strong>{{ contrat.montant|floatformat:0 }} {{ contrat.devise }}</strong>
+          </p>
+          {% endif %}
+          {% if contrat.date_debut or contrat.date_fin %}
+          <p class="text-muted small mb-1">
+            <i class="bi bi-calendar-range"></i>
+            {% if contrat.date_debut %}{{ contrat.date_debut|date:"d/m/Y" }}{% endif %}
+            {% if contrat.date_fin %} → {{ contrat.date_fin|date:"d/m/Y" }}{% endif %}
+          </p>
+          {% endif %}
+          <p class="text-muted small mb-0">
+            <i class="bi bi-clock"></i> {{ contrat.created_at|date:"d/m/Y" }}
+          </p>
         </div>
-        <div class="card-footer bg-transparent border-0 d-flex gap-2">
+        <div class="card-footer bg-transparent border-0 d-flex gap-1">
           <a href="{% url 'contrats:detail' contrat.pk %}" class="btn btn-sm btn-lc-primary flex-grow-1">
             <i class="bi bi-eye"></i> Voir
           </a>
-          <a href="{% url 'contrats:pdf' contrat.pk %}" class="btn btn-sm btn-outline-danger">
+          <a href="{% url 'contrats:pdf' contrat.pk %}" class="btn btn-sm btn-outline-danger" title="Exporter PDF">
             <i class="bi bi-file-pdf"></i>
           </a>
-          <a href="{% url 'contrats:modifier' contrat.pk %}" class="btn btn-sm btn-outline-secondary">
+          <a href="{% url 'contrats:modifier' contrat.pk %}" class="btn btn-sm btn-outline-secondary" title="Modifier">
             <i class="bi bi-pencil"></i>
           </a>
         </div>
@@ -77,6 +144,34 @@
     </div>
     {% endfor %}
   </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+      </li>
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
   {% else %}
   <div class="card text-center py-5">
     <div class="card-body">
@@ -89,5 +184,6 @@
     </div>
   </div>
   {% endif %}
+
 </div>
 {% endblock %}

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Q
 
 from .models import Dossier, Message, Commentaire, STATUTS_DOSSIER, TYPES_DOSSIER
@@ -40,7 +41,7 @@ def liste_dossiers(request):
             Q(titre__icontains=recherche) | Q(description__icontains=recherche)
         )
 
-    # Stats
+    # Stats (calculées avant pagination)
     total        = dossiers.count()
     en_attente   = dossiers.filter(statut='en_attente').count()
     en_cours     = dossiers.filter(statut='en_cours').count()
@@ -51,8 +52,13 @@ def liste_dossiers(request):
         dossier__in=dossiers, lu=False
     ).exclude(auteur=user).count()
 
+    # Pagination
+    paginator = Paginator(dossiers.order_by('-created_at'), 9)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
     context = {
-        'dossiers'     : dossiers,
+        'dossiers'     : page_obj,
+        'page_obj'     : page_obj,
         'statuts'      : STATUTS_DOSSIER,
         'types'        : TYPES_DOSSIER,
         'statut_actif' : statut,

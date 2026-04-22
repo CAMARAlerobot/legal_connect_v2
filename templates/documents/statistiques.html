@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% block title %}Statistiques Documents — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="page-title mb-0"><i class="bi bi-bar-chart"></i> Statistiques — Documents</h1>
+    <div class="d-flex gap-2">
+      <a href="{% url 'documents:export_excel' %}" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-file-earmark-excel"></i> Export Excel
+      </a>
+      <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Mes documents
+      </a>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card text-center h-100">
+        <div class="card-body py-3">
+          <div class="fw-bold fs-2" style="color:var(--bleu-principal);">{{ total }}</div>
+          <div class="text-muted small">Documents</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card text-center h-100">
+        <div class="card-body py-3">
+          <div class="fw-bold fs-4" style="color:var(--bleu-principal);">{{ total_size }}</div>
+          <div class="text-muted small">Taille totale</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card text-center h-100">
+        <div class="card-body py-3">
+          <div class="fw-bold fs-2 text-success">{{ total_dl }}</div>
+          <div class="text-muted small">Téléchargements</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card text-center h-100">
+        <div class="card-body py-3">
+          <div class="fw-bold fs-2 text-primary">{{ docs_partages }}</div>
+          <div class="text-muted small">Partagés</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card text-center h-100">
+        <div class="card-body py-3">
+          <div class="fw-bold fs-2 text-warning">{{ docs_archives }}</div>
+          <div class="text-muted small">Archivés</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <div class="card text-center h-100">
+        <div class="card-body py-3">
+          <div class="fw-bold fs-2 text-danger">{{ docs_expires }}</div>
+          <div class="text-muted small">Expirés</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if docs_bientot > 0 %}
+  <div class="alert alert-warning d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-clock fs-5"></i>
+    <span><strong>{{ docs_bientot }}</strong> document(s) expirent dans moins de 30 jours.</span>
+    <a href="{% url 'documents:liste' %}?expire=soon" class="btn btn-warning btn-sm ms-auto">Voir</a>
+  </div>
+  {% endif %}
+
+  <div class="row g-3 mb-4">
+
+    <!-- Évolution 6 mois -->
+    <div class="col-lg-8">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-graph-up"></i> Évolution des uploads (6 derniers mois)</div>
+        <div class="card-body">
+          <canvas id="chartEvol" height="120"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Répartition par catégorie -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-pie-chart"></i> Par catégorie</div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          <canvas id="chartCat" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row g-3 mb-4">
+
+    <!-- Répartition par statut -->
+    <div class="col-lg-5">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-bar-chart-fill"></i> Par statut</div>
+        <div class="card-body">
+          <canvas id="chartStatut" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tableau catégories -->
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-table"></i> Détail par catégorie</div>
+        <div class="card-body p-0">
+          <table class="table table-hover table-sm mb-0">
+            <thead style="background:#f8f9fa;">
+              <tr>
+                <th class="ps-3">Catégorie</th>
+                <th class="text-center">Documents</th>
+                <th class="text-end pe-3">Taille totale</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for cat in par_cat %}
+              <tr>
+                <td class="ps-3 fw-bold small">{{ cat.label }}</td>
+                <td class="text-center">
+                  <span class="badge rounded-pill bg-primary px-3">{{ cat.nb }}</span>
+                </td>
+                <td class="text-end pe-3 small text-muted">{{ cat.taille }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="3" class="text-center text-muted py-4 small">Aucune donnée</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Statuts détaillés -->
+  <div class="card mb-4">
+    <div class="card-header fw-bold"><i class="bi bi-tags"></i> Répartition par statut</div>
+    <div class="card-body">
+      <div class="row g-3 text-center">
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="p-3 rounded" style="background:#f8f9fa;">
+            <div class="fw-bold fs-3 text-secondary">{{ par_statut.prive|default:0 }}</div>
+            <span class="badge bg-secondary mt-1">Privé</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="p-3 rounded" style="background:#f8f9fa;">
+            <div class="fw-bold fs-3 text-primary">{{ par_statut.partage|default:0 }}</div>
+            <span class="badge bg-primary mt-1">Partagé</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="p-3 rounded" style="background:#f8f9fa;">
+            <div class="fw-bold fs-3 text-info">{{ par_statut.en_revision|default:0 }}</div>
+            <span class="badge bg-info mt-1">En révision</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="p-3 rounded" style="background:#f8f9fa;">
+            <div class="fw-bold fs-3 text-success">{{ par_statut.signe|default:0 }}</div>
+            <span class="badge bg-success mt-1">Signé</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="p-3 rounded" style="background:#f8f9fa;">
+            <div class="fw-bold fs-3 text-warning">{{ par_statut.archive|default:0 }}</div>
+            <span class="badge bg-warning text-dark mt-1">Archivé</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+          <div class="p-3 rounded bg-danger bg-opacity-10">
+            <div class="fw-bold fs-3 text-danger">{{ docs_expires }}</div>
+            <span class="badge bg-danger mt-1">Expirés</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const BLEU   = '#1A3A5C';
+  const BLEU2  = '#2E86C1';
+  const VERT   = '#27AE60';
+  const ORANGE = '#E67E22';
+  const ROUGE  = '#E74C3C';
+  const VIOLET = '#8E44AD';
+  const GRIS   = '#95A5A6';
+
+  /* --- Évolution 6 mois --- */
+  new Chart(document.getElementById('chartEvol'), {
+    type: 'line',
+    data: {
+      labels: {{ chart_evol_labels|safe }},
+      datasets: [{
+        label: 'Documents uploadés',
+        data: {{ chart_evol_data|safe }},
+        borderColor: BLEU2,
+        backgroundColor: 'rgba(46,134,193,0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: BLEU2,
+        pointRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+
+  /* --- Camembert catégories --- */
+  new Chart(document.getElementById('chartCat'), {
+    type: 'doughnut',
+    data: {
+      labels: {{ chart_cat_labels|safe }},
+      datasets: [{
+        data: {{ chart_cat_data|safe }},
+        backgroundColor: [BLEU, BLEU2, VERT, ORANGE, ROUGE, VIOLET, GRIS,
+                          '#F39C12', '#1ABC9C', '#3498DB'],
+        borderWidth: 2,
+        borderColor: '#fff',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 } } }
+      },
+      cutout: '60%',
+    }
+  });
+
+  /* --- Barres statuts --- */
+  new Chart(document.getElementById('chartStatut'), {
+    type: 'bar',
+    data: {
+      labels: {{ chart_statut_labels|safe }},
+      datasets: [{
+        label: 'Nombre',
+        data: {{ chart_statut_data|safe }},
+        backgroundColor: [GRIS, BLEU2, '#17a2b8', VERT, ORANGE],
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

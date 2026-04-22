@@ -228,36 +228,176 @@
       max-width: 560px; margin-bottom: 3rem;
     }
 
-    .features-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 1.5rem;
+    /* ── BENTO FEATURES ── */
+    .features-bento {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.25rem;
     }
-    .feature-card {
-      background: white; border-radius: 20px; padding: 2rem;
-      border: 1px solid rgba(27,79,114,0.08);
-      transition: all 0.3s;
+    .bc {
+      border-radius: 24px; padding: 1.8rem;
       position: relative; overflow: hidden;
+      transition: transform 0.35s cubic-bezier(.34,1.4,.64,1), box-shadow 0.3s;
+      min-height: 270px;
+      display: flex; flex-direction: column;
     }
-    .feature-card::before {
-      content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 3px;
-      background: linear-gradient(90deg, var(--bleu), var(--bleu-s));
-      transform: scaleX(0); transform-origin: left;
-      transition: transform 0.3s;
-      pointer-events: none;
+    .bc:hover { transform: translateY(-6px); }
+    .bc-7 { grid-column: span 7; }
+    .bc-5 { grid-column: span 5; }
+    .bc-6 { grid-column: span 6; }
+
+    .bento-num {
+      position: absolute; bottom: -1rem; right: 1rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 7rem; font-weight: 900;
+      opacity: 0.06; line-height: 1;
+      pointer-events: none; user-select: none; color: inherit;
     }
-    .feature-card:hover { transform: translateY(-4px); box-shadow: 0 20px 60px rgba(27,79,114,0.12); }
-    .feature-card:hover::before { transform: scaleX(1); }
-    .feature-icon {
-      width: 52px; height: 52px; border-radius: 14px;
+    .bento-chip {
+      width: 46px; height: 46px; border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.4rem; margin-bottom: 1.2rem;
+      font-size: 1.25rem; margin-bottom: 0.9rem;
+      background: rgba(255,255,255,0.14); flex-shrink: 0;
     }
-    .feature-card h3 {
-      font-size: 1.1rem; font-weight: 700;
-      color: var(--sombre); margin-bottom: 0.6rem;
+    .bento-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.35rem; }
+    .bento-desc  { font-size: 0.83rem; opacity: 0.72; line-height: 1.6; margin-bottom: 0.9rem; }
+
+    /* Card themes */
+    .bc-contrats {
+      background: linear-gradient(145deg, #0D1B2A 0%, #1B4F72 100%);
+      color: white; box-shadow: 0 16px 48px rgba(13,27,42,0.3);
     }
-    .feature-card p { color: var(--gris); font-size: 0.9rem; line-height: 1.6; }
+    .bc-fiscal {
+      background: linear-gradient(145deg, #78350F, #C2600A);
+      color: white; box-shadow: 0 16px 48px rgba(120,53,15,0.3);
+    }
+    .bc-docs {
+      background: linear-gradient(145deg, #ECFDF5, #A7F3D0);
+      color: #064E3B; box-shadow: 0 10px 32px rgba(16,185,129,0.18);
+    }
+    .bc-collab {
+      background: linear-gradient(145deg, #1E1B4B, #4338CA);
+      color: white; box-shadow: 0 16px 48px rgba(30,27,75,0.35);
+    }
+    .bc-annuaire {
+      background: linear-gradient(145deg, #F0F9FF, #BAE6FD);
+      color: #0C4A6E; box-shadow: 0 10px 32px rgba(14,165,233,0.18);
+    }
+    .bc-notifs {
+      background: linear-gradient(145deg, #18181B, #3F3F46);
+      color: white; box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+    }
+
+    /* Contract pills */
+    .ct-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
+    .ct-pill {
+      background: rgba(255,255,255,0.13);
+      border: 1px solid rgba(255,255,255,0.22);
+      border-radius: 50px; padding: 0.18rem 0.65rem;
+      font-size: 0.7rem; font-weight: 600;
+    }
+
+    /* Mini document */
+    .mini-doc {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 12px; padding: 0.7rem 0.9rem;
+      margin-top: auto;
+    }
+    .mini-doc-hdr {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 0.55rem;
+      font-size: 0.64rem; font-weight: 800;
+      letter-spacing: 0.06em; opacity: 0.9;
+    }
+    .pdf-badge {
+      background: #E74C3C; color: white;
+      font-size: 0.58rem; font-weight: 800;
+      padding: 0.1rem 0.38rem; border-radius: 4px;
+    }
+    .mini-line {
+      height: 4px; background: rgba(255,255,255,0.14);
+      border-radius: 3px; margin-bottom: 0.38rem;
+    }
+
+    /* Tax mini grid */
+    .tax-grid-mini {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.55rem; margin-top: auto;
+    }
+    .tx-item {
+      background: rgba(255,255,255,0.11);
+      border-radius: 10px; padding: 0.55rem 0.7rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .tx-name { font-size: 0.72rem; font-weight: 700; opacity: 0.8; }
+    .tx-val  { font-size: 0.88rem; font-weight: 900; }
+
+    /* File stack */
+    .file-stack { margin-top: auto; display: flex; flex-direction: column; gap: 0.38rem; }
+    .file-item {
+      background: rgba(6,78,59,0.09);
+      border: 1px solid rgba(6,78,59,0.14);
+      border-radius: 8px; padding: 0.38rem 0.65rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.77rem; font-weight: 500;
+    }
+    .file-item i { font-size: 1rem; flex-shrink: 0; }
+
+    /* Mini chat */
+    .mini-chat { margin-top: auto; display: flex; flex-direction: column; gap: 0.48rem; }
+    .chat-row { display: flex; align-items: flex-end; gap: 0.38rem; }
+    .chat-row.me { flex-direction: row-reverse; }
+    .chat-av {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: rgba(255,255,255,0.18);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.58rem; font-weight: 800; flex-shrink: 0;
+    }
+    .chat-bbl {
+      background: rgba(255,255,255,0.11);
+      border-radius: 12px; padding: 0.38rem 0.65rem;
+      font-size: 0.74rem; line-height: 1.45;
+      max-width: calc(100% - 38px);
+    }
+    .chat-row.me .chat-bbl { background: rgba(255,255,255,0.22); }
+    .chat-dots { display: flex; gap: 3px; align-items: center; min-width: 32px; }
+    .chat-dots span {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      animation: tdot 1.3s infinite;
+    }
+    .chat-dots span:nth-child(2) { animation-delay: .22s; }
+    .chat-dots span:nth-child(3) { animation-delay: .44s; }
+    @keyframes tdot {
+      0%,80%,100% { transform:scale(1); opacity:.5; }
+      40%          { transform:scale(1.4); opacity:1; }
+    }
+
+    /* Expert mini card */
+    .expert-mini {
+      display: flex; align-items: center; gap: 0.7rem;
+      background: rgba(12,74,110,0.08);
+      border: 1px solid rgba(12,74,110,0.15);
+      border-radius: 14px; padding: 0.7rem 0.9rem;
+      margin-top: auto;
+    }
+    .expert-av {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 800; font-size: 0.82rem; flex-shrink: 0;
+    }
+
+    /* Notif list */
+    .notif-list { margin-top: auto; display: flex; flex-direction: column; gap: 0.45rem; }
+    .notif-row {
+      display: flex; align-items: center; gap: 0.55rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 9px; padding: 0.45rem 0.65rem;
+      font-size: 0.77rem;
+    }
+    .ndot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
     /* ── CALCUL IMPOTS ── */
     .impots-section {
@@ -424,10 +564,18 @@
       .hero-visual { display: none; }
       .stats-band { grid-template-columns: repeat(2, 1fr); padding: 2rem 1.5rem; }
       .section, .impots-section, .temoignages, .cta-section { padding: 4rem 1.5rem; }
-      .features-grid { grid-template-columns: 1fr; }
+      .features-bento { grid-template-columns: 1fr; }
+      .bc-7, .bc-5, .bc-6 { grid-column: span 1; }
+      .bc { min-height: 220px; }
       .impots-grid { grid-template-columns: 1fr; gap: 2rem; }
       .temoignages-grid { grid-template-columns: 1fr; }
       footer { padding: 2rem 1.5rem; flex-direction: column; text-align: center; }
+    }
+    @media (min-width: 901px) and (max-width: 1200px) {
+      .features-bento { grid-template-columns: repeat(10, 1fr); }
+      .bc-7 { grid-column: span 6; }
+      .bc-5 { grid-column: span 4; }
+      .bc-6 { grid-column: span 5; }
     }
   </style>
 </head>
@@ -535,49 +683,138 @@
   <h2 class="section-title">Tout ce dont vous avez besoin,<br><em>dans une seule plateforme</em></h2>
   <p class="section-sub">De la génération de contrats au calcul de vos impôts, en passant par le conseil d'experts, Légal Connect couvre tous vos besoins.</p>
 
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#D6EAF8;">
-        <i class="bi bi-file-earmark-text" style="color:#1B4F72;"></i>
+  <div class="features-bento">
+
+    <!-- 01 · Générateur de Contrats (large, dark blue) -->
+    <div class="bc bc-7 bc-contrats">
+      <span class="bento-num">01</span>
+      <div class="bento-chip"><i class="bi bi-file-earmark-text"></i></div>
+      <div class="bento-title">Générateur de Contrats</div>
+      <p class="bento-desc">Créez des contrats professionnels en 5 minutes. Exportez en PDF directement.</p>
+      <div class="ct-row">
+        <span class="ct-pill">Prestation</span>
+        <span class="ct-pill">Vente</span>
+        <span class="ct-pill">Bail commercial</span>
+        <span class="ct-pill">Travail</span>
+        <span class="ct-pill">NDA</span>
+        <span class="ct-pill">Partenariat</span>
+        <span class="ct-pill">Don</span>
       </div>
-      <h3>Générateur de Contrats</h3>
-      <p>Créez en 5 minutes des contrats professionnels : prestation, vente, bail commercial, travail, partenariat, NDA. Export PDF inclus.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#FEF9E7;">
-        <i class="bi bi-calculator" style="color:#D4A853;"></i>
+      <div class="mini-doc">
+        <div class="mini-doc-hdr">
+          <span>CONTRAT DE PRESTATION DE SERVICES</span>
+          <span class="pdf-badge">PDF</span>
+        </div>
+        <div class="mini-line" style="width:100%;"></div>
+        <div class="mini-line" style="width:80%;"></div>
+        <div class="mini-line" style="width:92%;"></div>
+        <div class="mini-line" style="width:65%;"></div>
       </div>
-      <h3>Calculateur Fiscal</h3>
-      <p>Calculez votre TVA, IS, CNPS, BIC et BNC selon les taux officiels de Côte d'Ivoire 2025-2026. Historique et export PDF.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#EAFAF1;">
-        <i class="bi bi-folder" style="color:#1E8449;"></i>
+
+    <!-- 02 · Calculateur Fiscal (medium, amber) -->
+    <div class="bc bc-5 bc-fiscal">
+      <span class="bento-num">02</span>
+      <div class="bento-chip"><i class="bi bi-calculator"></i></div>
+      <div class="bento-title">Calculateur Fiscal</div>
+      <p class="bento-desc">Taux officiels DGI Côte d'Ivoire 2025-2026. Historique & export PDF.</p>
+      <div class="tax-grid-mini">
+        <div class="tx-item"><span class="tx-name">TVA</span><span class="tx-val">18%</span></div>
+        <div class="tx-item"><span class="tx-name">IS</span><span class="tx-val">20-30%</span></div>
+        <div class="tx-item"><span class="tx-name">CNPS</span><span class="tx-val">14%</span></div>
+        <div class="tx-item"><span class="tx-name">BIC</span><span class="tx-val">25%</span></div>
       </div>
-      <h3>Gestion Documentaire</h3>
-      <p>Uploadez, classez et partagez vos documents en toute sécurité. Partagez directement avec votre expert juridique.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#FDEDEC;">
-        <i class="bi bi-people" style="color:#C0392B;"></i>
+
+    <!-- 03 · Gestion Documentaire (medium, green) -->
+    <div class="bc bc-5 bc-docs">
+      <span class="bento-num" style="color:#064E3B;">03</span>
+      <div class="bento-chip" style="background:rgba(6,78,59,0.12);">
+        <i class="bi bi-folder2-open" style="color:#065F46;"></i>
       </div>
-      <h3>Collaboration Expert</h3>
-      <p>Soumettez vos dossiers à des experts qualifiés. Messagerie intégrée, suivi en temps réel et avis détaillé garanti.</p>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#D6EAF8;">
-        <i class="bi bi-person-badge" style="color:#2E86C1;"></i>
+      <div class="bento-title">Gestion Documentaire</div>
+      <p class="bento-desc">Uploadez, classez et partagez vos documents avec votre expert en toute sécurité.</p>
+      <div class="file-stack">
+        <div class="file-item">
+          <i class="bi bi-file-pdf" style="color:#E74C3C;"></i>
+          <span>Contrat_bail_2026.pdf</span>
+        </div>
+        <div class="file-item">
+          <i class="bi bi-file-earmark-image" style="color:#2E86C1;"></i>
+          <span>CNI_scannée.jpg</span>
+        </div>
+        <div class="file-item">
+          <i class="bi bi-file-earmark-excel" style="color:#1E8449;"></i>
+          <span>Bilan_annuel.xlsx</span>
+        </div>
       </div>
-      <h3>Annuaire des Experts</h3>
-      <p>Trouvez l'expert idéal par spécialité : droit commercial, fiscal, immobilier, comptabilité. Profils vérifiés et taux de validation.</p>
     </div>
-    <div class="feature-card">
-      <div class="feature-icon" style="background:#F5E6C8;">
-        <i class="bi bi-bell" style="color:#D4A853;"></i>
+
+    <!-- 04 · Collaboration Expert (large, indigo) -->
+    <div class="bc bc-7 bc-collab">
+      <span class="bento-num">04</span>
+      <div class="bento-chip"><i class="bi bi-people-fill"></i></div>
+      <div class="bento-title">Collaboration Expert</div>
+      <p class="bento-desc">Soumettez vos dossiers à des experts qualifiés. Messagerie intégrée et suivi en temps réel.</p>
+      <div class="mini-chat">
+        <div class="chat-row">
+          <div class="chat-av">ME</div>
+          <div class="chat-bbl">J'ai examiné votre contrat. Il manque la clause de résiliation anticipée.</div>
+        </div>
+        <div class="chat-row me">
+          <div class="chat-bbl">Merci ! Comment puis-je la corriger rapidement ?</div>
+          <div class="chat-av">KA</div>
+        </div>
+        <div class="chat-row">
+          <div class="chat-av">ME</div>
+          <div class="chat-bbl chat-dots"><span></span><span></span><span></span></div>
+        </div>
       </div>
-      <h3>Notifications Automatiques</h3>
-      <p>Rappels d'échéances fiscales, alertes de validation de dossiers, nouveaux messages — ne ratez plus aucune deadline importante.</p>
     </div>
+
+    <!-- 05 · Annuaire des Experts (half, sky blue) -->
+    <div class="bc bc-6 bc-annuaire">
+      <span class="bento-num" style="color:#0C4A6E;">05</span>
+      <div class="bento-chip" style="background:rgba(12,74,110,0.1);">
+        <i class="bi bi-person-badge-fill" style="color:#0369A1;"></i>
+      </div>
+      <div class="bento-title">Annuaire des Experts</div>
+      <p class="bento-desc">Trouvez l'expert idéal par spécialité : droit commercial, fiscal, immobilier, comptabilité.</p>
+      <div class="expert-mini">
+        <div class="expert-av" style="background:#1B4F72;">MA</div>
+        <div>
+          <div style="font-weight:800; font-size:.88rem;">Maître Akou</div>
+          <div style="font-size:.75rem; color:#0369A1; margin-top:1px;">Droit fiscal · ★★★★★</div>
+          <div style="font-size:.72rem; color:#16A34A; margin-top:3px; display:flex; align-items:center; gap:4px;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#16A34A;display:inline-block;"></span>
+            Disponible — répond en 24h
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 06 · Notifications (half, dark zinc) -->
+    <div class="bc bc-6 bc-notifs">
+      <span class="bento-num">06</span>
+      <div class="bento-chip"><i class="bi bi-bell-fill"></i></div>
+      <div class="bento-title">Notifications Automatiques</div>
+      <p class="bento-desc">Rappels fiscaux, alertes de validation — ne ratez plus jamais une deadline critique.</p>
+      <div class="notif-list">
+        <div class="notif-row">
+          <div class="ndot" style="background:#22C55E;"></div>
+          <span>Contrat #012 validé par Maître Akou</span>
+        </div>
+        <div class="notif-row">
+          <div class="ndot" style="background:#F59E0B;"></div>
+          <span>TVA Avril — échéance dans <strong>3 jours</strong></span>
+        </div>
+        <div class="notif-row">
+          <div class="ndot" style="background:#3B82F6;"></div>
+          <span>Nouveau message de votre expert</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 

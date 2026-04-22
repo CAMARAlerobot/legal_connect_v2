@@ -3,36 +3,71 @@
 
 {% block content %}
 <div class="main-content">
-  <h1 class="page-title"><i class="bi bi-cloud-upload"></i> Uploader un Document</h1>
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="page-title mb-0"><i class="bi bi-cloud-upload"></i> Uploader un Document</h1>
+    <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Mes documents
+    </a>
+  </div>
 
   <div class="row justify-content-center">
-    <div class="col-lg-7">
-      <div class="card">
-        <div class="card-header"><i class="bi bi-file-earmark-plus"></i> Nouveau document</div>
-        <div class="card-body p-4">
+    <div class="col-lg-8">
 
-          {% if form.errors %}
-          <div class="alert alert-danger">
-            {% for field, errors in form.errors.items %}
-              {% for error in errors %}<p class="mb-0"><i class="bi bi-exclamation-circle"></i> {{ error }}</p>{% endfor %}
-            {% endfor %}
-          </div>
-          {% endif %}
+      {% if form.errors %}
+      <div class="alert alert-danger">
+        {% for field, errors in form.errors.items %}
+          {% for error in errors %}
+          <p class="mb-0"><i class="bi bi-exclamation-circle"></i> {{ error }}</p>
+          {% endfor %}
+        {% endfor %}
+      </div>
+      {% endif %}
 
-          <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+      <form method="post" enctype="multipart/form-data" id="upload-form">
+        {% csrf_token %}
 
-            <!-- Zone drag & drop -->
-            <div class="mb-4 p-4 text-center rounded"
-                 style="border: 2px dashed var(--bleu-secondaire); background: var(--bleu-clair); cursor:pointer;"
-                 onclick="document.getElementById('id_fichier').click()">
-              <i class="bi bi-cloud-upload" style="font-size:3rem; color:var(--bleu-secondaire);"></i>
-              <p class="mt-2 mb-1 fw-bold" style="color:var(--bleu-principal);">Cliquez pour sélectionner un fichier</p>
-              <p class="text-muted small mb-0">PDF, Word, Excel, Image — Max 10 Mo</p>
-              <div id="filename-display" class="mt-2 text-success fw-bold" style="display:none;"></div>
+        <!-- Zone drag & drop -->
+        <div class="card mb-3">
+          <div class="card-body p-0">
+            <div id="drop-zone" class="p-5 text-center rounded"
+                 style="border:2px dashed var(--bleu-secondaire); background:var(--bleu-clair); cursor:pointer; transition:all .2s;">
+              <div id="drop-idle">
+                <i class="bi bi-cloud-upload" style="font-size:3.5rem; color:var(--bleu-secondaire);"></i>
+                <p class="mt-2 mb-1 fw-bold fs-5" style="color:var(--bleu-principal);">
+                  Glissez un fichier ici ou cliquez pour sélectionner
+                </p>
+                <p class="text-muted small mb-0">PDF, Word, Excel, Image — Max 10 Mo</p>
+              </div>
+              <div id="drop-selected" class="d-none">
+                <i class="bi bi-file-check text-success" style="font-size:3rem;"></i>
+                <p class="mt-2 fw-bold text-success" id="file-name-display"></p>
+                <p class="text-muted small" id="file-size-display"></p>
+              </div>
+              <div id="drop-error" class="d-none">
+                <i class="bi bi-exclamation-triangle text-danger" style="font-size:3rem;"></i>
+                <p class="mt-2 fw-bold text-danger" id="drop-error-msg"></p>
+              </div>
             </div>
-            <div class="mb-3" style="display:none;">{{ form.fichier }}</div>
+            <div style="display:none;">{{ form.fichier }}</div>
 
+            <!-- Barre de progression (affichée à la soumission) -->
+            <div id="progress-zone" class="d-none px-4 pb-3">
+              <div class="d-flex justify-content-between small text-muted mb-1">
+                <span>Upload en cours...</span>
+                <span id="progress-pct">0%</span>
+              </div>
+              <div class="progress" style="height:8px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                     id="progress-bar" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Informations document -->
+        <div class="card mb-3">
+          <div class="card-header fw-bold"><i class="bi bi-info-circle"></i> Informations du document</div>
+          <div class="card-body">
             <div class="mb-3">
               <label class="form-label fw-bold">{{ form.titre.label }}</label>
               {{ form.titre }}
@@ -47,32 +82,48 @@
                 {{ form.statut }}
               </div>
             </div>
-            <div class="mb-4">
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-label">{{ form.numero_reference.label }}</label>
+                {{ form.numero_reference }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">{{ form.date_expiration.label }}</label>
+                {{ form.date_expiration }}
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">{{ form.mots_cles.label }}</label>
+              {{ form.mots_cles }}
+              <small class="text-muted">Mots-clés séparés par des virgules pour faciliter la recherche</small>
+            </div>
+            <div class="mb-0">
               <label class="form-label">{{ form.description.label }}</label>
               {{ form.description }}
             </div>
-
-            <div class="d-flex gap-2">
-              <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Retour
-              </a>
-              <button type="submit" class="btn btn-lc-primary flex-grow-1">
-                <i class="bi bi-cloud-upload"></i> Uploader le document
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
-      </div>
 
-      <!-- Aide -->
-      <div class="card mt-3">
-        <div class="card-body">
-          <h6 class="fw-bold" style="color:var(--bleu-principal);"><i class="bi bi-info-circle"></i> Formats acceptés</h6>
-          <div class="d-flex flex-wrap gap-2 mt-2">
-            <span class="badge bg-danger px-3 py-2"><i class="bi bi-file-pdf"></i> PDF</span>
-            <span class="badge bg-primary px-3 py-2"><i class="bi bi-file-word"></i> Word (.doc, .docx)</span>
-            <span class="badge bg-success px-3 py-2"><i class="bi bi-file-excel"></i> Excel (.xls, .xlsx)</span>
-            <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-file-image"></i> Images (.jpg, .png)</span>
+        <div class="d-flex gap-2">
+          <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour
+          </a>
+          <button type="submit" class="btn btn-lc-primary flex-grow-1" id="btn-submit">
+            <i class="bi bi-cloud-upload"></i> Uploader le document
+          </button>
+        </div>
+      </form>
+
+      <!-- Aide formats -->
+      <div class="card mt-3 border-0" style="background:#f8f9fa;">
+        <div class="card-body py-2">
+          <div class="small fw-bold mb-2 text-muted"><i class="bi bi-info-circle"></i> Formats acceptés</div>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge bg-danger px-2 py-1"><i class="bi bi-file-pdf"></i> PDF</span>
+            <span class="badge bg-primary px-2 py-1"><i class="bi bi-file-word"></i> Word .doc/.docx</span>
+            <span class="badge bg-success px-2 py-1"><i class="bi bi-file-excel"></i> Excel .xls/.xlsx</span>
+            <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-file-image"></i> Image .jpg/.png</span>
+            <span class="badge bg-secondary px-2 py-1">Max 10 Mo</span>
           </div>
         </div>
       </div>
@@ -83,13 +134,83 @@
 
 {% block extra_js %}
 <script>
-document.getElementById('id_fichier').addEventListener('change', function() {
-  const name = this.files[0]?.name;
-  if (name) {
-    const display = document.getElementById('filename-display');
-    display.textContent = '✓ ' + name;
-    display.style.display = 'block';
+(function () {
+  const dropZone  = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('id_fichier');
+  const btnSubmit = document.getElementById('btn-submit');
+  const MAX_MB    = 10;
+  const EXTS      = ['pdf','doc','docx','xls','xlsx','jpg','jpeg','png'];
+
+  function showSelected(file) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!EXTS.includes(ext)) {
+      document.getElementById('drop-idle').classList.add('d-none');
+      document.getElementById('drop-selected').classList.add('d-none');
+      document.getElementById('drop-error').classList.remove('d-none');
+      document.getElementById('drop-error-msg').textContent = 'Format non supporté : ' + ext.toUpperCase();
+      return;
+    }
+    if (file.size > MAX_MB * 1024 * 1024) {
+      document.getElementById('drop-idle').classList.add('d-none');
+      document.getElementById('drop-selected').classList.add('d-none');
+      document.getElementById('drop-error').classList.remove('d-none');
+      document.getElementById('drop-error-msg').textContent = 'Fichier trop lourd (max ' + MAX_MB + ' Mo)';
+      return;
+    }
+    const sizeMo = (file.size / (1024 * 1024)).toFixed(2);
+    document.getElementById('drop-idle').classList.add('d-none');
+    document.getElementById('drop-error').classList.add('d-none');
+    document.getElementById('drop-selected').classList.remove('d-none');
+    document.getElementById('file-name-display').textContent = '✓ ' + file.name;
+    document.getElementById('file-size-display').textContent = sizeMo + ' Mo';
+    dropZone.style.borderColor = '#27AE60';
+    dropZone.style.background  = '#eafaf1';
   }
-});
+
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.style.borderColor = 'var(--bleu-principal)';
+    dropZone.style.background  = '#ddeeff';
+  });
+
+  dropZone.addEventListener('dragleave', () => {
+    dropZone.style.borderColor = 'var(--bleu-secondaire)';
+    dropZone.style.background  = 'var(--bleu-clair)';
+  });
+
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      fileInput.files = dt.files;
+      showSelected(file);
+    }
+  });
+
+  fileInput.addEventListener('change', function () {
+    if (this.files[0]) showSelected(this.files[0]);
+  });
+
+  // Barre de progression à la soumission
+  document.getElementById('upload-form').addEventListener('submit', function () {
+    if (!fileInput.files[0]) return;
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Upload en cours...';
+    const pz = document.getElementById('progress-zone');
+    const pb = document.getElementById('progress-bar');
+    const pp = document.getElementById('progress-pct');
+    pz.classList.remove('d-none');
+    let pct = 0;
+    const interval = setInterval(() => {
+      pct = Math.min(pct + Math.random() * 15, 90);
+      pb.style.width = pct + '%';
+      pp.textContent = Math.round(pct) + '%';
+    }, 300);
+  });
+})();
 </script>
 {% endblock %}

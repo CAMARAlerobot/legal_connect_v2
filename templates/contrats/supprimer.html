@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer — {{ contrat.titre }} — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+
+      <div class="card border-danger">
+        <div class="card-header bg-danger text-white fw-bold">
+          <i class="bi bi-exclamation-triangle"></i> Confirmer la suppression
+        </div>
+        <div class="card-body text-center py-4">
+          <i class="bi bi-file-earmark-text" style="font-size:4rem; color:#E74C3C;"></i>
+          <h4 class="mt-3 fw-bold">{{ contrat.titre }}</h4>
+          <p class="text-muted">
+            {{ contrat.get_type_contrat_display }}
+            &nbsp;·&nbsp; {{ contrat.nom_client }}
+            {% if contrat.montant %}
+            &nbsp;·&nbsp; {{ contrat.montant|floatformat:0 }} {{ contrat.devise }}
+            {% endif %}
+          </p>
+
+          <div class="alert alert-danger py-2 mb-4">
+            <i class="bi bi-exclamation-circle"></i>
+            Cette action est <strong>irréversible</strong>.
+            Le contrat et toutes ses données seront définitivement supprimés.
+          </div>
+
+          <div class="d-flex gap-2 justify-content-center">
+            <a href="{% url 'contrats:detail' contrat.pk %}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Annuler
+            </a>
+            <form method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash"></i> Oui, supprimer définitivement
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

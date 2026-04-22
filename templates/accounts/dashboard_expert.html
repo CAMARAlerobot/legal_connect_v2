@@ -1,0 +1,424 @@
+{% extends 'base.html' %}
+{% block title %}Espace Expert — Légal Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+  .action-item { transition: background .18s; }
+  .action-item:hover { background: #f0f4ff; }
+  .kpi-card { border-left: 4px solid transparent; transition: all .2s; }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(27,79,114,.12); }
+  .dossier-row { transition: background .15s; }
+  .dossier-row:hover { background: var(--bleu-clair); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <!-- En-tête expert -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1">
+        <i class="bi bi-person-badge"></i> Espace Expert
+      </h1>
+      <p class="text-muted mb-0">
+        Bonjour <strong>{{ request.user.first_name|default:request.user.username }}</strong> —
+        <span class="badge px-3 py-1 rounded-pill" style="background:#1E8449; color:#fff;">
+          <i class="bi bi-award-fill"></i> Expert
+        </span>
+        {% if profil.specialite %}
+        <span class="badge ms-1 px-3 py-1 rounded-pill"
+              style="background:var(--bleu-clair); color:var(--bleu-principal);">
+          {{ profil.get_specialite_display }}
+        </span>
+        {% endif %}
+        {% if profil.entreprise %}
+        <span class="text-muted ms-2 small"><i class="bi bi-building"></i> {{ profil.entreprise }}</span>
+        {% endif %}
+      </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      {% if messages_non_lus > 0 %}
+      <a href="/collaboration/" class="btn btn-danger">
+        <i class="bi bi-chat-dots"></i> {{ messages_non_lus }} message(s) non lu(s)
+      </a>
+      {% endif %}
+      <a href="/collaboration/" class="btn btn-lc-primary">
+        <i class="bi bi-folder2"></i> Mes dossiers
+      </a>
+    </div>
+  </div>
+
+  <!-- KPIs Expert -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#1B4F72;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Dossiers assignés</div>
+            <div style="font-size:2.4rem; font-weight:800; color:#1B4F72; line-height:1;">{{ nb_dossiers }}</div>
+            <small class="text-muted">au total</small>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#D6EAF8;flex-shrink:0;">
+            <i class="bi bi-folder2" style="font-size:1.4rem;color:#1B4F72;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#F39C12;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">En attente</div>
+            <div style="font-size:2.4rem; font-weight:800; color:#D35400; line-height:1;">{{ nb_en_attente }}</div>
+            <small class="text-muted">à traiter</small>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#FEF9E7;flex-shrink:0;">
+            <i class="bi bi-hourglass-split" style="font-size:1.4rem;color:#D35400;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#27AE60;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Validés</div>
+            <div style="font-size:2.4rem; font-weight:800; color:#1E8449; line-height:1;">{{ nb_valides }}</div>
+            <small class="text-muted">dossiers validés</small>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#EAFAF1;flex-shrink:0;">
+            <i class="bi bi-check-circle" style="font-size:1.4rem;color:#1E8449;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#2E86C1;">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <div class="text-muted small fw-bold mb-1 text-uppercase">Taux validation</div>
+            <div style="font-size:2.4rem; font-weight:800; line-height:1;
+              color:{% if taux_validation >= 80 %}#1E8449{% elif taux_validation >= 50 %}#D35400{% else %}#888{% endif %};">
+              {{ taux_validation }}%
+            </div>
+            <div class="progress mt-1" style="height:5px;border-radius:10px;">
+              <div class="progress-bar" style="width:{{ taux_validation }}%; border-radius:10px;
+                background:{% if taux_validation >= 80 %}#1E8449{% elif taux_validation >= 50 %}#D35400{% else %}#95a5a6{% endif %};"></div>
+            </div>
+          </div>
+          <div class="rounded-circle d-flex align-items-center justify-content-center"
+               style="width:48px;height:48px;background:#EBF5FB;flex-shrink:0;">
+            <i class="bi bi-graph-up" style="font-size:1.4rem;color:#2E86C1;"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+
+    <!-- Dossiers assignés récents -->
+    <div class="col-lg-7">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-folder-symlink"></i> Mes dossiers assignés</span>
+          <a href="/collaboration/" class="btn btn-sm btn-outline-light">Voir tout</a>
+        </div>
+        <div class="card-body p-0">
+          {% if dossiers_assignes %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead style="background:#f8f9fa;">
+                <tr>
+                  <th class="ps-3">Dossier</th>
+                  <th>Client</th>
+                  <th>Priorité</th>
+                  <th>Statut</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for d in dossiers_assignes %}
+                <tr class="dossier-row">
+                  <td class="ps-3">
+                    <div class="fw-bold small text-truncate" style="max-width:160px;color:var(--bleu-principal);">
+                      {{ d.titre|truncatechars:25 }}
+                    </div>
+                    <div class="text-muted" style="font-size:10px;">{{ d.get_type_dossier_display }}</div>
+                  </td>
+                  <td><small>{{ d.client.first_name }} {{ d.client.last_name }}</small></td>
+                  <td>
+                    <span class="badge
+                      {% if d.priorite == 'urgente' %}bg-danger
+                      {% elif d.priorite == 'haute' %}bg-warning text-dark
+                      {% else %}bg-secondary{% endif %}">
+                      {{ d.get_priorite_display }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge rounded-pill
+                      {% if d.statut == 'valide' %}bg-success
+                      {% elif d.statut == 'rejete' %}bg-danger
+                      {% elif d.statut == 'en_cours' %}bg-primary
+                      {% elif d.statut == 'en_attente' %}bg-warning text-dark
+                      {% else %}bg-secondary{% endif %}">
+                      {{ d.get_statut_display }}
+                    </span>
+                  </td>
+                  <td>
+                    <a href="{% url 'collaboration:detail' d.pk %}" class="btn btn-sm btn-lc-primary">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5">
+            <i class="bi bi-folder2-open" style="font-size:3rem;color:#ccc;"></i>
+            <p class="text-muted mt-2">Aucun dossier assigné pour le moment.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions rapides + Stats -->
+    <div class="col-lg-5">
+
+      <!-- Dossiers disponibles (sans expert) -->
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-inbox"></i> Dossiers disponibles</span>
+          {% if dossiers_disponibles %}
+          <span class="badge bg-warning text-dark">{{ dossiers_disponibles|length }}</span>
+          {% endif %}
+        </div>
+        <div class="card-body p-0">
+          {% if dossiers_disponibles %}
+          {% for d in dossiers_disponibles %}
+          <a href="{% url 'collaboration:detail' d.pk %}"
+             class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:36px;height:36px;background:#FEF9E7;">
+              <i class="bi bi-folder-plus" style="color:#D35400;"></i>
+            </div>
+            <div class="flex-grow-1 min-width-0">
+              <div class="fw-bold small text-truncate" style="color:var(--bleu-principal);">{{ d.titre|truncatechars:30 }}</div>
+              <div class="text-muted" style="font-size:10px;">
+                {{ d.client.first_name }} {{ d.client.last_name }} · {{ d.created_at|date:"d/m/Y" }}
+              </div>
+            </div>
+            <span class="badge {% if d.priorite == 'urgente' %}bg-danger{% elif d.priorite == 'haute' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+              {{ d.get_priorite_display }}
+            </span>
+          </a>
+          {% endfor %}
+          {% else %}
+          <div class="text-center py-3">
+            <p class="text-muted small mb-0">Aucun dossier en attente de prise en charge.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Documents partagés avec moi -->
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-folder-symlink"></i> Documents partagés avec moi</span>
+          <span class="badge bg-primary">{{ nb_docs_partages }}</span>
+        </div>
+        <div class="card-body p-0">
+          {% if docs_partages %}
+          {% for doc in docs_partages %}
+          <a href="{% url 'documents:detail' doc.pk %}"
+             class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <i class="bi {{ doc.icone }}" style="font-size:1.4rem;flex-shrink:0;"></i>
+            <div class="flex-grow-1 min-width-0">
+              <div class="fw-bold small text-truncate" style="color:var(--bleu-principal);">{{ doc.titre }}</div>
+              <div class="text-muted" style="font-size:10px;">
+                Par {{ doc.proprietaire.first_name }} {{ doc.proprietaire.last_name }}
+                · {{ doc.taille_lisible }}
+              </div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          {% endfor %}
+          {% else %}
+          <div class="text-center py-3">
+            <p class="text-muted small mb-0">Aucun document partagé.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Statistiques performance + Actions -->
+  <div class="row g-3">
+
+    <!-- Performance graphique -->
+    <div class="col-lg-5">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-graph-up"></i> Ma performance</div>
+        <div class="card-body">
+          <div class="row g-3 text-center mb-3">
+            <div class="col-4">
+              <div class="p-2 rounded" style="background:#f8f9fa;">
+                <div class="fw-bold fs-4" style="color:var(--bleu-principal);">{{ nb_dossiers }}</div>
+                <div class="text-muted" style="font-size:10px;">Total</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 rounded" style="background:#EAFAF1;">
+                <div class="fw-bold fs-4 text-success">{{ nb_valides }}</div>
+                <div class="text-muted" style="font-size:10px;">Validés</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 rounded" style="background:#FDEDEC;">
+                <div class="fw-bold fs-4 text-danger">{{ nb_rejetes }}</div>
+                <div class="text-muted" style="font-size:10px;">Rejetés</div>
+              </div>
+            </div>
+          </div>
+          <canvas id="chartPerf" height="160"></canvas>
+          <div class="mt-3">
+            <div class="d-flex justify-content-between mb-1">
+              <small class="fw-bold">Taux de validation global</small>
+              <small class="fw-bold"
+                     style="color:{% if taux_validation >= 80 %}#1E8449{% elif taux_validation >= 50 %}#D35400{% else %}#888{% endif %};">
+                {{ taux_validation }}%
+              </small>
+            </div>
+            <div class="progress" style="height:10px;border-radius:10px;">
+              <div class="progress-bar" style="width:{{ taux_validation }}%;border-radius:10px;
+                background:{% if taux_validation >= 80 %}#1E8449{% elif taux_validation >= 50 %}#D35400{% else %}#95a5a6{% endif %};"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions rapides expert -->
+    <div class="col-lg-4">
+      <div class="card h-100">
+        <div class="card-header"><i class="bi bi-lightning"></i> Actions rapides</div>
+        <div class="card-body p-0">
+          <a href="/collaboration/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#D6EAF8;flex-shrink:0;">
+              <i class="bi bi-folder2" style="color:#1B4F72;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Voir mes dossiers</div>
+              <div class="text-muted" style="font-size:11px;">{{ nb_en_cours }} en cours</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/documents/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#EBF5FB;flex-shrink:0;">
+              <i class="bi bi-folder-symlink" style="color:#2E86C1;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Documents partagés</div>
+              <div class="text-muted" style="font-size:11px;">{{ nb_docs_partages }} document(s)</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/annuaire/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#EAFAF1;flex-shrink:0;">
+              <i class="bi bi-person-badge" style="color:#1E8449;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Mon profil public</div>
+              <div class="text-muted" style="font-size:11px;">Visible dans l'annuaire</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/fiscalite/" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#FEF9E7;flex-shrink:0;">
+              <i class="bi bi-calculator" style="color:#D35400;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Mes déclarations</div>
+              <div class="text-muted" style="font-size:11px;">Espace fiscal</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+          <a href="/accounts/profil/" class="d-flex align-items-center gap-3 p-3 text-decoration-none action-item">
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:40px;height:40px;background:#F5EEF8;flex-shrink:0;">
+              <i class="bi bi-person-gear" style="color:#8E44AD;"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="fw-bold small" style="color:#1B4F72;">Modifier mon profil</div>
+              <div class="text-muted" style="font-size:11px;">Bio, spécialité, contact</div>
+            </div>
+            <i class="bi bi-chevron-right text-muted"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conseil expert -->
+    <div class="col-lg-3">
+      <div class="card border-0 h-100"
+           style="background:linear-gradient(135deg,var(--bleu-principal),var(--bleu-secondaire));color:#fff;">
+        <div class="card-body p-4 text-center d-flex flex-column justify-content-center">
+          <i class="bi bi-patch-check-fill mb-3" style="font-size:3rem;opacity:.85;"></i>
+          <h6 class="fw-bold mb-2">Votre expertise compte</h6>
+          <p class="mb-3" style="font-size:0.85rem;opacity:.85;">
+            Chaque avis que vous rendez aide un entrepreneur à sécuriser son activité.
+          </p>
+          {% if nb_en_attente > 0 %}
+          <a href="/collaboration/" class="btn btn-light btn-sm">
+            <i class="bi bi-folder-plus"></i> Traiter {{ nb_en_attente }} dossier(s)
+          </a>
+          {% else %}
+          <a href="{% url 'annuaire:profil' request.user.pk %}" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-eye"></i> Voir mon profil public
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('chartPerf'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Validés', 'En cours', 'Rejetés', 'En attente'],
+    datasets: [{
+      data: [{{ nb_valides }}, {{ nb_en_cours }}, {{ nb_rejetes }}, {{ nb_en_attente }}],
+      backgroundColor: ['#27AE60', '#2E86C1', '#E74C3C', '#F39C12'],
+      borderWidth: 2,
+      borderColor: '#fff',
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '65%',
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10 } }
+    }
+  }
+});
+</script>
+{% endblock %}

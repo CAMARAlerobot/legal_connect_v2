@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}Statistiques Fiscales — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="page-title mb-0"><i class="bi bi-bar-chart"></i> Statistiques Fiscales</h1>
+    <a href="{% url 'fiscalite:dashboard' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Tableau de bord
+    </a>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-2">
+      <div class="card text-center p-3 h-100">
+        <div style="font-size:1.8rem; color:var(--bleu-principal);">{{ nb_total }}</div>
+        <div class="text-muted small fw-bold">Déclarations</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="card text-center p-3 h-100">
+        <div style="font-size:1.8rem; color:#27AE60;">{{ nb_validees }}</div>
+        <div class="text-muted small fw-bold">Validées</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="card text-center p-3 h-100">
+        <div style="font-size:1.8rem; color:#E74C3C;">{{ nb_retard }}</div>
+        <div class="text-muted small fw-bold">En retard</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="card text-center p-3 h-100">
+        <div style="font-size:1.8rem; color:{% if taux_conformite >= 80 %}#27AE60{% elif taux_conformite >= 50 %}#F39C12{% else %}#E74C3C{% endif %};">
+          {{ taux_conformite }}%
+        </div>
+        <div class="text-muted small fw-bold">Conformité</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="card text-center p-3 h-100">
+        <div style="font-size:1.8rem; color:#27AE60;">{{ ech_faites }}</div>
+        <div class="text-muted small fw-bold">Échéances faites</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="card text-center p-3 h-100">
+        <div style="font-size:1.8rem; color:#E74C3C;">{{ ech_en_retard }}</div>
+        <div class="text-muted small fw-bold">Échéances retard</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphiques principaux -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-graph-up"></i> Évolution mensuelle {{ annee_courante }}</div>
+        <div class="card-body">
+          <canvas id="chartMois" style="max-height:260px;"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-pie-chart"></i> Répartition par type</div>
+        <div class="card-body d-flex align-items-center justify-content-center">
+          <canvas id="chartRepartition" style="max-height:250px;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Évolution sur 3 ans -->
+  <div class="row g-3">
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-calendar3"></i> Comparaison sur 3 ans</div>
+        <div class="card-body">
+          <canvas id="chartAnnees" style="max-height:220px;"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header fw-bold"><i class="bi bi-check2-circle"></i> Taux de conformité</div>
+        <div class="card-body">
+          <div class="text-center mb-3">
+            <div class="display-4 fw-bold
+              {% if taux_conformite >= 80 %}text-success
+              {% elif taux_conformite >= 50 %}text-warning
+              {% else %}text-danger{% endif %}">
+              {{ taux_conformite }}%
+            </div>
+            <p class="text-muted">Déclarations validées / total</p>
+          </div>
+          <div class="progress mb-3" style="height:20px;">
+            <div class="progress-bar
+              {% if taux_conformite >= 80 %}bg-success
+              {% elif taux_conformite >= 50 %}bg-warning
+              {% else %}bg-danger{% endif %}"
+              style="width:{{ taux_conformite }}%;">
+              {{ taux_conformite }}%
+            </div>
+          </div>
+          <div class="row g-2 text-center small">
+            <div class="col-4">
+              <div class="p-2 rounded bg-success bg-opacity-10">
+                <div class="fw-bold text-success">{{ ech_faites }}</div>
+                <div class="text-muted">Échéances faites</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 rounded bg-warning bg-opacity-10">
+                <div class="fw-bold text-warning">{{ ech_a_faire }}</div>
+                <div class="text-muted">À faire</div>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="p-2 rounded bg-danger bg-opacity-10">
+                <div class="fw-bold text-danger">{{ ech_en_retard }}</div>
+                <div class="text-muted">En retard</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 text-center">
+            <a href="{% url 'fiscalite:conformite' %}" class="btn btn-outline-warning btn-sm">
+              <i class="bi bi-shield-check"></i> Rapport de conformité complet
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const PALETTE = ['#1B4F72','#2E86C1','#27AE60','#F39C12','#8E44AD','#C0392B','#16A085','#D35400'];
+
+new Chart(document.getElementById('chartMois'), {
+  type: 'line',
+  data: {
+    labels: {{ evol_mois_labels|safe }},
+    datasets: [{
+      label: 'Impôts FCFA',
+      data: {{ evol_mois_data|safe }},
+      borderColor: '#1B4F72',
+      backgroundColor: 'rgba(27,79,114,0.1)',
+      fill: true,
+      tension: 0.3,
+      pointBackgroundColor: '#2E86C1',
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString('fr-FR') } } }
+  }
+});
+
+const repLabels = {{ repartition_labels|safe }};
+const repData   = {{ repartition_data|safe }};
+if (repLabels.length > 0) {
+  new Chart(document.getElementById('chartRepartition'), {
+    type: 'doughnut',
+    data: {
+      labels: repLabels,
+      datasets: [{ data: repData, backgroundColor: PALETTE.slice(0, repLabels.length), borderWidth: 2 }]
+    },
+    options: {
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 10 } } } },
+      cutout: '55%',
+    }
+  });
+}
+
+new Chart(document.getElementById('chartAnnees'), {
+  type: 'bar',
+  data: {
+    labels: {{ annees_graph|safe }},
+    datasets: [{
+      label: 'Total impôts (FCFA)',
+      data: {{ evol_annee_data|safe }},
+      backgroundColor: PALETTE.slice(0, 3),
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString('fr-FR') } } }
+  }
+});
+</script>
+{% endblock %}

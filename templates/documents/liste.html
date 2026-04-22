@@ -8,92 +8,261 @@
     <div>
       <h1 class="page-title mb-1"><i class="bi bi-folder"></i> Mes Documents</h1>
       <p class="text-muted mb-0">
-        <strong>{{ total }}</strong> document(s) — <strong>{{ total_size }}</strong> utilisés
+        <strong>{{ total }}</strong> document(s) &nbsp;·&nbsp; <strong>{{ total_size }}</strong>
+        {% if docs_expires > 0 %}
+        &nbsp;·&nbsp; <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> {{ docs_expires }} expiré(s)</span>
+        {% endif %}
+        {% if docs_bientot > 0 %}
+        &nbsp;·&nbsp; <span class="text-warning fw-bold"><i class="bi bi-clock"></i> {{ docs_bientot }} expire bientôt</span>
+        {% endif %}
       </p>
     </div>
-    <a href="{% url 'documents:upload' %}" class="btn btn-lc-primary">
-      <i class="bi bi-cloud-upload"></i> Uploader un document
-    </a>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'documents:statistiques' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-bar-chart"></i> Statistiques
+      </a>
+      <a href="{% url 'documents:export_excel' %}" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-file-earmark-excel"></i> Excel
+      </a>
+      <a href="{% url 'documents:upload' %}" class="btn btn-lc-primary">
+        <i class="bi bi-cloud-upload"></i> Uploader
+      </a>
+    </div>
   </div>
 
   <!-- Filtres -->
-  <div class="card mb-4">
-    <div class="card-body">
+  <div class="card mb-3">
+    <div class="card-body py-2">
       <form method="get" class="row g-2 align-items-end">
-        <div class="col-md-4">
-          <input type="text" name="q" class="form-control" placeholder="🔍 Rechercher..." value="{{ recherche }}">
-        </div>
         <div class="col-md-3">
-          <select name="categorie" class="form-select">
-            <option value="">Toutes les catégories</option>
+          <input type="text" name="q" class="form-control form-control-sm"
+                 placeholder="Rechercher..." value="{{ recherche }}">
+        </div>
+        <div class="col-md-2">
+          <select name="categorie" class="form-select form-select-sm">
+            <option value="">Toutes catégories</option>
             {% for val, label in categories %}
             <option value="{{ val }}" {% if cat_active == val %}selected{% endif %}>{{ label }}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-2">
-          <select name="statut" class="form-select">
-            <option value="">Tous les statuts</option>
-            <option value="prive"   {% if statut_actif == 'prive'   %}selected{% endif %}>Privé</option>
-            <option value="partage" {% if statut_actif == 'partage' %}selected{% endif %}>Partagé</option>
-            <option value="archive" {% if statut_actif == 'archive' %}selected{% endif %}>Archivé</option>
+          <select name="statut" class="form-select form-select-sm">
+            <option value="">Tous statuts</option>
+            <option value="prive"       {% if statut_actif == 'prive'       %}selected{% endif %}>Privé</option>
+            <option value="partage"     {% if statut_actif == 'partage'     %}selected{% endif %}>Partagé</option>
+            <option value="en_revision" {% if statut_actif == 'en_revision' %}selected{% endif %}>En révision</option>
+            <option value="signe"       {% if statut_actif == 'signe'       %}selected{% endif %}>Signé</option>
+            <option value="archive"     {% if statut_actif == 'archive'     %}selected{% endif %}>Archivé</option>
           </select>
         </div>
-        <div class="col-md-3 d-flex gap-2">
-          <button type="submit" class="btn btn-lc-primary flex-grow-1">Filtrer</button>
-          <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary">✕</a>
+        <div class="col-md-2">
+          <select name="expire" class="form-select form-select-sm">
+            <option value="">Toutes dates</option>
+            <option value="1"    {% if expire == '1'    %}selected{% endif %}>Expirés</option>
+            <option value="soon" {% if expire == 'soon' %}selected{% endif %}>Expire sous 30j</option>
+          </select>
         </div>
+        <div class="col-md-2">
+          <select name="tri" class="form-select form-select-sm">
+            <option value="-created_at"    {% if tri == '-created_at'    %}selected{% endif %}>Plus récents</option>
+            <option value="created_at"     {% if tri == 'created_at'     %}selected{% endif %}>Plus anciens</option>
+            <option value="titre"          {% if tri == 'titre'          %}selected{% endif %}>Titre A→Z</option>
+            <option value="-titre"         {% if tri == '-titre'         %}selected{% endif %}>Titre Z→A</option>
+            <option value="-taille"        {% if tri == '-taille'        %}selected{% endif %}>Plus volumineux</option>
+            <option value="date_expiration"{% if tri == 'date_expiration'%}selected{% endif %}>Expiration prochaine</option>
+          </select>
+        </div>
+        <div class="col-md-1 d-flex gap-1">
+          <button type="submit" class="btn btn-lc-primary btn-sm flex-grow-1">OK</button>
+          <a href="{% url 'documents:liste' %}" class="btn btn-outline-secondary btn-sm">✕</a>
+        </div>
+
+        <!-- Vue cartes / tableau -->
+        <input type="hidden" name="vue" id="vue-hidden" value="{{ vue }}">
       </form>
     </div>
   </div>
 
-  <!-- Liste documents -->
+  <!-- Switcher vue -->
+  <div class="d-flex justify-content-end mb-2 gap-1">
+    <button class="btn btn-sm {% if vue == 'cartes' %}btn-lc-primary{% else %}btn-outline-secondary{% endif %}"
+            onclick="setVue('cartes')" title="Vue cartes">
+      <i class="bi bi-grid-3x3-gap"></i>
+    </button>
+    <button class="btn btn-sm {% if vue == 'tableau' %}btn-lc-primary{% else %}btn-outline-secondary{% endif %}"
+            onclick="setVue('tableau')" title="Vue tableau">
+      <i class="bi bi-table"></i>
+    </button>
+  </div>
+
   {% if documents %}
-  <div class="row g-3">
-    {% for doc in documents %}
-    <div class="col-md-6 col-lg-4">
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-start gap-3 mb-2">
-            <i class="bi {{ doc.icone }}" style="font-size:2.2rem;"></i>
-            <div class="flex-grow-1">
-              <h6 class="fw-bold mb-1" style="color:var(--bleu-principal);">{{ doc.titre }}</h6>
-              <span class="badge rounded-pill
-                {% if doc.statut == 'prive' %}bg-secondary
-                {% elif doc.statut == 'partage' %}bg-primary
-                {% else %}bg-warning text-dark{% endif %}">
-                {{ doc.get_statut_display }}
-              </span>
+
+  <!-- Vue cartes -->
+  <div id="view-cartes" {% if vue == 'tableau' %}style="display:none;"{% endif %}>
+    <div class="row g-3">
+      {% for doc in documents %}
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 {% if doc.est_expire %}border-danger{% elif doc.expire_bientot %}border-warning{% endif %}">
+          <div class="card-body">
+            <div class="d-flex align-items-start gap-3 mb-2">
+              <i class="bi {{ doc.icone }}" style="font-size:2.2rem;"></i>
+              <div class="flex-grow-1 min-width-0">
+                <h6 class="fw-bold mb-1 text-truncate" style="color:var(--bleu-principal);" title="{{ doc.titre }}">
+                  {{ doc.titre }}
+                </h6>
+                <span class="badge rounded-pill
+                  {% if doc.statut == 'prive' %}bg-secondary
+                  {% elif doc.statut == 'partage' %}bg-primary
+                  {% elif doc.statut == 'en_revision' %}bg-info
+                  {% elif doc.statut == 'signe' %}bg-success
+                  {% else %}bg-warning text-dark{% endif %}">
+                  {{ doc.get_statut_display }}
+                </span>
+                {% if doc.est_expire %}
+                <span class="badge bg-danger ms-1">Expiré</span>
+                {% elif doc.expire_bientot %}
+                <span class="badge bg-warning text-dark ms-1">Expire bientôt</span>
+                {% endif %}
+              </div>
             </div>
+            <p class="text-muted small mb-1"><i class="bi bi-tag"></i> {{ doc.get_categorie_display }}</p>
+            {% if doc.description %}
+            <p class="text-muted small mb-1">{{ doc.description|truncatechars:60 }}</p>
+            {% endif %}
+            {% if doc.tags_liste %}
+            <div class="mb-1">
+              {% for tag in doc.tags_liste|slice:":3" %}
+              <span class="badge bg-light text-dark border" style="font-size:0.65rem;">{{ tag }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <p class="text-muted small mb-0">
+              <i class="bi bi-hdd"></i> {{ doc.taille_lisible }}
+              <span class="ms-2"><i class="bi bi-download"></i> {{ doc.nb_telechargements }}</span>
+              <span class="ms-2"><i class="bi bi-calendar"></i> {{ doc.created_at|date:"d/m/Y" }}</span>
+            </p>
           </div>
-          <p class="text-muted small mb-1">
-            <i class="bi bi-tag"></i> {{ doc.get_categorie_display }}
-          </p>
-          {% if doc.description %}
-          <p class="text-muted small mb-1">{{ doc.description|truncatechars:60 }}</p>
-          {% endif %}
-          <p class="text-muted small mb-0">
-            <i class="bi bi-hdd"></i> {{ doc.taille_lisible }} &nbsp;
-            <i class="bi bi-calendar ms-2"></i> {{ doc.created_at|date:"d/m/Y" }}
-          </p>
+          <div class="card-footer bg-transparent border-0 d-flex gap-1">
+            <a href="{% url 'documents:detail' doc.pk %}" class="btn btn-sm btn-lc-primary flex-grow-1">
+              <i class="bi bi-eye"></i> Voir
+            </a>
+            <a href="{% url 'documents:telecharger' doc.pk %}" class="btn btn-sm btn-outline-secondary" title="Télécharger">
+              <i class="bi bi-download"></i>
+            </a>
+            {% if doc.proprietaire == request.user %}
+            <a href="{% url 'documents:modifier' doc.pk %}" class="btn btn-sm btn-outline-secondary" title="Modifier">
+              <i class="bi bi-pencil"></i>
+            </a>
+            {% endif %}
+          </div>
         </div>
-        <div class="card-footer bg-transparent border-0 d-flex gap-2">
-          <a href="{% url 'documents:detail' doc.pk %}" class="btn btn-sm btn-lc-primary flex-grow-1">
-            <i class="bi bi-eye"></i> Voir
-          </a>
-          <a href="{% url 'documents:telecharger' doc.pk %}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-download"></i>
-          </a>
-          {% if doc.proprietaire == request.user %}
-          <a href="{% url 'documents:modifier' doc.pk %}" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-pencil"></i>
-          </a>
-          {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Vue tableau -->
+  <div id="view-tableau" {% if vue != 'tableau' %}style="display:none;"{% endif %}>
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead style="background:#f8f9fa;">
+              <tr>
+                <th style="width:36px;"></th>
+                <th>Titre</th>
+                <th>Catégorie</th>
+                <th>Statut</th>
+                <th>Taille</th>
+                <th>Expiration</th>
+                <th>Uploadé le</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for doc in documents %}
+              <tr>
+                <td class="text-center"><i class="bi {{ doc.icone }} fs-5"></i></td>
+                <td>
+                  <a href="{% url 'documents:detail' doc.pk %}" class="fw-bold text-decoration-none">
+                    {{ doc.titre|truncatechars:45 }}
+                  </a>
+                  {% if doc.numero_reference %}
+                  <div class="text-muted" style="font-size:0.7rem;">{{ doc.numero_reference }}</div>
+                  {% endif %}
+                </td>
+                <td class="small">{{ doc.get_categorie_display }}</td>
+                <td>
+                  <span class="badge rounded-pill
+                    {% if doc.statut == 'prive' %}bg-secondary
+                    {% elif doc.statut == 'partage' %}bg-primary
+                    {% elif doc.statut == 'en_revision' %}bg-info
+                    {% elif doc.statut == 'signe' %}bg-success
+                    {% else %}bg-warning text-dark{% endif %}">
+                    {{ doc.get_statut_display }}
+                  </span>
+                </td>
+                <td class="small">{{ doc.taille_lisible }}</td>
+                <td class="small">
+                  {% if doc.date_expiration %}
+                  <span class="{% if doc.est_expire %}text-danger fw-bold{% elif doc.expire_bientot %}text-warning fw-bold{% endif %}">
+                    {{ doc.date_expiration|date:"d/m/Y" }}
+                  </span>
+                  {% else %}—{% endif %}
+                </td>
+                <td class="small">{{ doc.created_at|date:"d/m/Y" }}</td>
+                <td>
+                  <div class="d-flex gap-1">
+                    <a href="{% url 'documents:detail' doc.pk %}" class="btn btn-sm btn-outline-primary" title="Voir">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{% url 'documents:telecharger' doc.pk %}" class="btn btn-sm btn-outline-success" title="Télécharger">
+                      <i class="bi bi-download"></i>
+                    </a>
+                    {% if doc.proprietaire == request.user %}
+                    <a href="{% url 'documents:modifier' doc.pk %}" class="btn btn-sm btn-outline-secondary" title="Modifier">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
-    {% endfor %}
   </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+      </li>
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
   {% else %}
   <div class="card text-center py-5">
     <div class="card-body">
@@ -108,4 +277,13 @@
   {% endif %}
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setVue(v) {
+  document.getElementById('vue-hidden').value = v;
+  document.querySelector('form').submit();
+}
+</script>
 {% endblock %}

@@ -2,12 +2,11 @@ from django.db import models
 from django.contrib.auth.models import User
 
 ROLES = [
-    ('commercant',   'Commerçant'),
-    ('prestataire',  'Prestataire de services'),
-    ('fonctionnaire','Fonctionnaire'),
-    ('expert',       'Expert juridique / comptable'),
-    ('institution',  'Institution / ONG'),
-    ('admin',        'Administrateur'),
+    ('commercant',  'Commerçant'),
+    ('prestataire', 'Prestataire de services'),
+    ('expert',      'Expert juridique / comptable'),
+    ('institution', 'Institution / ONG'),
+    ('admin',       'Administrateur'),
 ]
 
 SPECIALITES = [

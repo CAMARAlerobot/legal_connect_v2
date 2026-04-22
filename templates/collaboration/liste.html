@@ -93,8 +93,11 @@
         {% else %}#95a5a6{% endif %};">
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start mb-2">
-            <h6 class="fw-bold mb-0" style="color:var(--bleu-principal);">{{ dossier.titre|truncatechars:40 }}</h6>
-            <span class="badge ms-2
+            <h6 class="fw-bold mb-0 flex-grow-1 me-2 text-truncate"
+                style="color:var(--bleu-principal);" title="{{ dossier.titre }}">
+              {{ dossier.titre|truncatechars:40 }}
+            </h6>
+            <span class="badge flex-shrink-0
               {% if dossier.priorite == 'urgente' %}bg-danger
               {% elif dossier.priorite == 'haute' %}bg-warning text-dark
               {% elif dossier.priorite == 'normale' %}bg-primary
@@ -106,7 +109,7 @@
             <i class="bi bi-tag"></i> {{ dossier.get_type_dossier_display }}
           </p>
           <p class="text-muted small mb-2">{{ dossier.description|truncatechars:80 }}</p>
-          <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex justify-content-between align-items-center mb-1">
             <span class="badge rounded-pill px-3
               {% if dossier.statut == 'valide' %}bg-success
               {% elif dossier.statut == 'rejete' %}bg-danger
@@ -117,30 +120,68 @@
             </span>
             <small class="text-muted">
               <i class="bi bi-chat"></i> {{ dossier.nb_messages }}
-              &nbsp; {{ dossier.created_at|date:"d/m/Y" }}
+              &nbsp;<i class="bi bi-calendar ms-1"></i> {{ dossier.created_at|date:"d/m/Y" }}
             </small>
           </div>
           {% if dossier.expert %}
-          <p class="text-muted small mt-1 mb-0">
-            <i class="bi bi-person-check"></i>
-            Expert : {{ dossier.expert.first_name }} {{ dossier.expert.last_name }}
+          <p class="text-muted small mb-0 mt-1">
+            <i class="bi bi-person-check text-success"></i>
+            <strong>{{ dossier.expert.first_name }} {{ dossier.expert.last_name }}</strong>
+          </p>
+          {% else %}
+          <p class="text-muted small mb-0 mt-1">
+            <i class="bi bi-person-dash"></i> Expert non assigné
           </p>
           {% endif %}
         </div>
-        <div class="card-footer bg-transparent border-0">
-          <a href="{% url 'collaboration:detail' dossier.pk %}" class="btn btn-sm btn-lc-primary w-100">
-            <i class="bi bi-eye"></i> Ouvrir le dossier
+        <div class="card-footer bg-transparent border-0 d-flex gap-1">
+          <a href="{% url 'collaboration:detail' dossier.pk %}" class="btn btn-sm btn-lc-primary flex-grow-1">
+            <i class="bi bi-eye"></i> Ouvrir
           </a>
+          {% if dossier.nb_messages > 0 %}
+          <span class="btn btn-sm btn-outline-secondary disabled" title="Messages">
+            <i class="bi bi-chat"></i> {{ dossier.nb_messages }}
+          </span>
+          {% endif %}
         </div>
       </div>
     </div>
     {% endfor %}
   </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if num == page_obj.number %}active{% endif %}">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">{{ num }}</a>
+      </li>
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
   {% else %}
   <div class="card text-center py-5">
     <div class="card-body">
       <i class="bi bi-folder2-open" style="font-size:4rem; color:#ccc;"></i>
       <h5 class="mt-3 text-muted">Aucun dossier trouvé</h5>
+      <p class="text-muted">Modifiez vos critères ou créez un nouveau dossier</p>
       {% if role != 'expert' %}
       <a href="{% url 'collaboration:creer' %}" class="btn btn-lc-primary mt-2">
         <i class="bi bi-plus-lg"></i> Créer un dossier

@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}Déclaration #{{ decl.pk }} — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1">
+        <i class="bi bi-file-text"></i> Déclaration #{{ decl.pk|stringformat:"04d" }}
+      </h1>
+      <p class="text-muted mb-0">{{ decl.get_type_impot_display }} — {{ periode_label }}</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'fiscalite:pdf_declaration' decl.pk %}" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-file-pdf"></i> PDF
+      </a>
+      {% if not decl.soumise_a_expert %}
+      <form method="post" action="{% url 'fiscalite:soumettre_expert' decl.pk %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-primary btn-sm"
+                onclick="return confirm('Soumettre cette déclaration à un expert fiscal pour révision ?')">
+          <i class="bi bi-person-check"></i> Soumettre à expert
+        </button>
+      </form>
+      {% endif %}
+      <a href="{% url 'fiscalite:historique' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Historique
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="alert alert-{{ msg.tags }} alert-dismissible">{{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  {% endfor %}
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- Détails -->
+    <div class="col-12 col-lg-7">
+
+      <!-- Statut -->
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row g-2 text-center">
+            <div class="col-6 col-md-3">
+              <div class="small text-muted">Statut</div>
+              <span class="badge rounded-pill fs-6
+                {% if decl.statut == 'validee' %}bg-success
+                {% elif decl.statut == 'en_retard' %}bg-danger
+                {% elif decl.statut == 'en_revision' %}bg-info
+                {% elif decl.statut == 'soumise' %}bg-primary
+                {% else %}bg-secondary{% endif %}">
+                {{ decl.get_statut_display }}
+              </span>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small text-muted">Type</div>
+              <div class="fw-bold">{{ decl.get_type_impot_display }}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small text-muted">Période</div>
+              <div class="fw-bold">{{ periode_label }}</div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small text-muted">Créée le</div>
+              <div class="fw-bold">{{ decl.created_at|date:"d/m/Y" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Données financières -->
+      <div class="card mb-3">
+        <div class="card-header fw-bold"><i class="bi bi-bar-chart"></i> Données financières</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+          <table class="table table-sm mb-0">
+            <tbody>
+              {% if decl.chiffre_affaires %}
+              <tr>
+                <td class="ps-3 text-muted">Chiffre d'affaires</td>
+                <td class="text-end pe-3 fw-bold">{{ decl.chiffre_affaires|floatformat:0 }} FCFA</td>
+              </tr>
+              {% endif %}
+              {% if decl.charges %}
+              <tr>
+                <td class="ps-3 text-muted">Charges déductibles</td>
+                <td class="text-end pe-3">{{ decl.charges|floatformat:0 }} FCFA</td>
+              </tr>
+              {% endif %}
+              {% if decl.benefice_net %}
+              <tr>
+                <td class="ps-3 text-muted">Bénéfice net</td>
+                <td class="text-end pe-3">{{ decl.benefice_net|floatformat:0 }} FCFA</td>
+              </tr>
+              {% endif %}
+              {% if decl.taux_applique %}
+              <tr>
+                <td class="ps-3 text-muted">Taux appliqué</td>
+                <td class="text-end pe-3">{{ decl.taux_applique }}%</td>
+              </tr>
+              {% endif %}
+              <tr class="table-primary">
+                <td class="ps-3 fw-bold">Montant de l'impôt</td>
+                <td class="text-end pe-3 fw-bold fs-5" style="color:var(--bleu-principal);">
+                  {{ decl.montant_impot|floatformat:0 }} FCFA
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </div>
+
+      {% if decl.notes %}
+      <div class="card mb-3">
+        <div class="card-header fw-bold"><i class="bi bi-sticky"></i> Notes</div>
+        <div class="card-body"><p class="mb-0">{{ decl.notes }}</p></div>
+      </div>
+      {% endif %}
+
+      <!-- Workflow expert -->
+      {% if decl.soumise_a_expert %}
+      <div class="alert alert-info">
+        <i class="bi bi-person-check"></i>
+        Soumise à expert le {{ decl.date_soumission_expert|date:"d/m/Y à H:i" }}.
+        Statut : <strong>{{ decl.get_statut_display }}</strong>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Commentaires -->
+    <div class="col-12 col-lg-5">
+      <div class="card">
+        <div class="card-header fw-bold"><i class="bi bi-chat-left-text"></i> Commentaires & Révisions</div>
+        <div class="card-body" style="max-height:350px; overflow-y:auto;">
+          {% if commentaires %}
+          {% for c in commentaires %}
+          <div class="mb-3 p-2 rounded {% if c.est_expert %}border-start border-3 border-primary{% else %}bg-light{% endif %}">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-bold small">
+                {{ c.auteur.get_full_name|default:c.auteur.username }}
+                {% if c.est_expert %}<span class="badge bg-primary ms-1">Expert</span>{% endif %}
+              </span>
+              <span class="text-muted" style="font-size:0.75rem;">{{ c.created_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <p class="mb-0 small">{{ c.texte }}</p>
+          </div>
+          {% endfor %}
+          {% else %}
+          <p class="text-muted text-center py-3 small">Aucun commentaire pour cette déclaration.</p>
+          {% endif %}
+        </div>
+        <div class="card-footer">
+          <form method="post" action="{% url 'fiscalite:ajouter_commentaire' decl.pk %}">
+            {% csrf_token %}
+            <div class="mb-2">
+              <textarea name="texte" class="form-control form-control-sm" rows="2"
+                        placeholder="Ajouter un commentaire..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-lc-primary btn-sm w-100">
+              <i class="bi bi-send"></i> Envoyer
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
