@@ -3,157 +3,243 @@
 
 {% block content %}
 <div class="main-content">
-  <h1 class="page-title"><i class="bi bi-person-circle"></i> Mon Profil</h1>
 
-  {% if messages %}
-  {% for message in messages %}
-  <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-person-circle"></i> Mon Profil</h1>
+      <p class="text-muted mb-0">Gérez vos informations personnelles et professionnelles</p>
+    </div>
+    <a href="/dashboard/" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Tableau de bord
+    </a>
   </div>
-  {% endfor %}
-  {% endif %}
 
   <div class="row g-4">
 
-    <!-- Carte profil -->
+    <!-- ── Colonne gauche ── -->
     <div class="col-lg-4">
-      <div class="card text-center">
-        <div class="card-body py-4">
-          <div class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold text-white mb-3"
-               style="width:90px; height:90px; font-size:2.2rem;
-                      background: linear-gradient(135deg, var(--bleu-principal), var(--bleu-principal));">
+
+      <!-- Carte identité -->
+      <div class="card overflow-hidden mb-3">
+        <!-- Bannière haut -->
+        <div style="height:80px; background:linear-gradient(135deg, #0D1B2A, #1B4F72 60%, #2E86C1);"></div>
+        <!-- Avatar centré sur la bannière -->
+        <div class="text-center" style="margin-top:-44px;">
+          <div class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold text-white border border-3 border-white"
+               style="width:88px;height:88px;font-size:2rem;
+                      background:linear-gradient(135deg,var(--bleu-principal),var(--bleu-secondaire));
+                      box-shadow:0 4px 16px rgba(27,79,114,.35);">
             {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
           </div>
-          <h4 class="fw-bold mb-1" style="color:var(--bleu-principal);">
+        </div>
+        <div class="card-body text-center pt-2 pb-4">
+          <h5 class="fw-bold mb-0" style="color:var(--bleu-principal);">
             {{ user.first_name }} {{ user.last_name }}
-          </h4>
-          <p class="text-muted mb-2">{{ user.email }}</p>
-          <span class="badge px-3 py-2 rounded-pill"
-                style="background:
-                  {% if profil.role == 'expert' %}#1E8449
-                  {% elif profil.role == 'admin' %}#922B21
-                  {% elif profil.role == 'institution' %}#1B4F72
-                  {% else %}var(--bleu-secondaire){% endif %};">
-            {{ profil.get_role_display }}
+          </h5>
+          <p class="text-muted small mb-2">{{ user.email }}</p>
+          <span class="badge px-3 py-2 rounded-pill mb-3"
+                style="background:{% if profil.role == 'expert' %}#1E8449{% elif profil.role == 'admin' %}#922B21{% else %}var(--bleu-secondaire){% endif %}; color:#fff; font-size:12px;">
+            <i class="bi bi-shield-check me-1"></i>{{ profil.get_role_display }}
           </span>
-
           {% if profil.entreprise %}
-          <p class="mt-3 mb-0 text-muted small">
-            <i class="bi bi-building"></i> {{ profil.entreprise }}
-          </p>
+          <div class="d-flex align-items-center justify-content-center gap-2 text-muted small mb-1">
+            <i class="bi bi-building"></i><span>{{ profil.entreprise }}</span>
+          </div>
           {% endif %}
           {% if profil.telephone %}
-          <p class="mt-1 mb-0 text-muted small">
-            <i class="bi bi-telephone"></i> {{ profil.telephone }}
-          </p>
+          <div class="d-flex align-items-center justify-content-center gap-2 text-muted small mb-1">
+            <i class="bi bi-telephone"></i><span>{{ profil.telephone }}</span>
+          </div>
+          {% endif %}
+          {% if profil.adresse %}
+          <div class="d-flex align-items-center justify-content-center gap-2 text-muted small">
+            <i class="bi bi-geo-alt"></i><span>{{ profil.adresse }}</span>
+          </div>
           {% endif %}
         </div>
       </div>
 
-      <!-- Stats rapides -->
-      <div class="card mt-3">
-        <div class="card-header"><i class="bi bi-bar-chart"></i> Mon activité</div>
+      <!-- Stats activité -->
+      <div class="card mb-3">
+        <div class="card-header fw-bold"><i class="bi bi-bar-chart"></i> Mon activité</div>
         <div class="card-body p-0">
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span><i class="bi bi-file-earmark-text me-2 text-primary"></i> Contrats</span>
-              <span class="badge bg-primary rounded-pill">{{ nb_contrats }}</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span><i class="bi bi-folder me-2 text-warning"></i> Documents</span>
-              <span class="badge bg-warning rounded-pill text-dark">{{ nb_documents }}</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span><i class="bi bi-people me-2 text-success"></i> Dossiers</span>
-              <span class="badge bg-success rounded-pill">{{ nb_dossiers }}</span>
-            </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span><i class="bi bi-calculator me-2 text-info"></i> Déclarations</span>
-              <span class="badge bg-info rounded-pill">{{ nb_declarations }}</span>
-            </li>
-          </ul>
+          <a href="/contrats/" class="d-flex align-items-center justify-content-between p-3 border-bottom text-decoration-none"
+             style="transition:.15s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''">
+            <div class="d-flex align-items-center gap-2">
+              <div class="rounded d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#D6EAF8;">
+                <i class="bi bi-file-earmark-text" style="color:#1B4F72;"></i>
+              </div>
+              <span class="small fw-semibold text-dark">Contrats</span>
+            </div>
+            <span class="badge rounded-pill px-2" style="background:#1B4F72;color:#fff;">{{ nb_contrats }}</span>
+          </a>
+          <a href="/documents/" class="d-flex align-items-center justify-content-between p-3 border-bottom text-decoration-none"
+             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''">
+            <div class="d-flex align-items-center gap-2">
+              <div class="rounded d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#FEF9E7;">
+                <i class="bi bi-folder" style="color:#D35400;"></i>
+              </div>
+              <span class="small fw-semibold text-dark">Documents</span>
+            </div>
+            <span class="badge rounded-pill px-2 bg-warning text-dark">{{ nb_documents }}</span>
+          </a>
+          <a href="/collaboration/" class="d-flex align-items-center justify-content-between p-3 border-bottom text-decoration-none"
+             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''">
+            <div class="d-flex align-items-center gap-2">
+              <div class="rounded d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#EAFAF1;">
+                <i class="bi bi-people" style="color:#1E8449;"></i>
+              </div>
+              <span class="small fw-semibold text-dark">Dossiers</span>
+            </div>
+            <span class="badge rounded-pill px-2 bg-success">{{ nb_dossiers }}</span>
+          </a>
+          <a href="/fiscalite/" class="d-flex align-items-center justify-content-between p-3 text-decoration-none"
+             onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''">
+            <div class="d-flex align-items-center gap-2">
+              <div class="rounded d-flex align-items-center justify-content-center" style="width:32px;height:32px;background:#EBF5FB;">
+                <i class="bi bi-calculator" style="color:#2E86C1;"></i>
+              </div>
+              <span class="small fw-semibold text-dark">Déclarations</span>
+            </div>
+            <span class="badge rounded-pill px-2 bg-info">{{ nb_declarations }}</span>
+          </a>
         </div>
       </div>
+
+      <!-- Sécurité -->
+      <div class="card">
+        <div class="card-header fw-bold"><i class="bi bi-shield-lock"></i> Sécurité</div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <div class="fw-semibold small">Mot de passe</div>
+              <div class="text-muted" style="font-size:11px;">Modifiez-le régulièrement</div>
+            </div>
+            <a href="/accounts/password-change/" class="btn btn-sm btn-lc-outline">
+              <i class="bi bi-key"></i> Modifier
+            </a>
+          </div>
+          <hr class="my-2">
+          <div class="row g-0 text-center">
+            <div class="col-6 border-end pe-2">
+              <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Inscrit le</div>
+              <div class="fw-bold small mt-1">{{ user.date_joined|date:"d/m/Y" }}</div>
+            </div>
+            <div class="col-6 ps-2">
+              <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Dernière co.</div>
+              <div class="fw-bold small mt-1">{{ user.last_login|date:"d/m"|default:"—" }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <!-- Formulaire modification -->
+    <!-- ── Colonne droite ── -->
     <div class="col-lg-8">
+
       <div class="card">
-        <div class="card-header"><i class="bi bi-pencil-square"></i> Modifier mes informations</div>
+        <div class="card-header d-flex align-items-center gap-2">
+          <i class="bi bi-pencil-square"></i>
+          <span>Modifier mes informations</span>
+        </div>
         <div class="card-body p-4">
+
+          {% if messages %}
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+          {% endfor %}
+          {% endif %}
+
           <form method="post">
             {% csrf_token %}
 
-            <h6 class="fw-bold mb-3" style="color:var(--bleu-principal);">
-              <i class="bi bi-person"></i> Informations personnelles
-            </h6>
+            <!-- Section informations personnelles -->
+            <div class="section-header mb-3 mt-1">
+              <i class="bi bi-person me-1"></i> Informations personnelles
+            </div>
             <div class="row g-3 mb-4">
               <div class="col-md-6">
-                <label class="form-label fw-bold">Prénom</label>
+                <label class="form-label">Prénom <span class="text-danger">*</span></label>
                 <input type="text" name="first_name" class="form-control"
-                       value="{{ user.first_name }}" required>
+                       value="{{ user.first_name }}" required placeholder="Votre prénom">
               </div>
               <div class="col-md-6">
-                <label class="form-label fw-bold">Nom</label>
+                <label class="form-label">Nom <span class="text-danger">*</span></label>
                 <input type="text" name="last_name" class="form-control"
-                       value="{{ user.last_name }}" required>
+                       value="{{ user.last_name }}" required placeholder="Votre nom">
               </div>
               <div class="col-md-6">
-                <label class="form-label">Email</label>
-                <input type="email" name="email" class="form-control"
-                       value="{{ user.email }}">
+                <label class="form-label">Adresse e-mail</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-envelope text-muted"></i></span>
+                  <input type="email" name="email" class="form-control"
+                         value="{{ user.email }}" placeholder="votre@email.com">
+                </div>
               </div>
               <div class="col-md-6">
                 <label class="form-label">Téléphone</label>
-                <input type="text" name="telephone" class="form-control"
-                       value="{{ profil.telephone }}"
-                       placeholder="+225 07 00 00 00 00">
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-telephone text-muted"></i></span>
+                  <input type="text" name="telephone" class="form-control"
+                         value="{{ profil.telephone }}" placeholder="+225 07 00 00 00 00">
+                </div>
               </div>
             </div>
 
-            <h6 class="fw-bold mb-3" style="color:var(--bleu-principal);">
-              <i class="bi bi-building"></i> Informations professionnelles
-            </h6>
+            <!-- Section informations professionnelles -->
+            <div class="section-header mb-3">
+              <i class="bi bi-building me-1"></i> Informations professionnelles
+            </div>
             <div class="row g-3 mb-4">
               <div class="col-md-6">
                 <label class="form-label">Entreprise / Cabinet</label>
-                <input type="text" name="entreprise" class="form-control"
-                       value="{{ profil.entreprise }}"
-                       placeholder="Nom de votre entreprise">
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-building text-muted"></i></span>
+                  <input type="text" name="entreprise" class="form-control"
+                         value="{{ profil.entreprise }}" placeholder="Nom de votre structure">
+                </div>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Adresse</label>
-                <input type="text" name="adresse" class="form-control"
-                       value="{{ profil.adresse }}"
-                       placeholder="Votre adresse">
+                <label class="form-label">Adresse / Ville</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="bi bi-geo-alt text-muted"></i></span>
+                  <input type="text" name="adresse" class="form-control"
+                         value="{{ profil.adresse }}" placeholder="Votre adresse ou ville">
+                </div>
               </div>
               {% if profil.role == 'expert' %}
               <div class="col-md-6">
-                <label class="form-label">Spécialité</label>
+                <label class="form-label">Spécialité principale</label>
                 <select name="specialite" class="form-select">
                   <option value="">Choisir une spécialité</option>
-                  <option value="droit_commercial"  {% if profil.specialite == 'droit_commercial' %}selected{% endif %}>Droit Commercial</option>
-                  <option value="droit_travail"     {% if profil.specialite == 'droit_travail' %}selected{% endif %}>Droit du Travail</option>
-                  <option value="droit_fiscal"      {% if profil.specialite == 'droit_fiscal' %}selected{% endif %}>Droit Fiscal</option>
-                  <option value="comptabilite"      {% if profil.specialite == 'comptabilite' %}selected{% endif %}>Comptabilité & Finance</option>
-                  <option value="droit_immobilier"  {% if profil.specialite == 'droit_immobilier' %}selected{% endif %}>Droit Immobilier</option>
-                  <option value="droit_penal"       {% if profil.specialite == 'droit_penal' %}selected{% endif %}>Droit Pénal des Affaires</option>
-                  <option value="droit_civil"       {% if profil.specialite == 'droit_civil' %}selected{% endif %}>Droit Civil</option>
-                  <option value="audit"             {% if profil.specialite == 'audit' %}selected{% endif %}>Audit & Contrôle</option>
+                  <option value="droit_commercial"  {% if profil.specialite == 'droit_commercial'  %}selected{% endif %}>Droit Commercial</option>
+                  <option value="droit_travail"     {% if profil.specialite == 'droit_travail'     %}selected{% endif %}>Droit du Travail</option>
+                  <option value="droit_fiscal"      {% if profil.specialite == 'droit_fiscal'      %}selected{% endif %}>Droit Fiscal</option>
+                  <option value="comptabilite"      {% if profil.specialite == 'comptabilite'      %}selected{% endif %}>Comptabilité & Finance</option>
+                  <option value="droit_immobilier"  {% if profil.specialite == 'droit_immobilier'  %}selected{% endif %}>Droit Immobilier</option>
+                  <option value="droit_penal"       {% if profil.specialite == 'droit_penal'       %}selected{% endif %}>Droit Pénal des Affaires</option>
+                  <option value="droit_civil"       {% if profil.specialite == 'droit_civil'       %}selected{% endif %}>Droit Civil</option>
+                  <option value="audit"             {% if profil.specialite == 'audit'             %}selected{% endif %}>Audit & Contrôle</option>
                 </select>
               </div>
               {% endif %}
               <div class="col-12">
                 <label class="form-label">Biographie / Présentation</label>
                 <textarea name="bio" class="form-control" rows="4"
-                          placeholder="Présentez-vous en quelques mots...">{{ profil.bio }}</textarea>
+                          placeholder="Présentez-vous brièvement : expérience, domaines d'expertise, valeurs...">{{ profil.bio }}</textarea>
+                <div class="form-text">Visible par les clients qui consultent votre profil dans l'annuaire.</div>
               </div>
             </div>
 
-            <div class="d-flex gap-2">
-              <button type="submit" class="btn btn-lc-primary px-4">
-                <i class="bi bi-check-lg"></i> Enregistrer
+            <!-- Boutons -->
+            <div class="d-flex gap-3 pt-2 border-top mt-2">
+              <button type="submit" class="btn btn-lc-primary px-5">
+                <i class="bi bi-check-lg"></i> Enregistrer les modifications
               </button>
               <a href="/dashboard/" class="btn btn-outline-secondary">
                 Annuler
@@ -163,34 +249,7 @@
         </div>
       </div>
 
-      <!-- Sécurité -->
-      <div class="card mt-3">
-        <div class="card-header"><i class="bi bi-shield-lock"></i> Sécurité</div>
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="fw-bold mb-0">Changer le mot de passe</p>
-              <small class="text-muted">Modifiez votre mot de passe régulièrement</small>
-            </div>
-            <a href="/accounts/password-change/" class="btn btn-lc-outline btn-sm">
-              <i class="bi bi-key"></i> Modifier
-            </a>
-          </div>
-          <hr>
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <p class="fw-bold mb-0">Compte créé le</p>
-              <small class="text-muted">{{ user.date_joined|date:"d/m/Y" }}</small>
-            </div>
-            <div>
-              <p class="fw-bold mb-0 text-end">Dernière connexion</p>
-              <small class="text-muted">{{ user.last_login|date:"d/m/Y H:i"|default:"Inconnue" }}</small>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-
   </div>
 </div>
 {% endblock %}

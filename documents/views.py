@@ -207,8 +207,11 @@ def supprimer_document(request, pk):
     if request.method == 'POST':
         titre = doc.titre
         # Supprimer fichier principal
-        if doc.fichier and os.path.isfile(doc.fichier.path):
-            os.remove(doc.fichier.path)
+        try:
+            if doc.fichier and os.path.isfile(doc.fichier.path):
+                os.remove(doc.fichier.path)
+        except OSError:
+            pass  # fichier verrouille/deja absent : on supprime quand meme la fiche
         # Supprimer fichiers de versions
         for v in doc.versions.all():
             try:

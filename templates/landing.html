@@ -586,8 +586,10 @@
   <a href="/" class="nav-logo">⚖ Légal<span>Connect</span></a>
   <div class="nav-links">
     <a href="#fonctionnalites">Fonctionnalités</a>
+    <a href="/annuaire/">Annuaire</a>
+    <a href="/chatbot/">Assistant IA</a>
+    <a href="/recommandation/">Trouver un expert</a>
     <a href="#impots">Fiscalité</a>
-    <a href="#temoignages">Témoignages</a>
     <a href="/accounts/login/">Connexion</a>
     <a href="/accounts/inscription/" class="btn-nav">Commencer — Gratuit</a>
   </div>
@@ -791,6 +793,12 @@
           </div>
         </div>
       </div>
+      <a href="/annuaire/" style="margin-top:.9rem; display:inline-flex; align-items:center; gap:.4rem;
+         background:var(--bleu); color:white; padding:.45rem 1.1rem; border-radius:50px;
+         font-size:.78rem; font-weight:700; text-decoration:none; transition:all .2s;"
+         onmouseover="this.style.background='#2E86C1'" onmouseout="this.style.background='#1B4F72'">
+        <i class="bi bi-people"></i> Voir l'annuaire →
+      </a>
     </div>
 
     <!-- 06 · Notifications (half, dark zinc) -->
@@ -813,6 +821,86 @@
           <span>Nouveau message de votre expert</span>
         </div>
       </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ACCES RAPIDE IA -->
+<section style="background:#F0F4F8; padding:4rem 4rem;">
+  <div style="text-align:center; margin-bottom:2.5rem;">
+    <span class="section-tag">Nouveauté — Intelligence Artificielle</span>
+    <h2 class="section-title" style="margin-bottom:.5rem;">Nos outils <em>intelligents</em></h2>
+    <p style="color:var(--gris); max-width:500px; margin:0 auto; font-size:1rem; line-height:1.6;">
+      Trois outils propulsés par l'IA pour accéder au droit en quelques clics.
+    </p>
+  </div>
+  <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; max-width:1000px; margin:0 auto;">
+
+    <!-- Annuaire -->
+    <div style="background:white; border-radius:20px; padding:2rem; text-align:center;
+                border:1px solid rgba(27,79,114,0.1); transition:all .3s;"
+         onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(27,79,114,.12)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="width:56px;height:56px;border-radius:16px;background:#D6EAF8;
+                  display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 1rem;">
+        <i class="bi bi-person-badge-fill" style="color:#1B4F72;"></i>
+      </div>
+      <h4 style="font-weight:800; color:var(--sombre); margin-bottom:.5rem;">Annuaire des experts</h4>
+      <p style="color:var(--gris); font-size:.88rem; line-height:1.6; margin-bottom:1.5rem;">
+        Trouvez un avocat, fiscaliste ou comptable selon votre spécialité et votre ville.
+      </p>
+      <a href="/annuaire/"
+         style="display:inline-flex;align-items:center;gap:.5rem;background:var(--bleu);color:white;
+                padding:.7rem 1.6rem;border-radius:50px;text-decoration:none;font-weight:600;font-size:.88rem;
+                transition:all .2s;"
+         onmouseover="this.style.background='#2E86C1'" onmouseout="this.style.background='#1B4F72'">
+        <i class="bi bi-search"></i> Parcourir l'annuaire
+      </a>
+    </div>
+
+    <!-- Chatbot -->
+    <div style="background:linear-gradient(145deg,#0D1B2A,#1B4F72); border-radius:20px; padding:2rem;
+                text-align:center; transition:all .3s; position:relative; overflow:hidden;"
+         onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(13,27,42,.35)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="width:56px;height:56px;border-radius:16px;background:rgba(212,168,83,.2);
+                  display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 1rem;">
+        🤖
+      </div>
+      <h4 style="font-weight:800; color:white; margin-bottom:.5rem;">Assistant juridique</h4>
+      <p style="color:rgba(255,255,255,.7); font-size:.88rem; line-height:1.6; margin-bottom:1.5rem;">
+        Posez vos questions juridiques 24h/24. Réponses basées sur le droit ivoirien, gratuitement.
+      </p>
+      <a href="/chatbot/"
+         style="display:inline-flex;align-items:center;gap:.5rem;background:var(--or);color:white;
+                padding:.7rem 1.6rem;border-radius:50px;text-decoration:none;font-weight:600;font-size:.88rem;
+                transition:all .2s;"
+         onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <i class="bi bi-chat-dots-fill"></i> Parler à l'assistant
+      </a>
+    </div>
+
+    <!-- Recommandation IA -->
+    <div style="background:white; border-radius:20px; padding:2rem; text-align:center;
+                border:1px solid rgba(27,79,114,0.1); transition:all .3s;"
+         onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(27,79,114,.12)'"
+         onmouseout="this.style.transform='';this.style.boxShadow=''">
+      <div style="width:56px;height:56px;border-radius:16px;background:#FEF9E7;
+                  display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 1rem;">
+        <i class="bi bi-cpu-fill" style="color:#D4A853;"></i>
+      </div>
+      <h4 style="font-weight:800; color:var(--sombre); margin-bottom:.5rem;">Recommandation par IA</h4>
+      <p style="color:var(--gris); font-size:.88rem; line-height:1.6; margin-bottom:1.5rem;">
+        Décrivez votre problème. Notre IA analyse votre situation et recommande le meilleur expert disponible.
+      </p>
+      <a href="/recommandation/"
+         style="display:inline-flex;align-items:center;gap:.5rem;background:var(--or);color:white;
+                padding:.7rem 1.6rem;border-radius:50px;text-decoration:none;font-weight:600;font-size:.88rem;
+                transition:all .2s;"
+         onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <i class="bi bi-stars"></i> Trouver mon expert
+      </a>
     </div>
 
   </div>
@@ -916,6 +1004,9 @@
   <p>© 2025-2026 — Université Nangui Abrogoua — Master 1 MIAGE — Dr. ZEZE</p>
   <div class="footer-links">
     <a href="#fonctionnalites">Fonctionnalités</a>
+    <a href="/annuaire/">Annuaire</a>
+    <a href="/chatbot/">Chatbot IA</a>
+    <a href="/recommandation/">Recommandation</a>
     <a href="#impots">Fiscalité</a>
     <a href="/accounts/inscription/">Inscription</a>
     <a href="/accounts/login/">Connexion</a>

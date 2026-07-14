@@ -1,0 +1,402 @@
+{% extends 'base.html' %}
+{% block title %}Gestion des utilisateurs — Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .user-card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #E8EDF2;
+    transition: box-shadow .18s, transform .18s;
+    overflow: hidden;
+  }
+  .user-card:hover {
+    box-shadow: 0 4px 20px rgba(27,79,114,.1);
+    transform: translateY(-2px);
+  }
+  .role-badge {
+    font-size: .7rem; font-weight: 700; padding: .3rem .75rem;
+    border-radius: 20px; letter-spacing: .3px;
+  }
+  .role-expert      { background: #D5F5E3; color: #1E8449; }
+  .role-commercant  { background: #D6EAF8; color: #1B4F72; }
+  .role-prestataire { background: #E8DAEF; color: #6C3483; }
+  .role-admin       { background: #FADBD8; color: #922B21; }
+  .role-institution { background: #FDEBD0; color: #7D4E00; }
+
+  .avatar-circle {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .9rem; flex-shrink: 0;
+  }
+  .filter-bar {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #E8EDF2;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat-chip {
+    background: #F4F7FB;
+    border: 1px solid #E8EDF2;
+    border-radius: 8px;
+    padding: .4rem .9rem;
+    font-size: .8rem;
+    font-weight: 600;
+  }
+  .stat-chip .num { font-size: 1.1rem; color: #1B4F72; }
+  .table-users thead th {
+    background: #F4F7FB;
+    font-size: .78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: #6B7C93;
+    border-bottom: 2px solid #E8EDF2;
+    padding: .85rem 1rem;
+  }
+  .table-users tbody td { padding: .9rem 1rem; vertical-align: middle; }
+  .table-users tbody tr { transition: background .15s; }
+  .table-users tbody tr:hover { background: #F8FAFC; }
+
+  /* Vue cards sur mobile */
+  @media (max-width: 768px) {
+    .table-responsive-wrap { display: none; }
+    .cards-mobile { display: flex; flex-direction: column; gap: .75rem; }
+  }
+  @media (min-width: 769px) {
+    .cards-mobile { display: none; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1">
+        <i class="bi bi-people"></i> Gestion des utilisateurs
+      </h1>
+      <p class="text-muted mb-0">
+        Administration Légal Connect ·
+        <strong>{{ users|length }}</strong> compte(s) enregistré(s)
+      </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Dashboard
+      </a>
+      <a href="/admin/auth/user/add/" class="btn btn-primary btn-sm">
+        <i class="bi bi-person-plus"></i> Nouveau compte
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats rapides -->
+  <div class="d-flex flex-wrap gap-3 mb-4">
+    {% with total=users|length %}
+    <div class="stat-chip">
+      <div class="num">{{ total }}</div>
+      <div>Total</div>
+    </div>
+    {% endwith %}
+
+    {% with nb=0 %}
+    <div class="stat-chip">
+      <div class="num" id="count-expert">–</div>
+      <div style="color:#1E8449;">Experts</div>
+    </div>
+    <div class="stat-chip">
+      <div class="num" id="count-client">–</div>
+      <div style="color:#1B4F72;">Clients</div>
+    </div>
+    <div class="stat-chip">
+      <div class="num" id="count-admin">–</div>
+      <div style="color:#922B21;">Admins</div>
+    </div>
+    {% endwith %}
+
+    <div class="stat-chip">
+      <div class="num" id="count-actifs">–</div>
+      <div style="color:#27AE60;">Actifs</div>
+    </div>
+  </div>
+
+  <!-- Barre de filtre/recherche -->
+  <div class="filter-bar">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-5">
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted"></i>
+          </span>
+          <input
+            type="text"
+            id="search-input"
+            class="form-control border-start-0"
+            placeholder="Rechercher par nom, email, entreprise..."
+            oninput="filtrerTableau()"
+          >
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select" id="filtre-role" onchange="filtrerTableau()">
+          <option value="">Tous les rôles</option>
+          <option value="expert">Experts</option>
+          <option value="commercant">Commerçants</option>
+          <option value="prestataire">Prestataires</option>
+          <option value="admin">Admins</option>
+          <option value="institution">Institutions</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select class="form-select" id="filtre-statut" onchange="filtrerTableau()">
+          <option value="">Tous les statuts</option>
+          <option value="actif">Actifs</option>
+          <option value="inactif">Inactifs</option>
+        </select>
+      </div>
+      <div class="col-md-2 text-end">
+        <span class="text-muted small" id="count-visible">{{ users|length }} résultat(s)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau (desktop) -->
+  <div class="table-responsive-wrap card shadow-sm rounded-3 border-0">
+    <div class="table-responsive">
+      <table class="table table-users mb-0" id="tableau-users">
+        <thead>
+          <tr>
+            <th>UTILISATEUR</th>
+            <th>RÔLE</th>
+            <th>ENTREPRISE</th>
+            <th>TÉLÉPHONE</th>
+            <th>INSCRIPTION</th>
+            <th>STATUT</th>
+            <th class="text-end">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          {% with profil=user.profil %}
+          <tr
+            data-role="{{ profil.role|default:'commercant' }}"
+            data-actif="{{ user.is_active|yesno:'actif,inactif' }}"
+            data-search="{{ user.get_full_name|lower }} {{ user.username|lower }} {{ user.email|lower }} {{ profil.entreprise|lower }}"
+          >
+            <!-- Avatar + Nom -->
+            <td>
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar-circle"
+                  style="background:{% if profil.role == 'expert' %}#D5F5E3; color:#1E8449;{% elif profil.role == 'admin' %}#FADBD8; color:#922B21;{% elif profil.role == 'prestataire' %}#E8DAEF; color:#6C3483;{% elif profil.role == 'institution' %}#FDEBD0; color:#7D4E00;{% else %}#D6EAF8; color:#1B4F72;{% endif %}">
+                  {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+                </div>
+                <div>
+                  <div class="fw-600" style="color:#1A2332;">
+                    {{ user.get_full_name|default:user.username }}
+                  </div>
+                  <div class="text-muted small">@{{ user.username }}</div>
+                  {% if user.email %}
+                  <div class="text-muted" style="font-size:.75rem;">
+                    <i class="bi bi-envelope me-1"></i>{{ user.email }}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+
+            <!-- Rôle -->
+            <td>
+              <span class="role-badge role-{{ profil.role|default:'commercant' }}">
+                {% if profil.role == 'expert' %}<i class="bi bi-award-fill me-1"></i>
+                {% elif profil.role == 'admin' %}<i class="bi bi-shield-fill me-1"></i>
+                {% elif profil.role == 'prestataire' %}<i class="bi bi-briefcase-fill me-1"></i>
+                {% elif profil.role == 'institution' %}<i class="bi bi-bank2 me-1"></i>
+                {% else %}<i class="bi bi-shop me-1"></i>{% endif %}
+                {{ profil.get_role_display|default:'Commerçant' }}
+              </span>
+              {% if profil.specialite %}
+              <div class="text-muted mt-1" style="font-size:.72rem;">
+                <i class="bi bi-tag me-1"></i>{{ profil.get_specialite_display }}
+              </div>
+              {% endif %}
+            </td>
+
+            <!-- Entreprise -->
+            <td>
+              {% if profil.entreprise %}
+              <div class="fw-500">{{ profil.entreprise }}</div>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+              {% if profil.adresse %}
+              <div class="text-muted small">{{ profil.adresse|truncatechars:35 }}</div>
+              {% endif %}
+            </td>
+
+            <!-- Téléphone -->
+            <td>
+              {% if profil.telephone %}
+              <a href="tel:{{ profil.telephone }}" class="text-decoration-none text-dark">
+                <i class="bi bi-telephone me-1 text-muted"></i>{{ profil.telephone }}
+              </a>
+              {% else %}
+              <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Inscription -->
+            <td>
+              <div class="small">{{ user.date_joined|date:"d/m/Y" }}</div>
+              {% if user.last_login %}
+              <div class="text-muted" style="font-size:.72rem;">
+                Connexion : {{ user.last_login|date:"d/m/Y" }}
+              </div>
+              {% else %}
+              <div class="text-muted" style="font-size:.72rem;">Jamais connecté</div>
+              {% endif %}
+            </td>
+
+            <!-- Statut -->
+            <td>
+              {% if user.is_active %}
+              <span class="badge rounded-pill" style="background:#D5F5E3; color:#1E8449; font-size:.72rem; padding:.35rem .75rem;">
+                <i class="bi bi-circle-fill me-1" style="font-size:.5rem;"></i> Actif
+              </span>
+              {% else %}
+              <span class="badge rounded-pill" style="background:#FADBD8; color:#922B21; font-size:.72rem; padding:.35rem .75rem;">
+                <i class="bi bi-circle-fill me-1" style="font-size:.5rem;"></i> Inactif
+              </span>
+              {% endif %}
+              {% if user.is_superuser %}
+              <span class="badge rounded-pill ms-1" style="background:#FEF3E2; color:#D35400; font-size:.65rem; padding:.3rem .6rem;">
+                <i class="bi bi-star-fill me-1"></i>Super
+              </span>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td class="text-end">
+              <div class="d-flex gap-1 justify-content-end flex-wrap">
+                <a href="/admin/auth/user/{{ user.id }}/change/"
+                   class="btn btn-sm btn-outline-secondary"
+                   title="Modifier dans l'admin Django"
+                   style="font-size:.72rem; padding:.3rem .65rem;">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="/admin/accounts/profil/?utilisateur__id={{ user.id }}"
+                   class="btn btn-sm btn-outline-primary"
+                   title="Voir le profil"
+                   style="font-size:.72rem; padding:.3rem .65rem;">
+                  <i class="bi bi-person"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endwith %}
+          {% empty %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              <i class="bi bi-people fs-2 d-block mb-2 opacity-25"></i>
+              Aucun utilisateur trouvé
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Vue cards (mobile) -->
+  <div class="cards-mobile">
+    {% for user in users %}
+    {% with profil=user.profil %}
+    <div class="user-card p-3"
+         data-role="{{ profil.role|default:'commercant' }}"
+         data-actif="{{ user.is_active|yesno:'actif,inactif' }}"
+         data-search="{{ user.get_full_name|lower }} {{ user.username|lower }}">
+      <div class="d-flex align-items-center gap-3 mb-2">
+        <div class="avatar-circle"
+          style="background:{% if profil.role == 'expert' %}#D5F5E3; color:#1E8449;{% elif profil.role == 'admin' %}#FADBD8; color:#922B21;{% else %}#D6EAF8; color:#1B4F72;{% endif %}">
+          {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+        </div>
+        <div class="flex-grow-1">
+          <div class="fw-600">{{ user.get_full_name|default:user.username }}</div>
+          <div class="text-muted small">{{ user.email }}</div>
+        </div>
+        <span class="role-badge role-{{ profil.role|default:'commercant' }}">
+          {{ profil.get_role_display|default:'Commerçant' }}
+        </span>
+      </div>
+      {% if profil.entreprise %}
+      <div class="small text-muted mb-1"><i class="bi bi-building me-1"></i>{{ profil.entreprise }}</div>
+      {% endif %}
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <span class="text-muted" style="font-size:.72rem;">{{ user.date_joined|date:"d/m/Y" }}</span>
+        <a href="/admin/auth/user/{{ user.id }}/change/" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-pencil"></i> Modifier
+        </a>
+      </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Compter les stats au chargement
+document.addEventListener('DOMContentLoaded', function() {
+  const rows = document.querySelectorAll('#tableau-users tbody tr[data-role]');
+  let experts = 0, clients = 0, admins = 0, actifs = 0;
+  rows.forEach(r => {
+    const role = r.dataset.role;
+    if (role === 'expert') experts++;
+    else if (role === 'admin' || role === 'institution') admins++;
+    else clients++;
+    if (r.dataset.actif === 'actif') actifs++;
+  });
+  document.getElementById('count-expert').textContent = experts;
+  document.getElementById('count-client').textContent  = clients;
+  document.getElementById('count-admin').textContent   = admins;
+  document.getElementById('count-actifs').textContent  = actifs;
+});
+
+function filtrerTableau() {
+  const recherche = document.getElementById('search-input').value.toLowerCase();
+  const role      = document.getElementById('filtre-role').value;
+  const statut    = document.getElementById('filtre-statut').value;
+
+  const rows = document.querySelectorAll('#tableau-users tbody tr[data-role]');
+  let visible = 0;
+
+  rows.forEach(row => {
+    const matchSearch = !recherche || row.dataset.search.includes(recherche);
+    const matchRole   = !role      || row.dataset.role === role;
+    const matchStatut = !statut    || row.dataset.actif === statut;
+
+    if (matchSearch && matchRole && matchStatut) {
+      row.style.display = '';
+      visible++;
+    } else {
+      row.style.display = 'none';
+    }
+  });
+
+  // Même filtre sur les cards mobile
+  document.querySelectorAll('.cards-mobile .user-card').forEach(card => {
+    const matchSearch = !recherche || card.dataset.search.includes(recherche);
+    const matchRole   = !role      || card.dataset.role === role;
+    const matchStatut = !statut    || card.dataset.actif === statut;
+    card.style.display = (matchSearch && matchRole && matchStatut) ? '' : 'none';
+  });
+
+  document.getElementById('count-visible').textContent = visible + ' résultat(s)';
+}
+</script>
+{% endblock %}

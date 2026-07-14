@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}Trouver un expert — Légale Connect{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <!-- Titre -->
+      <div class="text-center mb-4">
+        <h2 class="fw-bold">🤖 Trouver le bon expert</h2>
+        <p class="text-muted">
+          Décrivez votre problème en quelques mots.
+          Notre IA analyse votre situation et vous recommande les meilleurs experts disponibles.
+        </p>
+        {% if not modele_actif %}
+        <div class="alert alert-warning">
+          ⚠️ Modèle ML non disponible.
+          <code>python ml_recommandation\entrainer.py</code>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Formulaire -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              📝 Décrivez votre problème juridique
+            </label>
+            <textarea id="texte-probleme" class="form-control" rows="4"
+              placeholder="Ex : Mon employeur ne m'a pas payé depuis 3 mois malgré mes relances..."></textarea>
+            <div class="form-text">Minimum 10 mots pour une bonne recommandation.</div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">📍 Votre ville (optionnel)</label>
+              <select class="form-select" id="ville">
+                <option value="">Toute la Côte d'Ivoire</option>
+                <option value="Abidjan">Abidjan</option>
+                <option value="Bouaké">Bouaké</option>
+                <option value="Yamoussoukro">Yamoussoukro</option>
+                <option value="San-Pédro">San-Pédro</option>
+                <option value="Korhogo">Korhogo</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">💰 Budget max (FCFA, optionnel)</label>
+              <select class="form-select" id="budget">
+                <option value="">Sans limite</option>
+                <option value="25000">25 000 FCFA</option>
+                <option value="50000">50 000 FCFA</option>
+                <option value="100000">100 000 FCFA</option>
+                <option value="200000">200 000 FCFA</option>
+              </select>
+            </div>
+          </div>
+
+          <button id="btn-recherche" class="btn btn-primary w-100 py-2" onclick="lancerRecherche()">
+            🔍 Analyser et trouver mon expert
+          </button>
+        </div>
+      </div>
+
+      <!-- Zone de résultats -->
+      <div id="zone-resultats" class="d-none">
+
+        <!-- Badge catégorie ML -->
+        <div id="badge-categorie" class="alert alert-info mb-3"></div>
+
+        <!-- Cards experts -->
+        <div id="liste-experts"></div>
+
+      </div>
+
+      <!-- Chargement -->
+      <div id="chargement" class="text-center d-none py-4">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2 text-muted">L'IA analyse votre situation...</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function lancerRecherche() {
+  const texte = document.getElementById('texte-probleme').value.trim();
+  const ville  = document.getElementById('ville').value;
+  const budget = document.getElementById('budget').value;
+
+  if (texte.length < 10) {
+    alert('Veuillez décrire votre problème en au moins 10 mots.');
+    return;
+  }
+
+  // Afficher le chargement
+  document.getElementById('chargement').classList.remove('d-none');
+  document.getElementById('zone-resultats').classList.add('d-none');
+  document.getElementById('btn-recherche').disabled = true;
+
+  fetch('{% url "ml:ajax" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}',
+    },
+    body: JSON.stringify({ texte, ville, budget_max: budget || null }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    document.getElementById('chargement').classList.add('d-none');
+    document.getElementById('btn-recherche').disabled = false;
+
+    if (data.erreur) {
+      alert('Erreur : ' + data.erreur);
+      return;
+    }
+
+    // Badge catégorie
+    const c = data.classification;
+    document.getElementById('badge-categorie').innerHTML = `
+      <strong>🤖 Analyse IA :</strong>
+      Votre problème relève du <strong>${c.label}</strong>
+      <span class="badge bg-success ms-2">${Math.round(c.score_confiance * 100)}% de confiance</span>
+      <small class="text-muted ms-2">(Mode : ${c.mode})</small>
+    `;
+
+    // Liste des experts
+    const liste = document.getElementById('liste-experts');
+    if (data.experts.length === 0) {
+      liste.innerHTML = `
+        <div class="alert alert-warning">
+          Aucun expert disponible pour cette catégorie pour le moment.
+          <a href="/annuaire/" class="alert-link">Voir tous les experts →</a>
+        </div>`;
+    } else {
+      liste.innerHTML = data.experts.map((e, i) => `
+        <div class="card mb-3 ${i === 0 ? 'border-primary shadow' : ''}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                ${i === 0 ? '<span class="badge bg-primary mb-1">⭐ Meilleur match</span><br>' : ''}
+                <h5 class="card-title mb-1">${e.nom}</h5>
+                <p class="text-muted small mb-1">
+                  ${e.specialite || ''} ${e.entreprise ? '— ' + e.entreprise : ''}
+                </p>
+                <p class="small mb-2">
+                  ⭐ ${e.note_moy}/5
+                  <span class="text-muted">(${e.nb_avis} avis)</span>
+                  &nbsp;•&nbsp; 📂 ${e.nb_dossiers} dossiers traités
+                </p>
+                ${e.bio ? `<p class="small text-muted mb-0">${e.bio}</p>` : ''}
+              </div>
+              <div class="text-end">
+                <div class="h4 text-primary fw-bold">${Math.round(e.score * 100)}%</div>
+                <div class="small text-muted">Score IA</div>
+              </div>
+            </div>
+            <div class="mt-3 d-flex gap-2">
+              <a href="/annuaire/${e.id}/" class="btn btn-outline-primary btn-sm">
+                👤 Voir profil
+              </a>
+              <button class="btn btn-primary btn-sm"
+                onclick="contacterExpert(${e.id}, '${texte.replace(/'/g,"\\'")}', '${c.label}')">
+                ✉️ Contacter et créer un dossier
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('zone-resultats').classList.remove('d-none');
+  })
+  .catch(err => {
+    document.getElementById('chargement').classList.add('d-none');
+    document.getElementById('btn-recherche').disabled = false;
+    alert('Erreur réseau : ' + err.message);
+  });
+}
+
+function contacterExpert(expertId, texte, categorie) {
+  if (!confirm('Créer un dossier et contacter cet expert ?')) return;
+
+  fetch('{% url "ml:creer_dossier" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': '{{ csrf_token }}',
+    },
+    body: JSON.stringify({ expert_id: expertId, texte, categorie }),
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.succes) {
+      window.location.href = data.redirect_url;
+    } else {
+      alert('Erreur : ' + (data.erreur || 'Inconnue'));
+    }
+  });
+}
+</script>
+{% endblock %}

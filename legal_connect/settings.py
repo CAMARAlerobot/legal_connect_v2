@@ -1,14 +1,22 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from django.contrib.messages import constants as messages
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.getenv('SECRET_KEY', 'changez-moi-en-production')
-DEBUG = os.getenv('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = ['*']
+SECRET_KEY       = os.getenv('SECRET_KEY', 'changez-moi-en-production')
+DEBUG            = os.getenv('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS    = ['*']
+ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
+
+# CinetPay (agregateur Mobile Money : Orange Money, MTN, Moov, Wave, carte)
+# Non configure => abonnements/paiement.py bascule en mode manuel (sandbox).
+CINETPAY_API_KEY  = os.getenv('CINETPAY_API_KEY', '')
+CINETPAY_SITE_ID  = os.getenv('CINETPAY_SITE_ID', '')
+SITE_URL          = os.getenv('SITE_URL', 'http://127.0.0.1:8000')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Apps du projet
     'accounts',
     'contrats',
     'documents',
@@ -24,9 +33,19 @@ INSTALLED_APPS = [
     'collaboration',
     'notifications',
     'annuaire',
+    'ml_recommandation',
+    'chatbot',
+    'abonnements',
+    # API & DRF
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'corsheaders',
+    'drf_spectacular',
+    'api',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -56,7 +75,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'legal_connect.wsgi.application'
 
-# MySQL
 DATABASES = {
     'default': {
         'ENGINE'  : 'django.db.backends.mysql',
@@ -66,6 +84,7 @@ DATABASES = {
         'HOST'    : os.getenv('DB_HOST', ''),
         'PORT'    : os.getenv('DB_PORT', ''),
         'OPTIONS' : {'charset': 'utf8mb4'},
+        'TEST'    : {'CHARSET': 'utf8mb4', 'COLLATION': 'utf8mb4_unicode_ci'},
     }
 }
 
@@ -90,22 +109,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Auth
 LOGIN_URL           = '/accounts/login/'
 LOGIN_REDIRECT_URL  = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
-# Email
-EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST          = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT          = int(os.getenv('EMAIL_PORT', 587))
-EMAIL_USE_TLS       = True
-EMAIL_HOST_USER     = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL  = f'Légal Connect <{EMAIL_HOST_USER}>'
+EMAIL_BACKEND      = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'Légal Connect <noreply@legalconnect.ci>'
 
-# Messages Bootstrap
-from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.DEBUG  : 'secondary',
     messages.INFO   : 'info',
@@ -113,22 +123,33 @@ MESSAGE_TAGS = {
     messages.WARNING: 'warning',
     messages.ERROR  : 'danger',
 }
-# ── CONFIGURATION EMAIL SMTP ─────────────────────────────────────
-# Ajoutez ces lignes dans votre settings.py
 
-# Pour le développement (affiche les emails dans la console)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# ── CORS ──────────────────────────────────────────────────────────────────────
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+]
+CORS_ALLOW_CREDENTIALS = True
 
-# Pour la production avec Gmail (décommentez et configurez) :
-# EMAIL_BACKEND    = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST       = 'smtp.gmail.com'
-# EMAIL_PORT       = 587
-# EMAIL_USE_TLS    = True
-# EMAIL_HOST_USER  = env('EMAIL_HOST_USER')      # votre@gmail.com
-# EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD') # mot de passe d'application Gmail
+# ── Django REST Framework ──────────────────────────────────────────────────────
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
 
-DEFAULT_FROM_EMAIL = 'Légal Connect <noreply@legalconnect.ci>'
-
-# Dans .env, ajoutez :
-# EMAIL_HOST_USER=votre@gmail.com
-# EMAIL_HOST_PASSWORD=xxxx_xxxx_xxxx_xxxx  (mot de passe d'application Google)
+# ── JWT ────────────────────────────────────────────────────────────────────────
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME':  timedelta(hours=24),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS':  True,
+    'AUTH_HEADER_TYPES':      ('Bearer',),
+}

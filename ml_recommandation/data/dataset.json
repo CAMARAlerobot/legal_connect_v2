@@ -1,0 +1,802 @@
+[
+  {
+    "texte": "Mon employeur ne m'a pas paye depuis 3 mois malgre mes relances repetees",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "J'ai ete licencie sans preavis ni indemnite alors que j'avais un CDI",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon patron refuse de me donner mon bulletin de salaire depuis 4 mois",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Harcelement moral au travail de la part de mon superieur hierarchique",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon contrat de travail n'a pas ete renouvele sans aucune explication",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon employeur ne cotise pas a la CNPS pour moi depuis 2 ans",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Retenue abusive sur mon salaire sans justification ni notification",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Licenciement abusif pendant ma periode d'essai comment reagir",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon employeur refuse de me payer mes heures supplementaires travaillees",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Je suis enceinte et mon employeur veut me licencier est-ce legal",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Accident de travail non declare par mon employeur que faire",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon contrat stipule un salaire different de ce que je recois reellement",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Discrimination a l'embauche a cause de mon origine ethnique",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon employeur me force a travailler les weekends sans compensation financiere",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Rupture de periode d'essai sans motif valable ni preavis legal",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon salaire est inferieur au SMIG legal en Cote d'Ivoire",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Je n'ai pas recu mon solde de tout compte apres mon depart force",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon employeur refuse de me laisser prendre mes conges annuels payes",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Pression pour demissionner sans indemnites comment me defendre",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon employeur a modifie unilateralement mon contrat de travail",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon employeur refuse de me remettre mon attestation de travail apres depart",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mise a pied injustifiee de 3 mois sans salaire ni explication valable",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Harcelement sexuel de mon chef de service que dois-je faire",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Salaire impaye mois de decembre employeur en difficulte financiere",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Travail non declare sans contrat ecrit comment faire valoir mes droits",
+    "categorie": "droit_travail"
+  },
+  {
+    "texte": "Mon client me doit 500000 FCFA depuis 6 mois et ne repond plus a mes appels",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Mon fournisseur ne respecte pas le contrat de livraison que nous avons signe",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Rupture abusive de contrat commercial par mon partenaire sans preavis",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Un concurrent copie exactement mes produits et les vend moins cher",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Litige avec un associe sur le partage des benefices en fin d'annee",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Contrat de vente non respecte livraison jamais effectuee apres paiement integral",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Mon distributeur vend ma marchandise sans me reverser les fonds correspondants",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Clause abusive dans un contrat commercial que j'ai signe sous pression",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Cheque sans provision remis par un client comment recuperer mon argent",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Mon partenaire commercial a detourne les fonds de notre societe commune",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Facture impayee de 2 millions FCFA depuis 8 mois malgre relances ecrites",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Contrat de franchise non respecte par le franchiseur qui change les regles",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Mon agent commercial vend directement a mes clients sans me payer",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Concurrence deloyale d'un ancien employe qui a repris toute ma clientele",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Resiliation unilaterale d'un contrat de distribution exclusif signe",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Mon prestataire a livre des services non conformes au cahier des charges",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Litige sur la qualite de marchandises importees non conformes aux normes",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Contrat de sous-traitance non execute acompte verse non rembourse",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Mon associe a vendu ses parts sans respecter le droit de preemption",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Escroquerie commerciale fausse societe et faux contrats d'importation",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Clause de non-concurrence abusive apres rupture de contrat commercial",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Mon client conteste la facture apres reception et utilisation des marchandises",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Litige sur les penalites de retard prevues dans un contrat BTP chantier",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Contrat de prestations informatiques non livre apres paiement total effectue",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Acompte verse pour commande jamais livree vendeur injoignable et disparu",
+    "categorie": "droit_commercial"
+  },
+  {
+    "texte": "Mon bailleur refuse de me rembourser ma caution de 200000 FCFA apres depart",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Mon voisin a construit un mur empietant sur mon terrain sans autorisation",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Probleme de titre foncier sur ma parcelle a Cocody dans Abidjan",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Mon proprietaire veut m'expulser de force sans jugement ni preavis",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Conflit avec le proprietaire de mon local commercial sur les travaux",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Mon bail commercial n'a pas ete renouvele sans raison valable legale",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Terrain achete litigieux plusieurs vendeurs pour la meme parcelle",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Le proprietaire coupe l'eau et l'electricite pour me forcer a quitter",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Achat d'une maison avec vices caches fondations fissurees non signale",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Promoteur immobilier qui ne livre pas les appartements vendus sur plan",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Mon bailleur augmente le loyer de facon abusive sans preavis legal",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Terrain herite vendu par un frere sans accord des autres heritiers legitimes",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Mon logement est insalubre le proprietaire refuse categoriquement les travaux",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Contrat de construction non respecte maison livree inachevee et defectueuse",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Mon proprietaire entre dans mon logement sans permission ni preavis",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Terrain agricole occupe illegalement par des tiers depuis plus de 5 ans",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Maison achetee mais titre foncier toujours au nom du vendeur depuis 2 ans",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Mon locataire refuse de partir malgre fin de bail et decision de justice",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Travaux de voisinage causant des dommages graves a ma propriete",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Servitude de passage refusee par mon voisin bloquant l'acces a ma propriete",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Caution solidaire reclamee pour dettes de l'ancien locataire parti",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Copropriete charges abusives et injustifiees reclamees par le syndic",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Conflit de limite entre deux proprietes voisines bornage conteste",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Mon voisin empiete sur mon terrain de plusieurs metres en construisant",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "Acte de vente signe mais vendeur refuse de remettre les cles du bien",
+    "categorie": "droit_immobilier"
+  },
+  {
+    "texte": "La DGI me reclame des arrieres de TVA que j'ai deja payes et justifies",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Controle fiscal surprise comment me defendre face aux agents de la DGI",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Je veux optimiser ma fiscalite et reduire mes impots de facon legale",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Penalites de retard TVA injustes comment les contester officiellement",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Declaration IS incorrecte comment regulariser sans subir de penalites lourdes",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Exoneration patente nouvelle entreprise comment en beneficier legalement",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Remboursement credit TVA refuse par la DGI sans explication valable",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Redressement fiscal abusif sur mes benefices comment le contester",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Comment declarer ma TVA trimestrielle correctement pour eviter les amendes",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Impot minimum forfaitaire IMF calcule de facon erronee et surchargee",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Patente non payee depuis 3 ans que risque-je comment regulariser",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "CNPS non declaree pendant 2 ans comment regulariser sans trop payer",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Saisie de mon compte bancaire par le fisc comment la suspendre",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Litige sur la TVA collectee reclamee sur des services normalement exoneres",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Amende fiscale disproportionnee pour simple retard de declaration IS",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Comment beneficier du regime simplifie d'imposition BIC pour PME",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "La DGI conteste mes charges deductibles lors de la verification du bilan",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Verification de comptabilite en cours quels sont mes droits",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "TSE taxe speciale equipement comment calculer et declarer correctement",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Reevaluation du patrimoine imposable par les impots comment contester",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Declaration BNC pour profession liberale avocat medecin en Cote d'Ivoire",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Fraude fiscale presumee convoque par DGI comment me defendre",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Accord transactionnel avec la DGI pour regler un redressement est-ce possible",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Comment recuperer un trop-percu d'impots verse par erreur a la DGI",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Impots non payes depuis 5 ans delai de prescription fiscale en CI",
+    "categorie": "droit_fiscal"
+  },
+  {
+    "texte": "Je veux creer une SARL avec deux associes pour mon commerce a Abidjan",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Comment immatriculer mon entreprise au CEPICI quelles sont les etapes",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Transformer mon entreprise individuelle en SARL quelles formalites",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Redaction des statuts de ma societe et enregistrement chez le notaire",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Capital minimum pour creer une societe a responsabilite limitee en CI",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Ouvrir un compte professionnel bancaire et obtenir le registre de commerce",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Dissolution et liquidation de ma societe comment proceder legalement",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Augmentation du capital social de ma SARL quelles formalites sont requises",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Conflit entre associes blocage de la prise de decision en assemblee generale",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Comment nommer ou revoquer le gerant d'une societe SARL legalement",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Creation d'une SAS en Cote d'Ivoire differences avec la SARL",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Cession de parts sociales entre associes comment proceder legalement",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Pacte d'associes quelles clauses inclure pour me proteger des conflits",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Modification des statuts changement d'objet social quelles formalites",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Responsabilite du gerant en cas de dettes de la societe creee",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Obtention du numero de contribuable NCC apres creation de l'entreprise",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Creation d'une ONG ou association loi 1960 en Cote d'Ivoire procedure",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Renouvellement registre de commerce annuel formalites et cout FCFA",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Mise en sommeil temporaire de ma societe sans la fermer definitivement",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Reprise d'une entreprise existante achat de fonds de commerce procedure",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Comment sortir legalement un associe de mauvaise foi d'une SARL",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Licence d'exploitation pour restaurant hotel ou debit de boissons en CI",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Societe unipersonnelle a responsabilite limitee SURL creation en CI",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Importer des marchandises agrement douanier et formalites d'importation CI",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Fusion absorption de deux societes procedure legale OHADA en CI",
+    "categorie": "creation_entreprise"
+  },
+  {
+    "texte": "Mon mari veut divorcer comment proteger mes droits sur notre maison commune",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Succession apres le deces de mon pere sans testament partage de l'heritage",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Garde des enfants apres separation accord amiable impossible comment faire",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Pension alimentaire non versee par mon ex-conjoint depuis 6 mois que faire",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Adoption d'un enfant orphelin en Cote d'Ivoire procedure legale complete",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Reconnaissance de paternite refusee par le pere biologique de mon enfant",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Testament conteste et invalide par des membres de la famille comment reagir",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Mariage coutumier reconnaissance et validite legale en droit ivoirien",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Divorce par consentement mutuel procedure simplifiee en Cote d'Ivoire",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Heritage conteste par un demi-frere non officiellement reconnu par le defunt",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Enfant ne hors mariage ses droits successoraux en droit ivoirien",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Enlevement parental enfant emmene a l'etranger par le pere comment reagir",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Violences conjugales divorce d'urgence et protection judiciaire en CI",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Repartition des biens communs acquis pendant le mariage apres divorce",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Tutelle d'un parent age dement incapable de gerer ses affaires",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Mariage force d'une mineure comment l'annuler legalement et proteger",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Donation entre epoux et protection du conjoint survivant en CI",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Mon ex-conjoint refuse de me remettre les enfants apres le week-end",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Succession polygamique plusieurs epouses et enfants partage de l'heritage",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Acte de naissance incorrect comment corriger l'etat civil legalement",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Abandon de famille mari parti sans laisser de ressources aux enfants",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Droit de visite refuse par l'ex-conjointe malgre decision du tribunal",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Bien immobilier herite occupe par un frere qui refuse de partir ou payer",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Enfant adopte adulte veut retrouver ses parents biologiques procedure CI",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "Refus d'inscrire le nom du pere sur l'acte de naissance de mon enfant",
+    "categorie": "droit_famille"
+  },
+  {
+    "texte": "J'ai ete agresse physiquement dans la rue je veux porter plainte contre l'agresseur",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "On m'accuse faussement de fraude bancaire je suis innocent besoin avocat penal",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Victime d'escroquerie argent verse prestation jamais livree escroc disparu",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Convoque par la police pour garde a vue quels sont mes droits",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Cheque sans provision remis par un client comment poursuivre penalement",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Diffamation publique sur les reseaux sociaux contre mon entreprise et ma personne",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Menaces de mort recues par telephone et messages ecrits que faire",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Vol commis par un employe dans ma boutique comment porter plainte efficacement",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Abus de confiance detournement de fonds par un associe gerant de societe",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Cybercriminalite piratage de mon compte bancaire transactions frauduleuses",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Fausse accusation grave portee contre moi comment me defendre et prouver innocence",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Extorsion de fonds avec menaces par des individus organises",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Incendie criminel de mon entrepot comment porter plainte et etre indemnise",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Escroquerie immobiliere terrain vendu simultanement a plusieurs acheteurs",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Trafic d'influence fonctionnaire qui reclame pot de vin pour service public",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Faux et usage de faux documents officiels falsifies utilises contre moi",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Arrestation abusive par la police sans mandat ni motif que faire",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Detournement de fonds publics constate comment signaler aux autorites",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Hacking piratage de mon site internet et donnees clients volees",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Accusation de viol non fondee comment prouver mon innocence",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Cambriolage de mon domicile suivi judiciaire et demande d'indemnisation",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Usurpation d'identite quelqu'un utilise mon nom et mes papiers pour arnaquer",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Detention arbitraire emprisonne sans jugement ni inculpation depuis 3 mois",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Violence physique d'un voisin agressif comment porter plainte et me proteger",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Arnaque telephonique grosse somme versee suite a appel frauduleux",
+    "categorie": "droit_penal"
+  },
+  {
+    "texte": "Quelqu'un copie exactement mon logo et mon nom commercial sans autorisation",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Comment deposer un brevet pour mon invention a l'OAPI en Cote d'Ivoire",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Protection de mes creations musicales contre le plagiat et la copie illegale",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Ma marque deposee est utilisee illegalement par un concurrent direct",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Site web concurrent qui copie mon contenu et mes photos sans permission",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Droit d'auteur sur mon logiciel developpe comment le proteger legalement",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Contrefacon de mes produits vendus ouvertement sur les marches d'Abidjan",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Enregistrement de marque a l'OAPI procedure cout et delai en FCFA",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Mon ancien employe a repris mon concept d'entreprise et utilise mon nom",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Plagiat de mon memoire de these publie sous le nom d'un autre",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Utilisation de ma photographie professionnelle sans consentement dans publicite",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Application mobile copiee par un concurrent fonctionnalites identiques",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Nom de domaine depose par un tiers en mauvaise foi cybersquatting",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Mon logo et design visuel reproduits sans autorisation sur des produits",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Utilisation non autorisee de mon logo par un ancien partenaire commercial",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Design industriel copie et commercialise par un fabricant concurrent",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Artiste dont la musique est diffusee sur radios sans autorisation ni royalties",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Formation professionnelle copiee et revendue par un ancien formateur",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Oeuvre graphique artistique utilisee sur des t-shirts commercialises sans accord",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Secret de fabrication divulgue par un ancien employe a un concurrent direct",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Livre publie commercialement sans accord de l'auteur droits bafouees",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Protection d'une invention avant depot de brevet mesures d'urgence CI",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Accord de confidentialite viole informations strategiques divulguees",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Recette produit alimentaire brevetee copiee et commercialisee",
+    "categorie": "propriete_intel"
+  },
+  {
+    "texte": "Modele d'utilite industriel non protege copie integralement par concurrent",
+    "categorie": "propriete_intel"
+  }
+]

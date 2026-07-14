@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% block title %}Gestion des abonnements — Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .kpi-card { border-left: 4px solid transparent; transition: all .2s; }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(27,79,114,.12); }
+  .table-abo thead th {
+    background: #F4F7FB; font-size: .78rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .4px; color: #6B7C93; border-bottom: 2px solid #E8EDF2; padding: .85rem 1rem;
+  }
+  .table-abo tbody td { padding: .75rem 1rem; vertical-align: middle; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-graph-up-arrow"></i> Gestion des abonnements</h1>
+      <p class="text-muted mb-0">Vue d'ensemble des souscriptions et des revenus.</p>
+    </div>
+    <a href="/admin/abonnements/" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-gear"></i> Admin Django
+    </a>
+  </div>
+
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#1E8449;">
+        <div class="text-muted small">Revenu total</div>
+        <div class="fs-3 fw-bold">{{ revenu_total|floatformat:0 }} FCFA</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#2E86C1;">
+        <div class="text-muted small">Revenu ce mois-ci</div>
+        <div class="fs-3 fw-bold">{{ revenu_ce_mois|floatformat:0 }} FCFA</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#1B4F72;">
+        <div class="text-muted small">Abonnements actifs</div>
+        <div class="fs-3 fw-bold">{{ nb_actifs }}</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 h-100 kpi-card" style="border-left-color:#D35400;">
+        <div class="text-muted small">En attente de paiement</div>
+        <div class="fs-3 fw-bold">{{ nb_en_attente }}</div>
+        {% if nb_echoues %}<div class="text-danger small">{{ nb_echoues }} paiement(s) échoué(s)</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <!-- Revenu par plan -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="card-title mb-3"><i class="bi bi-bar-chart"></i> Revenu par plan</h6>
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Plan</th><th>Rôle</th><th>Paiements</th><th class="text-end">Total</th></tr></thead>
+            <tbody>
+              {% for ligne in revenu_par_plan %}
+              <tr>
+                <td>{{ ligne.abonnement__plan__nom }}</td>
+                <td>{{ ligne.abonnement__plan__role_cible }}</td>
+                <td>{{ ligne.nb }}</td>
+                <td class="text-end">{{ ligne.total|floatformat:0 }} FCFA</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-muted">Aucun paiement réussi pour l'instant.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revenu par moyen de paiement -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="card-title mb-3"><i class="bi bi-phone"></i> Revenu par moyen de paiement</h6>
+          <table class="table table-sm mb-0">
+            <thead><tr><th>Moyen</th><th>Paiements</th><th class="text-end">Total</th></tr></thead>
+            <tbody>
+              {% for ligne in revenu_par_moyen %}
+              <tr>
+                <td>{{ ligne.moyen_paiement }}</td>
+                <td>{{ ligne.nb }}</td>
+                <td class="text-end">{{ ligne.total|floatformat:0 }} FCFA</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-muted">Aucun paiement réussi pour l'instant.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Abonnements -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h6 class="card-title mb-0"><i class="bi bi-people"></i> Abonnements (100 derniers)</h6>
+        <form method="get" class="d-flex gap-2">
+          <select name="statut" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Tous les statuts</option>
+            <option value="actif" {% if statut_filtre == 'actif' %}selected{% endif %}>Actif</option>
+            <option value="en_attente_paiement" {% if statut_filtre == 'en_attente_paiement' %}selected{% endif %}>En attente</option>
+            <option value="expire" {% if statut_filtre == 'expire' %}selected{% endif %}>Expiré</option>
+            <option value="annule" {% if statut_filtre == 'annule' %}selected{% endif %}>Annulé</option>
+          </select>
+        </form>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-abo table-sm">
+          <thead>
+            <tr><th>Utilisateur</th><th>Plan</th><th>Statut</th><th>Début</th><th>Fin</th></tr>
+          </thead>
+          <tbody>
+            {% for abo in abonnements %}
+            <tr>
+              <td>{{ abo.utilisateur.username }}</td>
+              <td>{{ abo.plan.nom }} <span class="text-muted small">({{ abo.plan.role_cible }})</span></td>
+              <td>
+                <span class="badge
+                  {% if abo.statut == 'actif' %}bg-success
+                  {% elif abo.statut == 'en_attente_paiement' %}bg-warning text-dark
+                  {% elif abo.statut == 'expire' %}bg-secondary
+                  {% else %}bg-danger{% endif %}">
+                  {{ abo.get_statut_display }}
+                </span>
+              </td>
+              <td>{{ abo.date_debut|date:"d/m/Y"|default:"—" }}</td>
+              <td>{{ abo.date_fin|date:"d/m/Y"|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-muted">Aucun abonnement.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paiements recents -->
+  <div class="card">
+    <div class="card-body">
+      <h6 class="card-title mb-3"><i class="bi bi-receipt-cutoff"></i> Paiements récents</h6>
+      <div class="table-responsive">
+        <table class="table table-abo table-sm">
+          <thead>
+            <tr><th>Référence</th><th>Utilisateur</th><th>Moyen</th><th>Montant</th><th>Statut</th><th>Date</th></tr>
+          </thead>
+          <tbody>
+            {% for p in paiements_recents %}
+            <tr>
+              <td class="small">{{ p.reference_transaction }}</td>
+              <td>{{ p.abonnement.utilisateur.username }}</td>
+              <td>{{ p.get_moyen_paiement_display }}</td>
+              <td>{{ p.montant|floatformat:0 }} FCFA</td>
+              <td>
+                <span class="badge
+                  {% if p.statut == 'reussi' %}bg-success
+                  {% elif p.statut == 'en_attente' %}bg-warning text-dark
+                  {% else %}bg-danger{% endif %}">
+                  {{ p.get_statut_display }}
+                </span>
+              </td>
+              <td>{{ p.created_at|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-muted">Aucun paiement.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

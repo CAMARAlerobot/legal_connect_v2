@@ -1,0 +1,35 @@
+# Secrets
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+
+# Django
+*.log
+media/
+staticfiles/
+db.sqlite3
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# ML models / index artifacts (regenerables via les scripts d'entrainement)
+ml_recommandation/models/*.pkl
+chatbot/index/*.pkl
+
+# Editeurs / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Sous-dossier duplique accidentellement (sous-depot git imbrique sans
+# .gitmodules, a nettoyer manuellement plus tard si inutile)
+/legal_connect_v2/

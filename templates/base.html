@@ -392,6 +392,21 @@
           <i class="bi bi-person-badge me-1"></i> Experts
         </a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link {% if '/chatbot/' in request.path %}active{% endif %}" href="/chatbot/">
+          <i class="bi bi-chat-dots me-1"></i> Assistant IA
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if '/recommandation/' in request.path %}active{% endif %}" href="/recommandation/">
+          <i class="bi bi-stars me-1"></i> Trouver un expert
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if '/abonnements/' in request.path %}active{% endif %}" href="/abonnements/">
+          <i class="bi bi-credit-card me-1"></i> Abonnement
+        </a>
+      </li>
     </ul>
 
     <ul class="navbar-nav align-items-center gap-2 mt-2 mt-lg-0">
@@ -436,11 +451,20 @@
             <li><a class="dropdown-item" href="/accounts/profil/">
               <i class="bi bi-person-circle me-2"></i>Mon profil
             </a></li>
+            <li><a class="dropdown-item" href="/abonnements/mon-abonnement/">
+              <i class="bi bi-credit-card me-2"></i>Mon abonnement
+            </a></li>
             <li><a class="dropdown-item" href="/notifications/">
               <i class="bi bi-bell me-2"></i>Notifications
             </a></li>
             <li><a class="dropdown-item" href="/annuaire/">
               <i class="bi bi-person-badge me-2"></i>Annuaire experts
+            </a></li>
+            <li><a class="dropdown-item" href="/chatbot/">
+              <i class="bi bi-chat-dots me-2"></i>Assistant IA
+            </a></li>
+            <li><a class="dropdown-item" href="/recommandation/">
+              <i class="bi bi-stars me-2"></i>Trouver un expert
             </a></li>
             {% if request.user.profil.role == 'admin' %}
             <li><hr class="dropdown-divider"></li>
@@ -449,6 +473,9 @@
             </a></li>
             <li><a class="dropdown-item" href="/accounts/admin/users/">
               <i class="bi bi-people me-2"></i>Gestion utilisateurs
+            </a></li>
+            <li><a class="dropdown-item" href="/abonnements/admin/">
+              <i class="bi bi-graph-up-arrow me-2"></i>Gestion abonnements
             </a></li>
             {% endif %}
             <li><hr class="dropdown-divider"></li>

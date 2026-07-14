@@ -74,6 +74,13 @@ def liste_dossiers(request):
     return render(request, 'collaboration/liste.html', context)
 
 
+EXTENSIONS_AUTORISEES = {
+    'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+    'jpg', 'jpeg', 'png', 'txt', 'odt', 'ods',
+}
+TAILLE_MAX_OCTETS = 10 * 1024 * 1024  # 10 Mo
+
+
 @login_required
 def creer_dossier(request):
     role = get_role(request.user)
@@ -84,25 +91,46 @@ def creer_dossier(request):
         type_dossier = request.POST.get('type_dossier', 'autre')
         priorite     = request.POST.get('priorite', 'normale')
         expert_id    = request.POST.get('expert_id') or None
+        fichier      = request.FILES.get('fichier')
 
-        if not titre or not description:
-            messages.error(request, 'Le titre et la description sont obligatoires.')
-        else:
-            expert = None
-            if expert_id:
-                expert = get_object_or_404(User, pk=expert_id)
+        # Validation du fichier
+        if fichier:
+            ext = fichier.name.rsplit('.', 1)[-1].lower()
+            if ext not in EXTENSIONS_AUTORISEES:
+                messages.error(request, f'Format non autorisé (.{ext}). Formats acceptés : PDF, Word, Excel, images.')
+                return redirect('collaboration:creer')
+            if fichier.size > TAILLE_MAX_OCTETS:
+                messages.error(request, 'Fichier trop volumineux (max 10 Mo).')
+                return redirect('collaboration:creer')
 
-            dossier = Dossier.objects.create(
-                client       = request.user,
-                expert       = expert,
-                titre        = titre,
-                description  = description,
-                type_dossier = type_dossier,
-                priorite     = priorite,
-                statut       = 'en_attente',
-            )
-            messages.success(request, f'Dossier "{titre}" créé avec succès !')
-            return redirect('collaboration:detail', pk=dossier.pk)
+        # Auto-remplissage si fichier fourni et champs vides
+        if fichier:
+            if not titre:
+                # Retirer l'extension pour le titre
+                titre = fichier.name.rsplit('.', 1)[0].replace('_', ' ').replace('-', ' ').strip()
+            if not description:
+                description = f'Document joint : {fichier.name}'
+
+        if not titre:
+            messages.error(request, 'Veuillez saisir un titre ou joindre un fichier.')
+            return redirect('collaboration:creer')
+
+        expert = None
+        if expert_id:
+            expert = get_object_or_404(User, pk=expert_id)
+
+        dossier = Dossier.objects.create(
+            client       = request.user,
+            expert       = expert,
+            titre        = titre,
+            description  = description,
+            type_dossier = type_dossier,
+            priorite     = priorite,
+            statut       = 'en_attente',
+            fichier      = fichier,
+        )
+        messages.success(request, f'Dossier "{titre}" soumis avec succès !')
+        return redirect('collaboration:detail', pk=dossier.pk)
 
     # Liste des experts disponibles
     experts = User.objects.filter(profil__role='expert', is_active=True).select_related('profil')

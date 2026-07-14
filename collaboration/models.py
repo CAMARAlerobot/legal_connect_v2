@@ -17,12 +17,18 @@ TYPES_DOSSIER = [
     ('autre',       'Autre'),
 ]
 
+def upload_dossier(instance, filename):
+    return f'dossiers/{instance.client_id}/{filename}'
+
+
 class Dossier(models.Model):
     """Dossier soumis par un client à un expert."""
     client      = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dossiers_client')
     expert      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='dossiers_expert')
     titre       = models.CharField(max_length=200)
-    description = models.TextField()
+    description = models.TextField(blank=True)
+    fichier     = models.FileField(upload_to=upload_dossier, null=True, blank=True,
+                                   verbose_name='Fichier joint')
     type_dossier= models.CharField(max_length=20, choices=TYPES_DOSSIER, default='autre')
     statut      = models.CharField(max_length=15, choices=STATUTS_DOSSIER, default='en_attente')
     priorite    = models.CharField(max_length=10, choices=[

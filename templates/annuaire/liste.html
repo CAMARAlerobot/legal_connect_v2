@@ -141,6 +141,20 @@
             </div>
           </div>
 
+          <!-- Note moyenne -->
+          {% if e.note_moy %}
+          <div class="d-flex align-items-center gap-1 mb-2">
+            {% for i in "12345" %}
+              {% if forloop.counter <= e.note_moy %}
+                <i class="bi bi-star-fill" style="color:#f5a623; font-size:13px;"></i>
+              {% else %}
+                <i class="bi bi-star" style="color:#ccc; font-size:13px;"></i>
+              {% endif %}
+            {% endfor %}
+            <small class="text-muted ms-1">{{ e.note_moy }}/5 ({{ e.nb_avis }} avis)</small>
+          </div>
+          {% endif %}
+
           <!-- Contact -->
           {% if e.profil.telephone %}
           <p class="text-muted small mb-0">

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Souscrire — {{ plan.nom }} — Légal Connect{% endblock %}
+
+{% block extra_css %}
+<style>
+  .moyen-paiement-input { display: none; }
+  .moyen-paiement-carte {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    border: 2px solid #e3e6ec; border-radius: 12px; padding: 14px 8px;
+    cursor: pointer; transition: border-color .15s, box-shadow .15s;
+    background: #fff; text-align: center;
+  }
+  .moyen-paiement-carte:hover { border-color: #b7c0cc; }
+  .moyen-paiement-input:checked + .moyen-paiement-carte {
+    border-color: #1a2b4c; box-shadow: 0 0 0 2px rgba(26,43,76,.12);
+  }
+  .moyen-paiement-icone {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 20px;
+  }
+  .moyen-paiement-nom { font-size: 12.5px; font-weight: 600; color: #333; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <h1 class="page-title mb-3"><i class="bi bi-credit-card"></i> Souscrire au plan « {{ plan.nom }} »</h1>
+
+  <div class="card" style="max-width: 560px;">
+    <div class="card-body">
+      <p class="fs-4 fw-bold">
+        {% if plan.est_gratuit %}Gratuit{% else %}{{ plan.prix|floatformat:0 }} FCFA / {{ plan.get_periode_jours_display|lower }}{% endif %}
+      </p>
+      <p class="text-muted">{{ plan.description }}</p>
+
+      <form method="post">
+        {% csrf_token %}
+        {% if not plan.est_gratuit %}
+        <div class="mb-3">
+          <label class="form-label d-block mb-2">Moyen de paiement</label>
+          <div class="row row-cols-3 row-cols-md-5 g-2">
+
+            <div class="col">
+              <input type="radio" name="moyen_paiement" value="orange_money" id="mp_orange"
+                     class="moyen-paiement-input" checked>
+              <label for="mp_orange" class="moyen-paiement-carte">
+                <span class="moyen-paiement-icone" style="background:#FF7900;">
+                  <i class="bi bi-phone"></i>
+                </span>
+                <span class="moyen-paiement-nom">Orange Money</span>
+              </label>
+            </div>
+
+            <div class="col">
+              <input type="radio" name="moyen_paiement" value="mtn_money" id="mp_mtn"
+                     class="moyen-paiement-input">
+              <label for="mp_mtn" class="moyen-paiement-carte">
+                <span class="moyen-paiement-icone" style="background:#FFCC00; color:#1a1a1a;">
+                  <i class="bi bi-phone"></i>
+                </span>
+                <span class="moyen-paiement-nom">MTN MoMo</span>
+              </label>
+            </div>
+
+            <div class="col">
+              <input type="radio" name="moyen_paiement" value="moov_money" id="mp_moov"
+                     class="moyen-paiement-input">
+              <label for="mp_moov" class="moyen-paiement-carte">
+                <span class="moyen-paiement-icone" style="background:#1857A4;">
+                  <i class="bi bi-phone"></i>
+                </span>
+                <span class="moyen-paiement-nom">Moov Money</span>
+              </label>
+            </div>
+
+            <div class="col">
+              <input type="radio" name="moyen_paiement" value="wave" id="mp_wave"
+                     class="moyen-paiement-input">
+              <label for="mp_wave" class="moyen-paiement-carte">
+                <span class="moyen-paiement-icone" style="background:#00A3E0;">
+                  <i class="bi bi-water"></i>
+                </span>
+                <span class="moyen-paiement-nom">Wave</span>
+              </label>
+            </div>
+
+            <div class="col">
+              <input type="radio" name="moyen_paiement" value="carte" id="mp_carte"
+                     class="moyen-paiement-input">
+              <label for="mp_carte" class="moyen-paiement-carte">
+                <span class="moyen-paiement-icone" style="background:#495057;">
+                  <i class="bi bi-credit-card-2-front"></i>
+                </span>
+                <span class="moyen-paiement-nom">Carte bancaire</span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="mb-3" id="champ_numero">
+          <label for="numero_telephone" class="form-label">
+            Numéro <span id="nom_operateur">Orange Money</span> à débiter
+          </label>
+          <input type="tel" name="numero_telephone" id="numero_telephone" class="form-control"
+                 placeholder="Ex : 07 01 02 03 04" pattern="[0-9 ]{8,20}" required>
+          <div class="form-text">Vous recevrez une demande de confirmation sur ce numéro.</div>
+        </div>
+        {% endif %}
+        <button type="submit" class="btn btn-lc-primary w-100">
+          {% if plan.est_gratuit %}Activer{% else %}Procéder au paiement{% endif %}
+        </button>
+        <a href="{% url 'abonnements:liste_plans' %}" class="btn btn-outline-secondary w-100 mt-2">Annuler</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if not plan.est_gratuit %}
+<script>
+  const NOMS_OPERATEURS = {
+    orange_money: 'Orange Money',
+    mtn_money:    'MTN Mobile Money',
+    moov_money:   'Moov Money',
+    wave:         'Wave',
+    carte:        'Carte bancaire',
+  };
+
+  function majChampNumero() {
+    const choix = document.querySelector('input[name="moyen_paiement"]:checked').value;
+    const champNumero = document.getElementById('champ_numero');
+    const inputNumero = document.getElementById('numero_telephone');
+    const nomOperateur = document.getElementById('nom_operateur');
+
+    if (choix === 'carte') {
+      champNumero.style.display = 'none';
+      inputNumero.required = false;
+    } else {
+      champNumero.style.display = 'block';
+      inputNumero.required = true;
+      nomOperateur.textContent = NOMS_OPERATEURS[choix];
+    }
+  }
+
+  document.querySelectorAll('input[name="moyen_paiement"]').forEach(function (input) {
+    input.addEventListener('change', majChampNumero);
+  });
+  majChampNumero();
+</script>
+{% endif %}
+{% endblock %}

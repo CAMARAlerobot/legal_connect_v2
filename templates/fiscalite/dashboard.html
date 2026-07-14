@@ -4,8 +4,12 @@
 {% block content %}
 <div class="main-content">
 
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h1 class="page-title mb-0"><i class="bi bi-calculator"></i> Tableau de bord Fiscal</h1>
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h1 class="page-title mb-1"><i class="bi bi-calculator"></i> Tableau de bord Fiscal</h1>
+      <p class="text-muted mb-0">Déclarations, échéances et conformité fiscale — Côte d'Ivoire 2026</p>
+    </div>
     <div class="d-flex gap-2 flex-wrap">
       <a href="{% url 'fiscalite:conformite' %}" class="btn btn-outline-warning btn-sm">
         <i class="bi bi-shield-check"></i> Conformité
@@ -19,45 +23,92 @@
     </div>
   </div>
 
-  <!-- Alerte révisions en cours -->
+  <!-- Alertes -->
   {% if declarations_en_revision > 0 %}
   <div class="alert alert-info d-flex align-items-center gap-2 mb-3">
     <i class="bi bi-hourglass-split fs-5"></i>
-    <span>{{ declarations_en_revision }} déclaration(s) soumise(s) à un expert fiscal sont en cours de révision.</span>
+    <span>{{ declarations_en_revision }} déclaration(s) en cours de révision par un expert fiscal.</span>
+  </div>
+  {% endif %}
+  {% if echeances_urgentes > 0 %}
+  <div class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+    <strong>{{ echeances_urgentes }} échéance(s) urgente(s)</strong>&nbsp;— Agissez avant la date limite !
+    <a href="{% url 'fiscalite:calendrier' %}" class="btn btn-sm btn-danger ms-auto">Voir</a>
   </div>
   {% endif %}
 
-  <!-- Stats -->
+  <!-- Stats KPI -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-      <div class="card text-center p-3 h-100">
-        <div style="font-size:2.2rem; color:var(--bleu-principal);">{{ total_declarations }}</div>
-        <div class="text-muted small fw-bold">Déclarations</div>
-        <a href="{% url 'fiscalite:historique' %}" class="stretched-link"></a>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card text-center p-3 h-100">
-        <div style="font-size:1.6rem; color:#27AE60; word-break:break-word;">{{ total_impots|floatformat:0 }}</div>
-        <div class="text-muted small fw-bold">FCFA calculés</div>
-        <a href="{% url 'fiscalite:recapitulatif' %}" class="stretched-link"></a>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="card text-center p-3 h-100">
-        <div style="font-size:2.2rem; color:{% if echeances_urgentes > 0 %}#E74C3C{% else %}#27AE60{% endif %};">
-          {{ echeances_urgentes }}
+      <a href="{% url 'fiscalite:historique' %}" class="text-decoration-none">
+        <div class="card p-3 h-100" style="border-left:4px solid #1B4F72;">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="text-muted small fw-bold mb-1">DÉCLARATIONS</div>
+              <div style="font-size:2.2rem;font-weight:800;color:#1B4F72;line-height:1;">{{ total_declarations }}</div>
+              <small class="text-muted">au total</small>
+            </div>
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:44px;height:44px;background:#D6EAF8;flex-shrink:0;">
+              <i class="bi bi-receipt" style="color:#1B4F72;font-size:1.3rem;"></i>
+            </div>
+          </div>
         </div>
-        <div class="text-muted small fw-bold">Échéances urgentes</div>
-        <a href="{% url 'fiscalite:calendrier' %}" class="stretched-link"></a>
-      </div>
+      </a>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card text-center p-3 h-100">
-        <div style="font-size:2.2rem; color:var(--bleu-secondaire);">{{ echeances.count }}</div>
-        <div class="text-muted small fw-bold">Total échéances</div>
-        <a href="{% url 'fiscalite:calendrier' %}" class="stretched-link"></a>
-      </div>
+      <a href="{% url 'fiscalite:recapitulatif' %}" class="text-decoration-none">
+        <div class="card p-3 h-100" style="border-left:4px solid #1E8449;">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="text-muted small fw-bold mb-1">TOTAL CALCULÉ</div>
+              <div style="font-size:1.5rem;font-weight:800;color:#1E8449;line-height:1;">{{ total_impots|floatformat:0 }}</div>
+              <small class="text-muted">FCFA</small>
+            </div>
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:44px;height:44px;background:#EAFAF1;flex-shrink:0;">
+              <i class="bi bi-cash-stack" style="color:#1E8449;font-size:1.3rem;"></i>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="{% url 'fiscalite:calendrier' %}" class="text-decoration-none">
+        <div class="card p-3 h-100" style="border-left:4px solid {% if echeances_urgentes > 0 %}#E74C3C{% else %}#27AE60{% endif %};">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="text-muted small fw-bold mb-1">URGENTES</div>
+              <div style="font-size:2.2rem;font-weight:800;line-height:1;color:{% if echeances_urgentes > 0 %}#E74C3C{% else %}#1E8449{% endif %};">
+                {{ echeances_urgentes }}
+              </div>
+              <small class="text-muted">échéances urgentes</small>
+            </div>
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:44px;height:44px;flex-shrink:0;background:{% if echeances_urgentes > 0 %}#FDEDEC{% else %}#EAFAF1{% endif %};">
+              <i class="bi bi-alarm" style="font-size:1.3rem;color:{% if echeances_urgentes > 0 %}#E74C3C{% else %}#1E8449{% endif %};"></i>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-6 col-md-3">
+      <a href="{% url 'fiscalite:calendrier' %}" class="text-decoration-none">
+        <div class="card p-3 h-100" style="border-left:4px solid #2E86C1;">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="text-muted small fw-bold mb-1">ÉCHÉANCES</div>
+              <div style="font-size:2.2rem;font-weight:800;color:#2E86C1;line-height:1;">{{ echeances.count }}</div>
+              <small class="text-muted">planifiées</small>
+            </div>
+            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                 style="width:44px;height:44px;background:#EBF5FB;flex-shrink:0;">
+              <i class="bi bi-calendar-check" style="color:#2E86C1;font-size:1.3rem;"></i>
+            </div>
+          </div>
+        </div>
+      </a>
     </div>
   </div>
 
@@ -93,49 +144,62 @@
             <a href="{% url 'fiscalite:export_excel' %}" class="btn btn-sm btn-outline-success" title="Exporter Excel">
               <i class="bi bi-file-earmark-excel"></i>
             </a>
-            <a href="{% url 'fiscalite:historique' %}" class="btn btn-sm btn-outline-light">Voir tout</a>
+            <a href="{% url 'fiscalite:historique' %}" class="btn btn-sm btn-outline-light">Tout voir</a>
           </div>
         </div>
         <div class="card-body p-0">
           {% if declarations %}
           <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead style="background:#f8f9fa;">
-              <tr><th>Type</th><th>Période</th><th>Montant</th><th>Statut</th><th></th></tr>
-            </thead>
-            <tbody>
-              {% for d in declarations %}
-              <tr>
-                <td class="fw-bold">{{ d.get_type_impot_display }}</td>
-                <td><small>{{ d.get_periode_display }} {{ d.annee }}</small></td>
-                <td class="fw-bold" style="color:var(--bleu-principal);">{{ d.montant_impot|floatformat:0 }} FCFA</td>
-                <td>
-                  <span class="badge rounded-pill
-                    {% if d.statut == 'validee' %}bg-success
-                    {% elif d.statut == 'en_retard' %}bg-danger
-                    {% elif d.statut == 'soumise' or d.statut == 'en_revision' %}bg-primary
-                    {% else %}bg-secondary{% endif %}">
-                    {{ d.get_statut_display }}
-                  </span>
-                </td>
-                <td>
-                  <div class="d-flex gap-1">
-                  <a href="{% url 'fiscalite:detail_declaration' d.pk %}" class="btn btn-sm btn-outline-primary" title="Détail">
-                    <i class="bi bi-eye"></i>
-                  </a>
-                  <a href="{% url 'fiscalite:pdf_declaration' d.pk %}" class="btn btn-sm btn-outline-danger" title="PDF">
-                    <i class="bi bi-file-pdf"></i>
-                  </a>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+            <table class="table table-hover mb-0">
+              <thead style="background:#f8f9fa;">
+                <tr>
+                  <th class="ps-3">Type</th>
+                  <th>Période</th>
+                  <th>Montant</th>
+                  <th>Statut</th>
+                  <th style="width:80px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for d in declarations %}
+                <tr>
+                  <td class="ps-3 fw-bold small">{{ d.get_type_impot_display }}</td>
+                  <td><small class="text-muted">{{ d.get_periode_display }} {{ d.annee }}</small></td>
+                  <td class="fw-bold" style="color:var(--bleu-principal);">
+                    {{ d.montant_impot|floatformat:0 }} <small class="text-muted fw-normal">FCFA</small>
+                  </td>
+                  <td>
+                    <span class="badge rounded-pill
+                      {% if d.statut == 'validee' %}bg-success
+                      {% elif d.statut == 'en_retard' %}bg-danger
+                      {% elif d.statut == 'soumise' or d.statut == 'en_revision' %}bg-primary
+                      {% else %}bg-secondary{% endif %}" style="font-size:10px;">
+                      {{ d.get_statut_display }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="d-flex gap-1">
+                      <a href="{% url 'fiscalite:detail_declaration' d.pk %}" class="btn btn-xs btn-outline-primary" style="padding:.2rem .5rem;font-size:.75rem;" title="Détail">
+                        <i class="bi bi-eye"></i>
+                      </a>
+                      <a href="{% url 'fiscalite:pdf_declaration' d.pk %}" class="btn btn-xs btn-outline-danger" style="padding:.2rem .5rem;font-size:.75rem;" title="PDF">
+                        <i class="bi bi-file-pdf"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
           </div>
           {% else %}
-          <div class="text-center py-4">
-            <p class="text-muted">Aucune déclaration. <a href="{% url 'fiscalite:calculateur' %}">Faites votre premier calcul</a></p>
+          <div class="text-center py-5">
+            <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                 style="width:60px;height:60px;background:#D6EAF8;">
+              <i class="bi bi-receipt" style="font-size:1.8rem;color:#1B4F72;"></i>
+            </div>
+            <p class="text-muted mb-2">Aucune déclaration pour l'instant</p>
+            <a href="{% url 'fiscalite:calculateur' %}" class="btn btn-sm btn-lc-primary">Faire mon premier calcul</a>
           </div>
           {% endif %}
         </div>
@@ -144,6 +208,7 @@
 
     <!-- Sidebar droite -->
     <div class="col-12 col-lg-5">
+
       <!-- Prochaines échéances -->
       <div class="card mb-3">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -154,23 +219,32 @@
           {% if echeances %}
           <ul class="list-group list-group-flush">
             {% for ech in echeances %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <div class="fw-bold small">{{ ech.titre }}</div>
-                <small class="text-muted">{{ ech.date_limite|date:"d/m/Y" }}</small>
+            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+              <div class="d-flex align-items-center gap-2">
+                <div class="rounded d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width:34px;height:34px;
+                            background:{% if ech.statut == 'en_retard' %}#FDEDEC{% elif ech.statut == 'fait' %}#EAFAF1{% else %}#FEF9E7{% endif %};">
+                  <i class="bi bi-{% if ech.statut == 'fait' %}check-circle{% elif ech.statut == 'en_retard' %}exclamation-triangle{% else %}clock{% endif %}"
+                     style="font-size:.9rem;color:{% if ech.statut == 'en_retard' %}#E74C3C{% elif ech.statut == 'fait' %}#27AE60{% else %}#D35400{% endif %};"></i>
+                </div>
+                <div>
+                  <div class="fw-bold small">{{ ech.titre }}</div>
+                  <small class="text-muted">{{ ech.date_limite|date:"d/m/Y" }}</small>
+                </div>
               </div>
               <span class="badge rounded-pill
                 {% if ech.statut == 'fait' %}bg-success
                 {% elif ech.statut == 'en_retard' %}bg-danger
-                {% else %}bg-warning text-dark{% endif %}">
+                {% else %}bg-warning text-dark{% endif %}" style="font-size:10px;">
                 {{ ech.get_statut_display }}
               </span>
             </li>
             {% endfor %}
           </ul>
           {% else %}
-          <div class="text-center py-3">
-            <p class="text-muted small mb-1">Aucune échéance planifiée</p>
+          <div class="text-center py-4">
+            <i class="bi bi-calendar-plus text-muted" style="font-size:2rem;"></i>
+            <p class="text-muted small mt-2 mb-2">Aucune échéance planifiée</p>
             <a href="{% url 'fiscalite:calendrier' %}" class="btn btn-sm btn-lc-primary">Ajouter</a>
           </div>
           {% endif %}
@@ -180,26 +254,39 @@
       <!-- Accès rapides -->
       <div class="card">
         <div class="card-header fw-bold"><i class="bi bi-lightning"></i> Accès rapide</div>
-        <div class="card-body">
-          <div class="d-grid gap-2">
-            <a href="{% url 'fiscalite:calculateur' %}" class="btn btn-lc-primary">
+        <div class="card-body p-0">
+          {% for href, icon, label, color, bg in fiscal_links %}
+          <a href="{{ href }}" class="d-flex align-items-center gap-3 p-3 border-bottom text-decoration-none"
+             style="transition:.15s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background=''">
+            <div class="rounded d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:36px;height:36px;background:{{ bg }};">
+              <i class="bi bi-{{ icon }}" style="color:{{ color }};"></i>
+            </div>
+            <span class="fw-semibold small text-dark">{{ label }}</span>
+            <i class="bi bi-chevron-right ms-auto text-muted" style="font-size:.75rem;"></i>
+          </a>
+          {% empty %}
+          <div class="p-3 d-grid gap-2">
+            <a href="{% url 'fiscalite:calculateur' %}" class="btn btn-lc-primary btn-sm">
               <i class="bi bi-calculator"></i> Calculer un impôt
             </a>
-            <a href="{% url 'fiscalite:penalites' %}" class="btn btn-outline-danger">
-              <i class="bi bi-exclamation-triangle"></i> Simuler des pénalités
+            <a href="{% url 'fiscalite:penalites' %}" class="btn btn-outline-danger btn-sm">
+              <i class="bi bi-exclamation-triangle"></i> Simuler pénalités
             </a>
-            <a href="{% url 'fiscalite:recapitulatif' %}" class="btn btn-lc-outline">
+            <a href="{% url 'fiscalite:recapitulatif' %}" class="btn btn-lc-outline btn-sm">
               <i class="bi bi-file-earmark-bar-graph"></i> Récapitulatif annuel
             </a>
-            <a href="{% url 'fiscalite:conformite' %}" class="btn btn-outline-warning">
+            <a href="{% url 'fiscalite:conformite' %}" class="btn btn-outline-warning btn-sm">
               <i class="bi bi-shield-check"></i> Rapport de conformité
             </a>
-            <a href="{% url 'fiscalite:export_excel' %}" class="btn btn-outline-success">
+            <a href="{% url 'fiscalite:export_excel' %}" class="btn btn-outline-success btn-sm">
               <i class="bi bi-file-earmark-excel"></i> Exporter en Excel
             </a>
           </div>
+          {% endfor %}
         </div>
       </div>
+
     </div>
   </div>
 </div>
@@ -209,28 +296,20 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
 (function () {
-  const labels    = {{ chart_labels_json|safe }};
-  const data      = {{ chart_data_json|safe }};
-  const evolLab   = {{ evol_labels_json|safe }};
-  const evolData  = {{ evol_data_json|safe }};
-
-  const PALETTE = ['#1B4F72','#2E86C1','#27AE60','#F39C12','#8E44AD','#C0392B','#16A085','#D35400'];
+  const labels   = {{ chart_labels_json|safe }};
+  const data     = {{ chart_data_json|safe }};
+  const evolLab  = {{ evol_labels_json|safe }};
+  const evolData = {{ evol_data_json|safe }};
+  const PALETTE  = ['#1B4F72','#2E86C1','#27AE60','#F39C12','#8E44AD','#C0392B','#16A085','#D35400'];
 
   if (labels.length > 0) {
     new Chart(document.getElementById('chartRepartition'), {
       type: 'doughnut',
       data: {
         labels: labels,
-        datasets: [{
-          data        : data,
-          backgroundColor: PALETTE.slice(0, labels.length),
-          borderWidth : 2,
-        }]
+        datasets: [{ data, backgroundColor: PALETTE.slice(0, labels.length), borderWidth: 2 }]
       },
-      options: {
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } },
-        cutout: '60%',
-      }
+      options: { plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }, cutout: '60%' }
     });
   }
 
@@ -239,18 +318,11 @@
       type: 'bar',
       data: {
         labels: evolLab,
-        datasets: [{
-          label          : 'Impôts (FCFA)',
-          data           : evolData,
-          backgroundColor: '#2E86C1',
-          borderRadius   : 4,
-        }]
+        datasets: [{ label: 'Impôts (FCFA)', data: evolData, backgroundColor: '#2E86C1', borderRadius: 5 }]
       },
       options: {
         plugins: { legend: { display: false } },
-        scales : {
-          y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString('fr-FR') } }
-        }
+        scales: { y: { beginAtZero: true, ticks: { callback: v => v.toLocaleString('fr-FR') } } }
       }
     });
   }

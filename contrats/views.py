@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 from .models import Contrat, ModeleContrat, TYPES_CONTRAT
 from .forms import ContratEtape2Form
+from abonnements.services import limite_atteinte, limite_pour
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -32,6 +33,7 @@ def liste_contrats(request):
     page      = request.GET.get('page', 1)
     page_obj  = paginator.get_page(page)
 
+    all_contrats = Contrat.objects.filter(proprietaire=request.user)
     context = {
         'contrats'     : page_obj,
         'page_obj'     : page_obj,
@@ -40,6 +42,10 @@ def liste_contrats(request):
         'type_actif'   : type_contrat,
         'recherche'    : recherche,
         'total'        : paginator.count,
+        'nb_brouillons': all_contrats.filter(statut='brouillon').count(),
+        'nb_finalises' : all_contrats.filter(statut='finalise').count(),
+        'nb_signes'    : all_contrats.filter(statut='signe').count(),
+        'nb_archives'  : all_contrats.filter(statut='archive').count(),
     }
     return render(request, 'contrats/liste.html', context)
 @login_required
@@ -61,6 +67,15 @@ def choisir_modele(request):
 @login_required
 def creer_contrat(request, modele_id):
     modele = get_object_or_404(ModeleContrat, id=modele_id, actif=True)
+
+    if limite_atteinte(request.user, 'max_contrats_mois', Contrat.objects.filter(proprietaire=request.user)):
+        limite = limite_pour(request.user, 'max_contrats_mois')
+        messages.warning(
+            request,
+            f"Vous avez atteint votre limite de {limite} contrat(s) ce mois-ci. "
+            "Passez à un plan supérieur pour continuer."
+        )
+        return redirect('abonnements:liste_plans')
 
     if request.method == 'POST':
         form = ContratEtape2Form(request.POST)

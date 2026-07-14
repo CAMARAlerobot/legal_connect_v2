@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Mon abonnement — Légal Connect{% endblock %}
+
+{% block content %}
+<div class="main-content">
+  <h1 class="page-title mb-3"><i class="bi bi-receipt"></i> Mon abonnement</h1>
+
+  {% if paiement_en_attente %}
+  <div class="card mb-4 border-warning">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="bi bi-hourglass-split text-warning"></i> Paiement en attente de confirmation
+      </h5>
+      <p class="mb-1">
+        Plan « {{ paiement_en_attente.abonnement.plan.nom }} » —
+        {{ paiement_en_attente.montant|floatformat:0 }} FCFA via
+        {{ paiement_en_attente.get_moyen_paiement_display }}
+      </p>
+      {% if paiement_en_attente.numero_telephone %}
+      <p class="mb-1">
+        Une demande de confirmation a été envoyée au
+        <strong>{{ paiement_en_attente.numero_telephone }}</strong>.
+        Validez avec votre code secret sur votre téléphone.
+      </p>
+      {% endif %}
+      <p class="text-muted small mb-3">Référence : {{ paiement_en_attente.reference_transaction }}</p>
+
+      {% if mode_simulation %}
+      <form method="post" action="{% url 'abonnements:simuler_confirmation' paiement_en_attente.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-lc-primary btn-sm">
+          <i class="bi bi-phone-vibrate"></i> Simuler la confirmation Mobile Money
+        </button>
+        <span class="text-muted small ms-2">(mode démonstration — aucun paiement réel)</span>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if abonnement_actif %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">{{ abonnement_actif.plan.nom }}</h5>
+      <p class="mb-1">Statut : <span class="badge bg-success">Actif</span></p>
+      <p class="mb-1">Valide jusqu'au {{ abonnement_actif.date_fin|date:"d/m/Y H:i" }}</p>
+      <p class="mb-3">Renouvellement automatique : {% if abonnement_actif.renouvellement_auto %}Oui{% else %}Non{% endif %}</p>
+      {% if abonnement_actif.renouvellement_auto %}
+      <form method="post" action="{% url 'abonnements:annuler_renouvellement' abonnement_actif.pk %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger btn-sm">Désactiver le renouvellement</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-warning">
+    Vous n'avez pas d'abonnement actif.
+    <a href="{% url 'abonnements:liste_plans' %}">Voir les plans disponibles</a>.
+  </div>
+  {% endif %}
+
+  <h5 class="mb-2">Historique</h5>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle">
+      <thead>
+        <tr>
+          <th>Plan</th><th>Statut</th><th>Début</th><th>Fin</th><th>Paiements</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for abo in historique %}
+        <tr>
+          <td>{{ abo.plan.nom }}</td>
+          <td>{{ abo.get_statut_display }}</td>
+          <td>{{ abo.date_debut|date:"d/m/Y"|default:"—" }}</td>
+          <td>{{ abo.date_fin|date:"d/m/Y"|default:"—" }}</td>
+          <td>
+            {% for p in abo.paiements.all %}
+              <span class="badge bg-light text-dark border">
+                {{ p.montant|floatformat:0 }} FCFA — {{ p.get_statut_display }}
+              </span>
+            {% empty %}—{% endfor %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-muted">Aucun abonnement pour l'instant.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

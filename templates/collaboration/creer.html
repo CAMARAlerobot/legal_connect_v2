@@ -1,153 +1,490 @@
 {% extends 'base.html' %}
 {% block title %}Nouveau Dossier — Légal Connect{% endblock %}
 
+{% block extra_css %}
+<style>
+  .page-creer { max-width: 780px; margin: 0 auto; }
+
+  /* Zone de dépôt */
+  .drop-zone {
+    border: 2.5px dashed #BDC3C7;
+    border-radius: 16px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    background: #FAFBFC;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.hover {
+    border-color: #1B4F72;
+    background: #EBF5FB;
+  }
+  .drop-zone.has-file {
+    border-color: #27AE60;
+    background: #EAFAF1;
+    border-style: solid;
+  }
+  .drop-icon {
+    font-size: 2.8rem;
+    color: #BDC3C7;
+    margin-bottom: .5rem;
+    transition: color .2s;
+  }
+  .drop-zone.has-file .drop-icon { color: #27AE60; }
+  .drop-zone.hover .drop-icon { color: #1B4F72; }
+  .drop-zone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .file-preview {
+    display: none;
+    align-items: center;
+    gap: .75rem;
+    background: #fff;
+    border: 1px solid #D5F5E3;
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    margin-top: .75rem;
+  }
+  .file-preview.show { display: flex; }
+  .file-icon-box {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    background: #D5F5E3;
+    color: #1E8449;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0;
+  }
+  .btn-remove-file {
+    margin-left: auto;
+    background: none; border: none;
+    color: #E74C3C; cursor: pointer; font-size: 1.1rem;
+    padding: .25rem;
+  }
+
+  /* Séparateur OU */
+  .ou-separator {
+    display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0;
+  }
+  .ou-separator::before, .ou-separator::after {
+    content: ''; flex: 1; height: 1px; background: #E5E9EF;
+  }
+  .ou-text {
+    color: #9CA3AF; font-size: .8rem; font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Champs du formulaire */
+  .form-section {
+    background: #fff;
+    border: 1px solid #E5E9EF;
+    border-radius: 14px;
+    padding: 1.5rem;
+  }
+  .form-section-title {
+    font-size: .8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: #6B7C93;
+    margin-bottom: 1rem;
+  }
+  .form-label { font-weight: 600; font-size: .85rem; color: #374151; }
+  .optional-tag {
+    font-size: .72rem; font-weight: 400;
+    color: #9CA3AF; margin-left: .4rem;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #1B4F72;
+    box-shadow: 0 0 0 3px rgba(27,79,114,.1);
+  }
+
+  /* Expert preview */
+  .expert-card {
+    background: #F0F8FF;
+    border: 1.5px solid #BDD7EE;
+    border-radius: 12px;
+    padding: .9rem 1.1rem;
+    display: none;
+  }
+  .expert-card.show { display: flex; gap: .85rem; align-items: center; }
+  .expert-avatar {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #1B4F72, #2E86C1);
+    color: #fff; font-weight: 700; font-size: .9rem;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  /* Bouton soumettre */
+  .btn-submit {
+    background: linear-gradient(135deg, #1B4F72, #2E86C1);
+    color: #fff; border: none;
+    border-radius: 12px; padding: .85rem 2rem;
+    font-weight: 700; font-size: .95rem;
+    transition: .2s; width: 100%;
+  }
+  .btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(27,79,114,.3); color:#fff; }
+  .btn-submit:disabled { opacity: .5; transform: none; cursor: not-allowed; }
+
+  /* Timeline d'aide */
+  .steps-list { list-style: none; padding: 0; margin: 0; }
+  .steps-list li {
+    display: flex; gap: .75rem; align-items: flex-start;
+    padding: .5rem 0; border-bottom: 1px solid #F0F4F8; font-size: .83rem;
+  }
+  .steps-list li:last-child { border-bottom: none; }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #1B4F72; color: #fff;
+    font-size: .72rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    margin-top: .1rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="main-content">
-  <h1 class="page-title"><i class="bi bi-folder-plus"></i> Nouveau Dossier</h1>
+<div class="main-content page-creer">
 
-  <div class="row justify-content-center">
-    <div class="col-lg-7">
-      <div class="card">
-        <div class="card-header"><i class="bi bi-pencil-square"></i> Décrire votre demande</div>
-        <div class="card-body p-4">
-
-          {% if messages %}
-          {% for message in messages %}
-          <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-          {% endfor %}
-          {% endif %}
-
-          <form method="post">
-            {% csrf_token %}
-
-            <div class="mb-3">
-              <label class="form-label fw-bold">Titre du dossier *</label>
-              <input type="text" name="titre" class="form-control"
-                     placeholder="Ex: Vérification contrat de bail commercial" required>
-            </div>
-
-            <div class="row g-3 mb-3">
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Type de demande *</label>
-                <select name="type_dossier" class="form-select" required>
-                  {% for val, label in types %}
-                  <option value="{{ val }}">{{ label }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Priorité</label>
-                <select name="priorite" class="form-select">
-                  <option value="basse">Basse</option>
-                  <option value="normale" selected>Normale</option>
-                  <option value="haute">Haute</option>
-                  <option value="urgente">Urgente ⚠</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label fw-bold">Description détaillée *</label>
-              <textarea name="description" class="form-control" rows="5" required
-                        placeholder="Décrivez votre problème en détail : contexte, documents concernés, questions spécifiques..."></textarea>
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label fw-bold">Assigner directement à un expert (optionnel)</label>
-              <select name="expert_id" id="expert_select" class="form-select">
-                <option value="">Laisser l'équipe assigner un expert</option>
-                {% for expert in experts %}
-                <option value="{{ expert.id }}"
-                  data-entreprise="{{ expert.profil.entreprise|default:'Expert indépendant' }}"
-                  data-specialite="{{ expert.profil.get_specialite_display|default:'' }}"
-                  data-nom="{{ expert.first_name }} {{ expert.last_name }}"
-                  data-initiales="{{ expert.first_name|first|upper }}{{ expert.last_name|first|upper }}"
-                  data-url="{% url 'annuaire:profil' expert.id %}"
-                  {% if request.GET.expert == expert.id|stringformat:"s" %}selected{% endif %}>
-                  {{ expert.first_name }} {{ expert.last_name }}
-                  {% if expert.profil.entreprise %} — {{ expert.profil.entreprise }}{% endif %}
-                </option>
-                {% endfor %}
-              </select>
-              <small class="text-muted">Si vous ne sélectionnez pas d'expert, un administrateur vous en assignera un.</small>
-
-              <!-- Aperçu expert sélectionné -->
-              <div id="expert-apercu" class="mt-3 rounded border p-3 d-none"
-                   style="background:#f0f4ff; border-color:#2E86C1 !important;">
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                  <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white flex-shrink-0"
-                       id="apercu-initiales"
-                       style="width:48px; height:48px; font-size:1.2rem;
-                              background: linear-gradient(135deg, var(--bleu-principal), var(--bleu-principal));">
-                  </div>
-                  <div class="flex-grow-1">
-                    <div class="fw-bold mb-0" id="apercu-nom" style="color:var(--bleu-principal);"></div>
-                    <div class="small text-muted" id="apercu-entreprise"></div>
-                    <div id="apercu-specialite" class="mt-1"></div>
-                  </div>
-                  <a href="#" id="apercu-lien" class="btn btn-sm btn-outline-secondary" target="_blank">
-                    <i class="bi bi-person-badge"></i> Voir son profil complet
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <div class="d-flex gap-2">
-              <a href="{% url 'collaboration:liste' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Retour
-              </a>
-              <button type="submit" class="btn btn-lc-primary flex-grow-1">
-                <i class="bi bi-send"></i> Soumettre le dossier
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Info -->
-      <div class="card mt-3">
-        <div class="card-body">
-          <h6 class="fw-bold" style="color:var(--bleu-principal);"><i class="bi bi-info-circle"></i> Comment ça marche ?</h6>
-          <ol class="mb-0 ps-3">
-            <li class="small mb-1">Vous soumettez votre dossier avec une description détaillée</li>
-            <li class="small mb-1">Un expert est assigné à votre dossier</li>
-            <li class="small mb-1">L'expert analyse et échange avec vous via la messagerie</li>
-            <li class="small mb-1">L'expert valide ou rejette le dossier avec un avis détaillé</li>
-          </ol>
-        </div>
-      </div>
+  <!-- En-tête -->
+  <div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{% url 'collaboration:liste' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+      <h1 class="page-title mb-0"><i class="bi bi-folder-plus"></i> Nouveau dossier</h1>
+      <p class="text-muted mb-0 small">Soumettez un fichier ou remplissez le formulaire</p>
     </div>
   </div>
+
+  {% if messages %}
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible mb-3">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" id="form-dossier">
+    {% csrf_token %}
+
+    <div class="row g-4">
+      <!-- Colonne principale -->
+      <div class="col-lg-8">
+
+        <!-- ① Zone de dépôt de fichier -->
+        <div class="form-section mb-4">
+          <div class="form-section-title">
+            <i class="bi bi-paperclip me-1"></i> Joindre un document
+            <span class="optional-tag">(optionnel)</span>
+          </div>
+
+          <div class="drop-zone" id="drop-zone">
+            <input type="file" name="fichier" id="fichier-input"
+                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.txt,.odt,.ods">
+            <div class="drop-icon"><i class="bi bi-cloud-upload"></i></div>
+            <div class="fw-700 mb-1" style="color:#374151;">
+              Glissez votre fichier ici ou cliquez pour choisir
+            </div>
+            <div class="text-muted small">
+              PDF, Word, Excel, images — max 10 Mo
+            </div>
+          </div>
+
+          <!-- Aperçu du fichier sélectionné -->
+          <div class="file-preview" id="file-preview">
+            <div class="file-icon-box" id="file-icon">
+              <i class="bi bi-file-earmark"></i>
+            </div>
+            <div>
+              <div class="fw-600" id="file-name" style="color:#1A2332;"></div>
+              <div class="text-muted small" id="file-size"></div>
+            </div>
+            <button type="button" class="btn-remove-file" id="btn-remove" title="Retirer le fichier">
+              <i class="bi bi-x-circle-fill"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Séparateur -->
+        <div class="ou-separator">
+          <span class="ou-text">DÉTAILS DU DOSSIER</span>
+        </div>
+
+        <!-- ② Champs du formulaire -->
+        <div class="form-section">
+
+          <!-- Titre -->
+          <div class="mb-3">
+            <label class="form-label">
+              Titre du dossier
+              <span class="optional-tag" id="titre-optional-tag">(optionnel si fichier joint)</span>
+              <span class="optional-tag d-none" id="titre-required-tag" style="color:#E74C3C;">*</span>
+            </label>
+            <input type="text" name="titre" id="titre-input" class="form-control"
+                   placeholder="Ex : Vérification contrat de bail commercial">
+            <div class="form-text text-muted" id="titre-hint" style="display:none;">
+              <i class="bi bi-magic me-1 text-success"></i>
+              Titre auto-rempli depuis le nom du fichier — vous pouvez le modifier.
+            </div>
+          </div>
+
+          <!-- Type + Priorité -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label">Type de demande</label>
+              <select name="type_dossier" class="form-select">
+                {% for val, label in types %}
+                <option value="{{ val }}">{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Priorité</label>
+              <select name="priorite" class="form-select">
+                <option value="basse">🟢 Basse</option>
+                <option value="normale" selected>🔵 Normale</option>
+                <option value="haute">🟠 Haute</option>
+                <option value="urgente">🔴 Urgente</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mb-3">
+            <label class="form-label">
+              Description
+              <span class="optional-tag">(optionnel si fichier joint)</span>
+            </label>
+            <textarea name="description" id="description-input" class="form-control" rows="4"
+                      placeholder="Décrivez votre problème : contexte, questions spécifiques, ce que vous attendez de l'expert..."></textarea>
+          </div>
+
+          <!-- Expert -->
+          <div class="mb-3">
+            <label class="form-label">Expert <span class="optional-tag">(optionnel)</span></label>
+            <select name="expert_id" id="expert_select" class="form-select">
+              <option value="">— Laisser l'équipe assigner un expert —</option>
+              {% for expert in experts %}
+              <option value="{{ expert.id }}"
+                data-nom="{{ expert.first_name }} {{ expert.last_name }}"
+                data-entreprise="{{ expert.profil.entreprise|default:'Expert indépendant' }}"
+                data-specialite="{{ expert.profil.get_specialite_display|default:'' }}"
+                data-initiales="{{ expert.first_name|first|upper }}{{ expert.last_name|first|upper }}"
+                {% if request.GET.expert == expert.id|stringformat:"s" %}selected{% endif %}>
+                {{ expert.first_name }} {{ expert.last_name }}
+                {% if expert.profil.entreprise %} — {{ expert.profil.entreprise }}{% endif %}
+              </option>
+              {% endfor %}
+            </select>
+            <div class="expert-card mt-2" id="expert-card">
+              <div class="expert-avatar" id="expert-initiales"></div>
+              <div>
+                <div class="fw-600" id="expert-nom" style="color:#1B4F72;"></div>
+                <div class="text-muted small" id="expert-entreprise"></div>
+                <div id="expert-specialite" class="mt-1"></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /form-section -->
+
+        <!-- Bouton -->
+        <div class="d-flex gap-3 mt-4">
+          <a href="{% url 'collaboration:liste' %}" class="btn btn-outline-secondary px-4">
+            Annuler
+          </a>
+          <button type="submit" class="btn-submit" id="btn-submit">
+            <i class="bi bi-send me-2"></i> Soumettre le dossier
+          </button>
+        </div>
+
+      </div><!-- /col-lg-8 -->
+
+      <!-- Colonne latérale -->
+      <div class="col-lg-4">
+
+        <!-- Formats acceptés -->
+        <div class="card border-0 shadow-sm mb-3">
+          <div class="card-body">
+            <div class="fw-700 mb-2" style="color:#1B4F72; font-size:.85rem;">
+              <i class="bi bi-file-earmark-check me-1"></i> Formats acceptés
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge" style="background:#FADBD8; color:#922B21;">
+                <i class="bi bi-file-pdf me-1"></i>PDF
+              </span>
+              <span class="badge" style="background:#D6EAF8; color:#1B4F72;">
+                <i class="bi bi-file-word me-1"></i>Word
+              </span>
+              <span class="badge" style="background:#D5F5E3; color:#1E8449;">
+                <i class="bi bi-file-excel me-1"></i>Excel
+              </span>
+              <span class="badge" style="background:#FEF9E7; color:#9A7D0A;">
+                <i class="bi bi-file-image me-1"></i>Image
+              </span>
+              <span class="badge" style="background:#F0F4F8; color:#4A5568;">
+                <i class="bi bi-file-text me-1"></i>Texte
+              </span>
+            </div>
+            <div class="text-muted mt-2" style="font-size:.75rem;">
+              <i class="bi bi-info-circle me-1"></i>Taille max : 10 Mo par fichier
+            </div>
+          </div>
+        </div>
+
+        <!-- Comment ça marche -->
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="fw-700 mb-3" style="color:#1B4F72; font-size:.85rem;">
+              <i class="bi bi-lightning-charge me-1"></i> Comment ça marche ?
+            </div>
+            <ul class="steps-list">
+              <li>
+                <div class="step-num">1</div>
+                <div><strong>Joignez votre fichier</strong><br>
+                  <span class="text-muted">Contrat, document, facture... Le titre se remplit automatiquement</span>
+                </div>
+              </li>
+              <li>
+                <div class="step-num">2</div>
+                <div><strong>Un expert est assigné</strong><br>
+                  <span class="text-muted">Choisissez-en un ou laissez l'équipe vous en trouver un</span>
+                </div>
+              </li>
+              <li>
+                <div class="step-num">3</div>
+                <div><strong>Échangez et obtenez un avis</strong><br>
+                  <span class="text-muted">Via la messagerie intégrée, en toute confidentialité</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </form>
+
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-(function () {
-  const sel    = document.getElementById('expert_select');
-  const apercu = document.getElementById('expert-apercu');
-  const elInit = document.getElementById('apercu-initiales');
-  const elNom  = document.getElementById('apercu-nom');
-  const elEntr = document.getElementById('apercu-entreprise');
-  const elSpec = document.getElementById('apercu-specialite');
-  const elLien = document.getElementById('apercu-lien');
+const dropZone    = document.getElementById('drop-zone');
+const fileInput   = document.getElementById('fichier-input');
+const filePreview = document.getElementById('file-preview');
+const fileNameEl  = document.getElementById('file-name');
+const fileSizeEl  = document.getElementById('file-size');
+const fileIconEl  = document.getElementById('file-icon');
+const btnRemove   = document.getElementById('btn-remove');
+const titreInput  = document.getElementById('titre-input');
+const titreHint   = document.getElementById('titre-hint');
+const titreOptTag = document.getElementById('titre-optional-tag');
+const titreReqTag = document.getElementById('titre-required-tag');
 
-  function majApercu() {
-    const opt = sel.options[sel.selectedIndex];
-    if (!sel.value) { apercu.classList.add('d-none'); return; }
-    apercu.classList.remove('d-none');
-    elInit.textContent = opt.dataset.initiales || '?';
-    elNom.textContent  = opt.dataset.nom || '';
-    elEntr.textContent = opt.dataset.entreprise || '';
-    elSpec.innerHTML   = opt.dataset.specialite
-      ? `<span class="badge rounded-pill px-2 py-1" style="background:var(--bleu-clair);color:var(--bleu-principal);font-size:11px;">
-           <i class="bi bi-award"></i> ${opt.dataset.specialite}</span>`
-      : '';
-    elLien.href = opt.dataset.url || '#';
+// ── Icônes par extension ──
+const iconMap = {
+  pdf  : { icon: 'bi-file-pdf', bg: '#FADBD8', color: '#922B21' },
+  doc  : { icon: 'bi-file-word', bg: '#D6EAF8', color: '#1B4F72' },
+  docx : { icon: 'bi-file-word', bg: '#D6EAF8', color: '#1B4F72' },
+  xls  : { icon: 'bi-file-excel', bg: '#D5F5E3', color: '#1E8449' },
+  xlsx : { icon: 'bi-file-excel', bg: '#D5F5E3', color: '#1E8449' },
+  jpg  : { icon: 'bi-file-image', bg: '#FEF9E7', color: '#9A7D0A' },
+  jpeg : { icon: 'bi-file-image', bg: '#FEF9E7', color: '#9A7D0A' },
+  png  : { icon: 'bi-file-image', bg: '#FEF9E7', color: '#9A7D0A' },
+  txt  : { icon: 'bi-file-text', bg: '#F0F4F8', color: '#4A5568' },
+  ppt  : { icon: 'bi-file-ppt', bg: '#FEE8D6', color: '#C0392B' },
+  pptx : { icon: 'bi-file-ppt', bg: '#FEE8D6', color: '#C0392B' },
+};
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' o';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' Ko';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' Mo';
+}
+
+function appliquerFichier(file) {
+  if (!file) return;
+
+  const ext  = file.name.split('.').pop().toLowerCase();
+  const info = iconMap[ext] || { icon: 'bi-file-earmark', bg: '#F0F4F8', color: '#4A5568' };
+
+  // Aperçu fichier
+  fileNameEl.textContent = file.name;
+  fileSizeEl.textContent = formatBytes(file.size);
+  fileIconEl.innerHTML   = `<i class="bi ${info.icon}"></i>`;
+  fileIconEl.style.background = info.bg;
+  fileIconEl.style.color      = info.color;
+  filePreview.classList.add('show');
+  dropZone.classList.add('has-file');
+
+  // Auto-remplir le titre si vide
+  if (!titreInput.value.trim()) {
+    const nomSanExt = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+    titreInput.value = nomSanExt.charAt(0).toUpperCase() + nomSanExt.slice(1);
+    titreHint.style.display = 'block';
   }
+  titreOptTag.classList.remove('d-none');
+  titreReqTag.classList.add('d-none');
+}
 
-  sel.addEventListener('change', majApercu);
-  majApercu();
-})();
+function retirerFichier() {
+  fileInput.value   = '';
+  filePreview.classList.remove('show');
+  dropZone.classList.remove('has-file');
+  titreHint.style.display = 'none';
+  titreOptTag.classList.remove('d-none');
+  titreReqTag.classList.add('d-none');
+}
+
+// Changement via input
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) appliquerFichier(fileInput.files[0]);
+});
+
+// Bouton retirer
+btnRemove.addEventListener('click', retirerFichier);
+
+// Drag & drop
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('hover');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('hover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('hover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    // Injecter le fichier dans l'input
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    appliquerFichier(file);
+  }
+});
+
+// ── Expert preview ──
+const expertSel  = document.getElementById('expert_select');
+const expertCard = document.getElementById('expert-card');
+
+function majExpert() {
+  const opt = expertSel.options[expertSel.selectedIndex];
+  if (!expertSel.value) { expertCard.classList.remove('show'); return; }
+  expertCard.classList.add('show');
+  document.getElementById('expert-initiales').textContent  = opt.dataset.initiales || '?';
+  document.getElementById('expert-nom').textContent        = opt.dataset.nom || '';
+  document.getElementById('expert-entreprise').textContent = opt.dataset.entreprise || '';
+  const specEl = document.getElementById('expert-specialite');
+  specEl.innerHTML = opt.dataset.specialite
+    ? `<span class="badge" style="background:#D6EAF8;color:#1B4F72;font-size:.72rem;">
+         <i class="bi bi-award me-1"></i>${opt.dataset.specialite}</span>`
+    : '';
+}
+
+expertSel.addEventListener('change', majExpert);
+majExpert();
 </script>
 {% endblock %}

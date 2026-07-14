@@ -39,6 +39,35 @@ Elle répond à un besoin concret : les commerçants et prestataires du secteur 
 | 🌐 Landing Page | Page d'accueil publique professionnelle | ✅ |
 | 📊 Dashboard | Graphiques Chart.js, KPIs, statistiques | ✅ |
 | 📑 Pagination | Pagination sur toutes les listes | ✅ |
+| 🤖 Chatbot juridique | IA générative (Claude) + RAG sur 9392 lignes d'articles de loi réels | ✅ |
+| 🎯 Recommandation d'experts | Classifieur ML (TF-IDF + LinearSVC), F1 = 0.928 | ✅ |
+| 💳 Abonnements | Plans par rôle, paiement Mobile Money simulé (CinetPay), espace admin revenus | ✅ |
+
+---
+
+## 🤖 Chatbot juridique — IA générative et RAG
+
+Le chatbot combine deux mécanismes complémentaires plutôt qu'une seule approche :
+
+1. **Génération de réponses** via l'API Claude (Anthropic), guidée par un prompt système qui définit son rôle et ses règles de comportement (`chatbot/moteur_ia.py`).
+2. **RAG (Retrieval-Augmented Generation)** : avant chaque réponse, le système cherche par similarité textuelle (TF-IDF + similarité cosinus) les articles de loi les plus pertinents parmi un corpus de **9 392 lignes** (Code Civil, Code du Travail, Code Pénal, OHADA, Accord de Bangui/OAPI — 3 219 articles uniques), puis les injecte dans le contexte fourni à Claude. Le système classe d'abord la question par domaine juridique (`ml_recommandation`) pour restreindre la recherche à la bonne catégorie et éviter les faux positifs lexicaux entre domaines (ex. « caution » = cautionnement en droit des obligations, vs. dépôt de garantie locatif).
+
+**Mode de repli sans IA** (`chatbot/moteur.py`) : si l'API est indisponible (pas de clé, crédit épuisé, panne réseau), le chatbot bascule automatiquement sur un moteur à règles + la même recherche RAG, sans transmission de données à un tiers — le service continue de fonctionner en mode dégradé plutôt que de tomber en panne.
+
+**Limites connues, documentées plutôt que masquées** : le Code Civil (droit napoléonien traduit) domine numériquement le corpus et peut faire remonter des articles hors-sujet par polysémie ; certains sujets très demandés (bail locatif moderne, démarches CEPICI, TVA/CGI précis) ne sont pas encore bien couverts.
+
+Pipeline technique : `chatbot/data/*.csv` (lots de données) → `chatbot/construire_index.py` (indexation TF-IDF) → `chatbot/index/*.pkl` → `chatbot/kb.py` (recherche).
+
+## 🎯 Système de recommandation d'experts — Machine Learning
+
+Classifieur supervisé (TF-IDF + LinearSVC, `ml_recommandation/`) qui devine le domaine juridique d'un problème décrit en langage libre, pour orienter vers le bon type d'expert.
+
+**Méthodologie de validation** (au-delà du score sur split aléatoire, volontairement plus rigoureuse) :
+- F1-score pondéré (split 80/20) : **0.928** — validation croisée 5-fold : **0.931** (±0.012)
+- Un **jeu de 20 questions réalistes indépendantes**, rédigées spécifiquement pour tester la généralisation (et non issues des données d'entraînement) : **19/20** de bonnes catégories devinées
+- Un **bug de désynchronisation** entre le nettoyage de texte à l'entraînement et à la prédiction a été détecté puis corrigé au cours de cette validation — sans le jeu de test indépendant, il serait passé inaperçu malgré un bon score apparent
+
+**Choix méthodologique documenté** : seules les reformulations en question (« query_variant ») des lots de données du chatbot sont réutilisées pour l'entraînement, pas le texte de loi brut — trop éloigné du registre d'un utilisateur décrivant son problème. Un plafond de 50 exemples réels par catégorie a été retenu après ablation (150/catégorie diluait et dégradait la généralisation).
 
 ---
 
@@ -168,6 +197,44 @@ Après `python populate_db.py` :
 | Landing Page | Dashboard | Calculateur Fiscal |
 |---|---|---|
 | Page d'accueil publique avec hero, features et témoignages | KPIs + graphiques Chart.js + actions rapides | Calcul TVA/IS/CNPS avec export PDF |
+
+---
+
+## 🔒 Confidentialité des données et dépendance à un service tiers
+
+L'intégration de l'intelligence artificielle générative dans le chatbot juridique repose sur l'API d'Anthropic (Claude), un service hébergé hors du territoire ivoirien. Ce choix architectural, motivé par la rapidité de mise en œuvre et la qualité des réponses en langue française, soulève trois questions qu'il convient de traiter explicitement plutôt que de les ignorer.
+
+**Souveraineté des données.** Chaque message soumis par un utilisateur au chatbot — qui peut contenir des informations sensibles sur sa situation personnelle, professionnelle ou financière — est transmis aux serveurs d'Anthropic pour traitement. Cette transmission place les données hors du cadre juridique ivoirien pendant leur traitement, ce qui constitue une limite pour une plateforme destinée à des citoyens et entreprises de Côte d'Ivoire. Une vérification de la politique de traitement et de rétention des données d'Anthropic (disponible sur `anthropic.com/legal`) est recommandée avant tout déploiement en production, ainsi qu'une information claire des utilisateurs sur ce point (mention dans les conditions d'utilisation).
+
+**Résilience architecturale.** Pour limiter cette dépendance, le système a été conçu avec un mode de repli (`chatbot/moteur.py`) qui fonctionne entièrement en local, sans transmission de données à un tiers : il s'appuie sur une base de connaissances juridique constituée d'articles de loi réels (9 392 lignes) interrogée par similarité textuelle (TF-IDF), sans appel à un service externe. Ce mode s'active automatiquement en cas d'indisponibilité de l'API (absence de clé, crédit épuisé, panne réseau), ce qui garantit une continuité de service même en l'absence de connexion à un fournisseur d'IA générative.
+
+**Coût récurrent.** Contrairement au mode de repli, chaque appel à l'API Claude engendre un coût facturé à l'usage (au nombre de jetons traités). Aucun mécanisme de limitation par utilisateur (rate limiting) n'est actuellement en place, ce qui constitue un risque en cas de forte adoption ou d'usage abusif. Ce point est identifié comme un développement prioritaire avant un déploiement à grande échelle.
+
+**Perspective.** Une évolution envisageable pour renforcer la souveraineté numérique du projet serait l'hébergement local d'un modèle de langage open-source (par exemple Llama ou Mistral) sur une infrastructure ivoirienne ou africaine, en complément ou remplacement de l'API Anthropic — au prix d'une complexité d'infrastructure et d'un investissement en calcul plus importants, à mettre en balance avec le gain en maîtrise des données.
+
+---
+
+## 💳 Système d'abonnement
+
+Modèle **freemium par rôle** : chaque rôle (commerçant, prestataire, expert, institution) a ses propres paliers d'abonnement avec des limites d'usage (nombre de contrats/dossiers/messages chatbot par mois), et les experts peuvent souscrire à une mise en avant dans l'annuaire.
+
+**Modèles** (`abonnements/`) : `Plan` (par rôle, prix, limites), `Abonnement` (statut, dates de validité), `Paiement` (moyen, statut, référence de transaction).
+
+**Paiement Mobile Money** : intégration via **CinetPay**, un agrégateur qui couvre Orange Money, MTN Mobile Money, Moov Money, Wave et carte bancaire en une seule API — plus réaliste que d'intégrer chaque opérateur télécom séparément (commission CinetPay ≈ 3,5% par transaction en Côte d'Ivoire, pas d'abonnement fixe). Sans compte marchand actif, le système bascule en **mode simulation** : demande du numéro à débiter, message d'attente de confirmation réaliste, et un bouton de simulation qui reproduit le comportement du vrai webhook — avec un garde-fou testé qui empêche formellement cette simulation de fonctionner si un vrai compte CinetPay venait à être configuré.
+
+**Espace admin** (`/abonnements/admin/`) : revenu total et mensuel, répartition par plan et par moyen de paiement, suivi des abonnements et paiements.
+
+---
+
+## 🧪 Tests
+
+Suite de non-régression (`test_general_app.py`, **28 tests**) couvrant l'ensemble des apps : pages publiques/protégées par rôle, cycles de vie complets (contrats, documents, dossiers de collaboration), chatbot et recommandation de bout en bout, API REST (JWT), et système d'abonnement (souscription, paiement, limites, garde-fou de sécurité).
+
+```bash
+python manage.py test test_general_app -v 2 --noinput
+```
+
+Utilise la base de données de test Django (créée et détruite automatiquement) — ne touche jamais la base de développement.
 
 ---
 
