@@ -44,6 +44,7 @@ class Plan(models.Model):
     # Limites d'usage — null = illimite
     max_contrats_mois          = models.PositiveIntegerField(null=True, blank=True)
     max_dossiers_mois          = models.PositiveIntegerField(null=True, blank=True)
+    max_documents_mois         = models.PositiveIntegerField(null=True, blank=True)
     max_messages_chatbot_mois  = models.PositiveIntegerField(null=True, blank=True)
     mise_en_avant_annuaire     = models.BooleanField(
         default=False, help_text="Reserve aux experts : mise en avant dans l'annuaire"

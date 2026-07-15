@@ -371,7 +371,7 @@ def main():
         pickle.dump(vectorizer, f)
     with open(MODEL_DIR / 'classifier.pkl', 'wb') as f:
         pickle.dump(clf, f)
-    print(f"   vectorizer.pkl et classifier.pkl → {MODEL_DIR}")
+    print(f"   vectorizer.pkl et classifier.pkl -> {MODEL_DIR}")
 
     print("\n8. Tests rapides...")
     tests = [
@@ -388,7 +388,7 @@ def main():
         t_net = nettoyer_texte(t)
         v = vectorizer.transform([t_net])
         pred = clf.predict(v)[0]
-        print(f"   '{t[:50]}' → {pred}")
+        print(f"   '{t[:50]}' -> {pred}")
 
     print(f"\n{'=' * 60}")
     if f1 >= 0.80:

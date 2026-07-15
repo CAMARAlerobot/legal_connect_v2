@@ -15,8 +15,10 @@ from unittest.mock import patch
 
 from accounts.models import Profil
 from abonnements.models import Abonnement, Paiement, Plan
+from chatbot.models import ConversationChatbot, MessageChatbot
 from collaboration.models import Dossier
 from contrats.models import Contrat, ModeleContrat
+from documents.models import Document
 
 
 class TestGeneralApplication(TestCase):
@@ -515,3 +517,64 @@ class TestAbonnements(TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertContains(r, '5000')
         self.assertContains(r, 'test_abo')
+
+    def test_limite_documents_gratuits_bloque_upload(self):
+        # Limite gratuite implicite = 3 documents/mois (aucun abonnement actif)
+        for i in range(3):
+            Document.objects.create(
+                proprietaire=self.user, titre=f'Doc {i}', categorie='autre',
+                fichier=SimpleUploadedFile(f'd{i}.pdf', b'%PDF-1.4'),
+            )
+        r = self.client.get('/documents/upload/')
+        self.assertRedirects(r, '/abonnements/')
+
+    def test_limite_dossiers_gratuits_bloque_creation(self):
+        # Limite gratuite implicite = 2 dossiers/mois
+        for i in range(2):
+            Dossier.objects.create(client=self.user, titre=f'Dossier {i}', type_dossier='autre')
+        r = self.client.get('/collaboration/creer/')
+        self.assertRedirects(r, '/abonnements/')
+
+    def test_limite_chatbot_gratuite_bloque_message(self):
+        # Limite gratuite implicite = 20 messages/mois
+        conversation = ConversationChatbot.objects.create(session_id='s1', utilisateur=self.user)
+        for i in range(20):
+            MessageChatbot.objects.create(
+                conversation=conversation, expediteur=MessageChatbot.Expediteur.UTILISATEUR,
+                contenu=f'Message {i}',
+            )
+        r = self.client.post(
+            '/chatbot/ajax/',
+            data='{"message": "Un de trop", "session_id": "s1"}',
+            content_type='application/json',
+        )
+        self.assertEqual(r.status_code, 403)
+        self.assertTrue(r.json().get('limite_atteinte'))
+
+    def test_commande_expirer_abonnements(self):
+        from django.core.management import call_command
+        abo = Abonnement.objects.create(
+            utilisateur=self.user, plan=self.plan_gratuit, statut='actif',
+            date_debut=timezone.now() - timezone.timedelta(days=60),
+            date_fin=timezone.now() - timezone.timedelta(days=30),
+        )
+        call_command('expirer_abonnements')
+        abo.refresh_from_db()
+        self.assertEqual(abo.statut, 'expire')
+
+    def test_commande_expirer_abonnements_prepare_renouvellement_payant(self):
+        from django.core.management import call_command
+        abo = Abonnement.objects.create(
+            utilisateur=self.user, plan=self.plan_pro, statut='actif',
+            renouvellement_auto=True,
+            date_debut=timezone.now() - timezone.timedelta(days=60),
+            date_fin=timezone.now() - timezone.timedelta(days=30),
+        )
+        call_command('expirer_abonnements')
+        abo.refresh_from_db()
+        self.assertEqual(abo.statut, 'expire')
+        nouveau = Abonnement.objects.filter(
+            utilisateur=self.user, plan=self.plan_pro, statut='en_attente_paiement',
+        ).exclude(pk=abo.pk).first()
+        self.assertIsNotNone(nouveau, "Un renouvellement en attente aurait du etre cree")
+        self.assertEqual(nouveau.paiements.count(), 1)

@@ -11,6 +11,7 @@ import json
 
 from .models import Document, VersionDocument, CommentaireDocument, CATEGORIES
 from .forms import DocumentForm
+from abonnements.services import limite_atteinte, limite_pour
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -129,6 +130,15 @@ def liste_documents(request):
 
 @login_required
 def upload_document(request):
+    if limite_atteinte(request.user, 'max_documents_mois', Document.objects.filter(proprietaire=request.user)):
+        limite = limite_pour(request.user, 'max_documents_mois')
+        messages.warning(
+            request,
+            f"Vous avez atteint votre limite de {limite} document(s) ce mois-ci. "
+            "Passez à un plan supérieur pour continuer."
+        )
+        return redirect('abonnements:liste_plans')
+
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():

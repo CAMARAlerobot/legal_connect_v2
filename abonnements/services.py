@@ -14,6 +14,7 @@ from .models import Abonnement
 LIMITES_GRATUIT = {
     'max_contrats_mois':         1,
     'max_dossiers_mois':         2,
+    'max_documents_mois':        3,
     'max_messages_chatbot_mois': 20,
 }
 
@@ -43,12 +44,13 @@ def limite_pour(user, champ_limite):
     return LIMITES_GRATUIT.get(champ_limite)
 
 
-def limite_atteinte(user, champ_limite, queryset_utilisateur):
+def limite_atteinte(user, champ_limite, queryset_utilisateur, champ_date='created_at'):
     """
     Verifie si l'utilisateur a atteint sa limite mensuelle pour ce champ.
     `queryset_utilisateur` doit deja etre filtre sur l'utilisateur concerne
     (ex: Contrat.objects.filter(proprietaire=user)) ; ce mois-ci est calcule
-    ici a partir de `created_at`.
+    a partir de `champ_date` (le nom du champ date varie selon les modeles :
+    'created_at' pour Contrat/Dossier/Document, 'cree_le' pour MessageChatbot).
 
     Retourne False (jamais bloque) si la limite est None (illimite).
     """
@@ -56,7 +58,7 @@ def limite_atteinte(user, champ_limite, queryset_utilisateur):
     if limite is None:
         return False
     debut_mois = timezone.now() - timedelta(days=30)
-    return queryset_utilisateur.filter(created_at__gte=debut_mois).count() >= limite
+    return queryset_utilisateur.filter(**{f'{champ_date}__gte': debut_mois}).count() >= limite
 
 
 def mise_en_avant(user):

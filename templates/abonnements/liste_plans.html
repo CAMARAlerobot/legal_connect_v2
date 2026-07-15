@@ -43,6 +43,10 @@
             </li>
             <li>
               <i class="bi bi-check2"></i>
+              Documents : {% if plan.max_documents_mois %}{{ plan.max_documents_mois }}/mois{% else %}illimité{% endif %}
+            </li>
+            <li>
+              <i class="bi bi-check2"></i>
               Chatbot : {% if plan.max_messages_chatbot_mois %}{{ plan.max_messages_chatbot_mois }}/mois{% else %}illimité{% endif %}
             </li>
             {% if plan.mise_en_avant_annuaire %}

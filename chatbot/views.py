@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import ConversationChatbot, MessageChatbot
 from .moteur_ia import appeler_claude
+from abonnements.services import limite_atteinte, limite_pour
 
 
 @login_required
@@ -29,6 +30,18 @@ def ajax_message(request):
 
         if len(message) > 2000:
             return JsonResponse({'erreur': 'Message trop long (max 2000 caractères).'}, status=400)
+
+        messages_du_user = MessageChatbot.objects.filter(
+            conversation__utilisateur=request.user,
+            expediteur=MessageChatbot.Expediteur.UTILISATEUR,
+        )
+        if limite_atteinte(request.user, 'max_messages_chatbot_mois', messages_du_user, champ_date='cree_le'):
+            limite = limite_pour(request.user, 'max_messages_chatbot_mois')
+            return JsonResponse({
+                'erreur': f"Vous avez atteint votre limite de {limite} messages ce mois-ci. "
+                          "Passez à un plan supérieur pour continuer.",
+                'limite_atteinte': True,
+            }, status=403)
 
         # Récupérer ou créer la conversation
         conversation, _ = ConversationChatbot.objects.get_or_create(

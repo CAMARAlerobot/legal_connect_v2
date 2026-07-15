@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 
 from .models import Dossier, Message, Commentaire, STATUTS_DOSSIER, TYPES_DOSSIER
+from abonnements.services import limite_atteinte, limite_pour
 
 
 def get_role(user):
@@ -84,6 +85,15 @@ TAILLE_MAX_OCTETS = 10 * 1024 * 1024  # 10 Mo
 @login_required
 def creer_dossier(request):
     role = get_role(request.user)
+
+    if limite_atteinte(request.user, 'max_dossiers_mois', Dossier.objects.filter(client=request.user)):
+        limite = limite_pour(request.user, 'max_dossiers_mois')
+        messages.warning(
+            request,
+            f"Vous avez atteint votre limite de {limite} dossier(s) ce mois-ci. "
+            "Passez à un plan supérieur pour continuer."
+        )
+        return redirect('abonnements:liste_plans')
 
     if request.method == 'POST':
         titre        = request.POST.get('titre', '').strip()
